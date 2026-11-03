@@ -1,0 +1,5 @@
+User-agent: *
+Allow: /
+Disallow: /liga-mayor-unofficial-datos.xlsx
+
+Sitemap: https://ligamayorunofficial.com/sitemap.xml

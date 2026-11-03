@@ -1,0 +1,36 @@
+name: Actualizar partidos desde Google Sheets
+
+on:
+  schedule:
+    - cron: '*/30 * * * *'   # cada 30 minutos
+  workflow_dispatch:          # botón "Run workflow" para forzarlo a mano
+
+permissions:
+  contents: write
+
+concurrency:
+  group: actualizar
+  cancel-in-progress: false
+
+jobs:
+  generar:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Generar páginas de partidos
+        run: python3 build/generate.py
+      - name: Guardar cambios (solo si la hoja cambió)
+        run: |
+          git config user.name "liga-mayor-bot"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -A site
+          if git diff --cached --quiet; then
+            echo "Sin cambios en la hoja."
+          else
+            git commit -m "Actualiza partidos desde la hoja"
+            git push
+          fi
