@@ -501,7 +501,8 @@ function csv(t){const R=[];let r=[],f='',q=false;for(let i=0;i<t.length;i++){con
 const RN={CF:'Cuartos de final',SF:'Semifinales',F:'Final'};
 function render(){const Q=qualified(),done=GAMES.some(g=>RN[g.r]);
   const qrow=(t,lbl,i)=>`<div class="q">${nb(t.k)}<b>${esc(t.n)}<small>${lbl} · ${esc(t.s)}</small></b><span class="rc">${t.w}-${t.l}</span></div>`;
-  const all=[...Q.lead.map(t=>[t,'1º grupo '+t.g]),...Q.sec.map(t=>[t,'2º grupo '+t.g]),...Q.thirds.map(t=>[t,'Mejor 3º · '+t.g])];
+  let all=[...Q.lead.map(t=>[t,'1º grupo '+t.g]),...Q.sec.map(t=>[t,'2º grupo '+t.g]),...Q.thirds.map(t=>[t,'Mejor 3º · '+t.g])];
+  if(done){const ks=new Set(GAMES.filter(g=>g.r==='CF').flatMap(g=>[g.a,g.h]));if(ks.size>=8){const have=new Set(all.map(([t])=>t.k));all=all.filter(([t])=>ks.has(t.k));ks.forEach(k=>{if(!have.has(k)){const t=tk(k);all.push([t,'Mejor 3º · '+t.g])}})}}
   let h=`<h3>Clasificados a playoffs</h3><p class="sub" style="margin-top:-2px">${done?'Los 8 equipos de los playoffs.':'Proyección con la tabla actual ('+esc(CUT)+'). Pasan los 2 primeros de cada grupo y los 2 mejores terceros. El orden de la llave lo define la ONEFA.'}</p><div class="nq">${all.map(([t,l],i)=>qrow(t,l,i+1)).join('')}</div>`;
   if(done){h+=`<h3>Playoffs</h3>`;['CF','SF','F'].forEach(r=>{const gs=GAMES.filter(g=>g.r===r);if(!gs.length)return;h+=`<h4 class="br-round">${RN[r]}</h4>`+gs.map(g=>{const fin=g.e==='final'&&g.as!==null&&g.hs!==null,aw=fin&&g.as>g.hs,hw=fin&&g.hs>g.as;
     const row=(k,sc,w,l)=>`<div class="r${w?' w':l?' l':''}">${nb(k)}<b>${esc(tk(k).n)}</b><span class="sc">${fin?sc:''}</span></div>`;
