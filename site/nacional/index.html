@@ -469,6 +469,7 @@ tr.q3 td.pos{color:#B8901C;font-weight:800}
 .crumbs a:first-child::before{content:"";display:inline-block;border-top:4px solid transparent;border-bottom:4px solid transparent;border-right:5px solid currentColor;margin-right:7px;vertical-align:1px}
 .crumbs .sep{opacity:.45;font-weight:400}
 .crumbs .cur{color:var(--ink)}
+.br{display:grid;gap:12px}@media (min-width:700px){.br{grid-template-columns:1.2fr 1fr 1fr;align-items:center}}.br-col{min-width:0}.champ{display:flex;align-items:center;gap:10px;background:var(--head);color:var(--head-ink,#fff);border-radius:4px;padding:12px}.champ span{display:block;font-family:var(--display);font-weight:700;font-size:12px;letter-spacing:.1em;text-transform:uppercase;color:#3DBE73}.champ b{font-family:var(--display);font-weight:800;font-size:22px}.br-t .nbi,.br-t .nb{width:28px;height:28px}
 </style>
 <script type="application/ld+json">{"@context": "https://schema.org", "@type": "BreadcrumbList", "itemListElement": [{"@type": "ListItem", "position": 1, "name": "Inicio", "item": "https://ligamayorunofficial.com/"}, {"@type": "ListItem", "position": 2, "name": "Conferencia Nacional", "item": "https://ligamayorunofficial.com/nacional/"}]}</script>
 </head>
@@ -503,20 +504,33 @@ function render(){const Q=qualified(),done=GAMES.some(g=>RN[g.r]);
   const qrow=(t,lbl,i)=>`<div class="q">${nb(t.k)}<b>${esc(t.n)}<small>${lbl} · ${esc(t.s)}</small></b><span class="rc">${t.w}-${t.l}</span></div>`;
   let all=[...Q.lead.map(t=>[t,'1º grupo '+t.g]),...Q.sec.map(t=>[t,'2º grupo '+t.g]),...Q.thirds.map(t=>[t,'Mejor 3º · '+t.g])];
   if(done){const ks=new Set(GAMES.filter(g=>g.r==='CF').flatMap(g=>[g.a,g.h]));if(ks.size>=8){const have=new Set(all.map(([t])=>t.k));all=all.filter(([t])=>ks.has(t.k));ks.forEach(k=>{if(!have.has(k)){const t=tk(k);all.push([t,'Mejor 3º · '+t.g])}})}}
-  let h=`<h3>Clasificados a playoffs</h3><p class="sub" style="margin-top:-2px">${done?'Los 8 equipos de los playoffs.':'Proyección con la tabla actual ('+esc(CUT)+'). Pasan los 2 primeros de cada grupo y los 2 mejores terceros. El orden de la llave lo define la ONEFA.'}</p><div class="nq">${all.map(([t,l],i)=>qrow(t,l,i+1)).join('')}</div>`;
-  if(done){h+=`<h3>Playoffs</h3>`;['CF','SF','F'].forEach(r=>{const gs=GAMES.filter(g=>g.r===r);if(!gs.length)return;h+=`<h4 class="br-round">${RN[r]}</h4>`+gs.map(g=>{const fin=g.e==='final'&&g.as!==null&&g.hs!==null,aw=fin&&g.as>g.hs,hw=fin&&g.hs>g.as;
-    const row=(k,sc,w,l)=>`<div class="r${w?' w':l?' l':''}">${nb(k)}<b>${esc(tk(k).n)}</b><span class="sc">${fin?sc:''}</span></div>`;
-    return`<div class="pg"><div class="h"><span>${RN[r]}</span><span>${fin?'Final':esc(g.d+' '+g.t)}</span></div>${row(g.a,g.as,aw,fin&&!aw)}${row(g.h,g.hs,hw,fin&&!hw)}</div>`}).join('')})}
+  const clas=`<h3>Clasificados a playoffs</h3><p class="sub" style="margin-top:-2px">${done?'Los 8 equipos de los playoffs.':'Proyección con la tabla actual ('+esc(CUT)+'). Pasan los 2 primeros de cada grupo y los 2 mejores terceros. El orden de la llave lo define la ONEFA.'}</p><div class="nq">${all.map(([t,l],i)=>qrow(t,l,i+1)).join('')}</div>`;
+  const seedOf=k=>{const i=all.findIndex(([t])=>t.k===k);return i<0?'':i+1};
+  const isFin=g=>g&&g.e==='final'&&g.as!==null&&g.hs!==null;
+  const mcard=(title,g,ph)=>{if(!g)return`<div class="br-m tbd"><div class="br-h">${title}<span>Por definir</span></div><div class="br-t"><span class="br-s"></span><b>${ph[0]}</b></div><div class="br-t"><span class="br-s"></span><b>${ph[1]}</b></div></div>`;
+    const fin=isFin(g),W=fin?(g.as>g.hs?g.a:g.h):null,[hi,lo]=(seedOf(g.h)||99)<=(seedOf(g.a)||99)?[g.h,g.a]:[g.a,g.h];
+    const sc=k=>fin?(k===g.a?g.as:g.hs):'';
+    const row=k=>`<div class="br-t${W?(W===k?' win':' lose'):''}"><span class="br-s">${seedOf(k)}</span>${nb(k)}<b>${esc(tk(k).n)}</b><span class="br-r">${sc(k)}</span></div>`;
+    return`<div class="br-m"><div class="br-h">${title}<span>${fin?'Final':esc((g.d+' '+(g.t||'')).trim())}</span></div>${row(hi)}${row(lo)}</div>`};
+  const bySeed=r=>GAMES.filter(g=>g.r===r).sort((x,y)=>Math.min(seedOf(x.a)||99,seedOf(x.h)||99)-Math.min(seedOf(y.a)||99,seedOf(y.h)||99));
+  const cf=bySeed('CF'),sf=bySeed('SF'),fi=bySeed('F')[0],champ=isFin(fi)?(fi.as>fi.hs?fi.a:fi.h):null;
+  const brk=()=>`<h3>Llave de playoffs</h3><p class="sub" style="margin-top:-2px">El número es la siembra. En semifinales se vuelve a sembrar: el mejor sembrado que sigue vivo recibe al peor.</p>
+  <div class="br"><div class="br-col"><h4 class="br-round">Cuartos de final</h4>${cf.map((g,i)=>mcard('Juego '+(i+1),g)).join('')}</div>
+  <div class="br-col"><h4 class="br-round">Semifinales</h4>${mcard('Semifinal 1',sf[0],['Por definir','Por definir'])}${mcard('Semifinal 2',sf[1],['Por definir','Por definir'])}</div>
+  <div class="br-col"><h4 class="br-round">Final</h4>${mcard('Final',fi,['Ganador semifinal 1','Ganador semifinal 2'])}${champ?`<div class="champ">${nb(champ)}<div><span>Campeón Conferencia Nacional 2026</span><b>${esc(tk(champ).n)}</b></div></div>`:''}</div></div>`;
+  let h=done?brk():clas,wk='';
   const card=(g,lbl)=>{const fin=g.e==='final'&&g.as!==null&&g.hs!==null,live=/vivo/.test(g.e)&&g.as!==null&&g.hs!==null,aw=fin&&g.as>g.hs,hw=fin&&g.hs>g.as;
     const row=(k,sc,w,l)=>`<div class="r${w?' w':l?' l':''}">${nb(k)}<b>${esc(tk(k).n)}</b><span class="sc">${fin||live?sc:''}</span></div>`;
     return`<div class="pg"><div class="h"><span>${lbl}</span><span>${fin?'Final':live?'<b style="color:var(--live,#e5383b)">En vivo</b>':esc((g.d+' '+g.t).trim())}</span></div>${row(g.a,g.as,aw,fin&&!aw)}${row(g.h,g.hs,hw,fin&&!hw)}</div>`};
   [...new Set(GAMES.filter(g=>/^\d+$/.test(g.r)).map(g=>+g.r))].sort((a,b)=>b-a).forEach(w=>{const gs=GAMES.filter(g=>+g.r===w&&/^\d+$/.test(g.r));
-    h+=`<h3>Juegos · Semana ${w}</h3><div class="pgs">`+gs.map(g=>card(g,'Grupo '+esc(tk(g.h).g||tk(g.a).g||''))).join('')+`</div>`});
+    wk+=`<h3>Juegos · Semana ${w}</h3><div class="pgs">`+gs.map(g=>card(g,'Grupo '+esc(tk(g.h).g||tk(g.a).g||''))).join('')+`</div>`});
   const inQ=new Set(all.map(([t])=>t.k)),t3=new Set(Q.thirds.map(t=>t.k));
+  if(!done)h+=wk;
   h+=`<h3>Tabla por grupo</h3><p class="sub" style="margin-top:-2px">Corte: ${esc(CUT)} · Tablas: <a href="https://www.instagram.com/statistics_football_mx/" target="_blank" rel="noopener">@statistics_football_mx</a></p>`;
   GR.forEach(g=>{h+=`<div class="grp-h"><h4 class="br-round">Grupo ${g}</h4></div><div class="tbl-box" style="margin-bottom:12px"><table><thead><tr><th>#</th><th>Equipo</th><th>G-P</th><th>PF</th><th>PC</th><th></th></tr></thead><tbody>${Q.by[g].map((t,i)=>`<tr class="${i<2?'q1':t3.has(t.k)?'q3':''}"><td class="pos">${i+1}</td><td class="team"><div class="tname">${nb(t.k)}<span>${esc(t.n)}</span></div></td><td class="rec">${t.w}-${t.l}</td><td>${t.pf}</td><td>${t.pa}</td><td>${inQ.has(t.k)?`<span class="tag-q ${i<2?'in':'t3'}">${i<2?'Playoffs':'Mejor 3º'}</span>`:''}</td></tr>`).join('')}</tbody></table></div>`});
   const H=LEAD[0].map(nm),ix=n=>H.indexOf(nm(n));const cut=LEAD.find(r=>nm(r[0])==='corte');
   const CAT=[['QB','Pasadores','YDS','yds'],['RB','Corredores','YDS','yds'],['WR','Receptores','YDS','yds'],['YM','Yardas mezcladas','YDS','yds'],['PT','Anotadores','PTS','pts'],['TK','Tackleadores','TACK','tackles'],['IN','Intercepciones','INT','INT'],['SK','Sacks','SACK','sacks'],['FG','Goles de campo','FG','FG']];
+  if(done)h+=wk;
   h+=`<h3>Líderes</h3><p class="sub" style="margin-top:-2px">Corte: ${esc(cut?cut[2]:CUT)} · Estadísticas de Uriel González (FBA Stats)</p><div class="stars">`+CAT.map(([c,t,f,u])=>{const rs=LEAD.filter(r=>r[0]===c);if(!rs.length)return'';
     return`<div class="card" style="margin:0"><h4 class="br-round" style="margin-top:0">${t}</h4>${rs.map((r,i)=>`<div style="display:flex;align-items:center;gap:8px;padding:5px 0;border-top:${i?'1px solid var(--line)':'0'}">${nb(r[3])}<div style="flex:1;min-width:0;line-height:1.2"><b style="font-weight:${i?500:700}">${esc(r[2])}</b><div class="loc">#${esc(r[4])} · ${esc(tk(r[3]).n)}</div></div><b class="num" style="font-family:var(--display);font-weight:800;font-size:18px">${Number(r[ix(f)]||0).toLocaleString('es-MX')}</b></div>`).join('')}</div>`}).join('')+`</div>`;
   document.getElementById('nac').innerHTML=h;
