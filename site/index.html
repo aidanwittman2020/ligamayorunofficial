@@ -1108,7 +1108,7 @@ function recalc(){
   setTimeout(()=>{simSC=Object.keys(picks).length?scenarios(picks):BASE_SC;if(tab==='playoffs'){const y=window.scrollY;render();window.scrollTo(0,y)}},20);
 }
 
-document.querySelector('nav.tabs').addEventListener('click',e=>{const b=e.target.closest('button');if(!b)return;tab=b.dataset.tab;try{history.replaceState(null,'','#'+tab)}catch(_){}window.scrollTo(0,0);if(tab==='playoffs'&&!simSC)recalc();else render()});
+document.querySelector('nav.tabs').addEventListener('click',e=>{const b=e.target.closest('button');if(!b)return;autoTab=false;tab=b.dataset.tab;try{history.replaceState(null,'','#'+tab)}catch(_){}window.scrollTo(0,0);if(tab==='playoffs'&&!simSC)recalc();else render()});
 app.addEventListener('click',e=>{
   if(e.target.closest('a'))return;
   const gd=e.target.closest('[data-game]');if(gd){openGame(gd.dataset.game);return}
@@ -1148,6 +1148,7 @@ async function loadSheet(){
     PO_GAMES=list.filter(g=>PO_W.includes(g.w));
     GAMES.splice(0,GAMES.length,...list.filter(g=>!PO_W.includes(g.w)));
     BASE_SC=scenarios({});simSC=Object.keys(picks).length?scenarios(picks):BASE_SC;
+    if(autoTab){autoTab=false;if(GAMES.length&&GAMES.every(g=>isPlayed(g))&&tab==='tabla')tab='playoffs'}
     const y=window.scrollY;render();window.scrollTo(0,y);
     const nl=GAMES.filter(g=>g.live).length;
     document.getElementById('upd').innerHTML=nl?`<span class="live">● ${nl} en vivo</span>`:'Act. '+new Date().toLocaleTimeString('es-MX',{hour:'2-digit',minute:'2-digit'});
@@ -1180,7 +1181,7 @@ async function loadCanales(){try{const res=await fetch(CANALES_CSV_URL+'&t='+Dat
   if(Object.keys(m).length){CAN=m;const y=window.scrollY;render();window.scrollTo(0,y)}}catch(e){}}
 loadSheet();loadLeaders();loadCanales();loadAnot();loadConfig();loadTeamStats();loadStars();setInterval(()=>{loadSheet();loadLeaders();loadCanales();loadAnot();loadConfig();loadTeamStats();loadStars()},60000);
 
-const h0=(location.hash||'').slice(1);if(['tabla','juegos','equipos','stats','playoffs','info'].includes(h0))tab=h0;
+const h0=(location.hash||'').slice(1);let autoTab=true;if(['tabla','juegos','equipos','stats','playoffs','info'].includes(h0)){tab=h0;autoTab=false}
 simSC=Object.keys(picks).length?null:BASE_SC;
 if(tab==='playoffs'&&!simSC)recalc();else render();
 </script>
