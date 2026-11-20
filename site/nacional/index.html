@@ -581,7 +581,7 @@ function openTeam(k){const t=tk(k);if(!t||!t.n)return;const Q=qualified(),pos=(Q
   <div class="wrap" style="padding-bottom:40px">${teamInfo(k)}
   ${teamStatsBlock(k)}<h3>Historia</h3><div class="card">${TIT[k]?TIT[k].map(([c,y])=>`<p style="margin:0 0 4px"><b>${c}:</b> ${y}</p>`).join(''):'<p style="margin:0 0 4px">Todavía no gana un campeonato de Liga Mayor.</p>'}<p style="margin:6px 0 0"><a href="/historia/#nacional">Todos los campeones de la Nacional →</a></p></div><h3>Resultados</h3><div class="list">${gs.filter(gFin).map(line).join('')||'<p class="sub">Sin resultados capturados.</p>'}</div>
   ${gs.some(g=>!gFin(g))?`<h3>Próximos juegos</h3><div class="list">${gs.filter(g=>!gFin(g)).map(line).join('')}</div>`:''}
-  <p class="credit">Cuerpo técnico y estadio: BN Sports RedZone. Capacidad aproximada: Wikipedia y datos de cada escuela.</p></div>`;
+  <p class="credit">Capacidad aproximada: Wikipedia y datos de cada escuela.</p></div>`;
   sh.hidden=false;sh.scrollTop=0;document.getElementById('close').onclick=()=>{sh.hidden=true};sh.querySelector('[data-fav]').onclick=e=>{const b=e.currentTarget;setFav(b.dataset.fav);const on=FAV===b.dataset.fav;b.classList.toggle('on',on);b.textContent=on?'★ Mi equipo':'☆ Marcar como mi equipo';render()}}
 let FAV=null;try{FAV=localStorage.getItem('lmu-fav-nac')||null}catch(e){}
 function setFav(k){FAV=FAV===k?null:k;try{FAV?localStorage.setItem('lmu-fav-nac',FAV):localStorage.removeItem('lmu-fav-nac')}catch(e){}}
@@ -682,7 +682,7 @@ function render(){const Q=qualified(),done=GAMES.some(g=>RN[g.r]);
   }else if(tab==='equipos'){
     h=`<h2>Equipos</h2><p class="sub">Conferencia Nacional · 18 equipos en tres grupos. Toca un equipo para ver sus resultados.</p>`;
     GR.forEach(g=>{h+=`<h4 class="br-round">Grupo ${g}</h4><div class="teamgrid" style="margin-bottom:12px">`+Q.by[g].map(t=>{const S=STAFF[t.k];return`<button class="tcard" data-team="${t.k}">${nb(t.k)}<b>${t.k===FAV?'★ ':''}${esc(t.n)}</b><span class="rec num">${t.w}-${t.l}</span><span class="meta2">${S?esc(S[1].replace(/,.*$/,''))+' · HC '+esc(S[0]):esc(t.s)}</span></button>`}).join('')+`</div>`});
-    h+=`<p class="credit">Cuerpos técnicos y estadios: <a href="https://ligamayor.bnsports.com.mx/" target="_blank" rel="noopener">BN Sports RedZone</a>.</p>`;
+    
   }else if(tab==='stats'){
     const H=LEAD[0].map(nm),ix=n=>H.indexOf(nm(n)),cut=LEAD.find(r=>nm(r[0])==='corte'),num=x=>{const v=String(x||'').replace(/[,\s]/g,'');return v===''||isNaN(+v)?0:+v};
     const LC={QB:['qb','Top 5 QBs','Pase',['YDS','TD']],WR:['wr','Top 5 receptores','Recepción',['YDS','REC','TD']],RB:['rb','Top 5 corredores','Acarreo',['YDS','TD']],YM:['ap','Top 5 yardas mezcladas','Totales',['YDS']],PT:['pt','Top 5 anotadores','Puntos',['PTS']],TK:['tk','Top 5 tackleadores','Defensa',['TACK']],IN:['in','Top 3 intercepciones','Defensa',['INT']],SK:['sk','Top 3 sacks','Defensa',['SACK']],FG:['fg','Top 3 pateadores','Goles de campo',['FG','PTS']]};
