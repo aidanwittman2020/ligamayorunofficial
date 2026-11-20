@@ -454,6 +454,18 @@ h4.br-round{font-family:var(--display);font-weight:800;font-size:15px;letter-spa
 header.top .in{flex-wrap:wrap;row-gap:6px}
 #upd{margin-left:auto}
 @media (max-width:520px){#upd:not(:has(.live)){display:none}#upd{font-size:11px}}
+.poll{grid-column:1/-1;border-top:1px dashed var(--line);margin-top:6px;padding-top:8px;display:grid;gap:6px;cursor:default}
+.poll[hidden]{display:none}
+.poll-q{font-family:var(--display);font-weight:800;font-size:12px;letter-spacing:.06em;text-transform:uppercase;color:var(--muted)}
+.poll-b{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.poll-b button{font:inherit;font-weight:700;font-size:13px;border:1px solid var(--line);background:var(--bg);color:var(--ink);border-radius:4px;padding:9px 6px;cursor:pointer}
+.poll-b button:hover{border-color:var(--accent);color:var(--accent)}
+.poll-r{display:flex;justify-content:space-between;gap:8px;font-size:13px;font-weight:600}.poll-r b{font-family:var(--display);font-weight:800;font-size:17px}
+.poll-bar{display:flex;height:8px;border-radius:4px;overflow:hidden;background:var(--line)}.poll-bar i{display:block;background:var(--accent)}.poll-bar i+i{background:color-mix(in srgb,var(--muted) 55%,transparent)}
+.poll-n{font-size:12px;color:var(--muted)}
+.cform{display:grid;gap:10px}.cform label{display:grid;gap:4px;font-size:13px;font-weight:600}.cform small{font-weight:400;color:var(--muted)}
+.cform input,.cform select,.cform textarea{font:inherit;font-weight:400;font-size:15px;border:1px solid var(--line);background:var(--bg);color:var(--ink);border-radius:4px;padding:9px 10px;width:100%;box-sizing:border-box}
+.cform textarea{resize:vertical}.cf-send{width:100%;border:0;border-radius:4px;background:var(--accent);color:#fff;font-family:var(--display);font-weight:800;font-size:16px;letter-spacing:.06em;text-transform:uppercase;padding:12px;cursor:pointer}.cf-send:disabled{opacity:.6}.cf-ok{color:var(--good,#1a7f37);font-weight:700;margin:4px 0 0}
 </style>
 </head>
 <body>
@@ -667,7 +679,7 @@ function gameCard(g){
   const tvl=W.tv?`<div class="tv"><span class="tvl">${lv?'En vivo por':'Dónde ver'}</span><span class="tvn">${W.tv}</span>${W.lk?`<a class="tvb${lv?' live':''}" href="${W.lk}" target="_blank" rel="noopener">${lv?'Ver en vivo ▶':'Ir ▶'}</a>`:''}</div>`:'';
   const fv=FAV&&(g.a===FAV||g.h===FAV)?' fav':'';
   return`<div class="game${fv}" data-game="${g.id}" role="button" tabindex="0"><div class="meta"><span>${g.w==='P'?'Pendiente de la S5':wkLong(g.w)} · ${g.d}</span><span>${lv?`<span class="live">● En vivo${g.det?' · '+g.det:''}</span>`:p?'Final':g.t+' h'}</span></div>
-  ${side(g.a,g.as,aw,isPlayed(g)&&!aw,'Visita')}${side(g.h,g.hs,hw,isPlayed(g)&&!hw,'Local')}${tvl}<span class="gdet">${p?(playsOf(g).length?'Ver anotaciones ›':'Ver partido ›'):'Ver partido ›'}</span></div>`;
+  ${side(g.a,g.as,aw,isPlayed(g)&&!aw,'Visita')}${side(g.h,g.hs,hw,isPlayed(g)&&!hw,'Local')}${tvl}${lv?'':pollHTML('G-'+g.w+'-'+g.a+'-'+g.h,g.a,g.h,!isPlayed(g))}<span class="gdet">${p?(playsOf(g).length?'Ver anotaciones ›':'Ver partido ›'):'Ver partido ›'}</span></div>`;
 }
 
 function byesOf(w){
@@ -735,7 +747,7 @@ function viewInfo(){
   const grp=g=>KEYS.filter(k=>TEAMS[k].g===g).map(k=>`<li>${TEAMS[k].n}</li>`).join('');
   return`<h2>Acerca de</h2><p class="sub">Un sitio hecho por aficionados para seguir la Liga Mayor</p>
   <div class="card"><p><b>Sitio no oficial.</b> Liga Mayor Unofficial no está afiliado ni avalado por la ONEFA ni por ninguna universidad. Los nombres de equipos se usan solo para identificarlos.</p></div>
-  <div class="card"><h3 style="margin-top:0">Historia de la Liga Mayor</h3><p>Todos los campeones desde 1930, la separación entre la ONEFA y la CONADEIP y el regreso de los Borregos.</p><p><a href="https://ligamayorunofficial.com/historia/">Ver la historia completa →</a></p></div>
+  ${CMT_HTML}<div class="card"><h3 style="margin-top:0">Historia de la Liga Mayor</h3><p>Todos los campeones desde 1930, la separación entre la ONEFA y la CONADEIP y el regreso de los Borregos.</p><p><a href="https://ligamayorunofficial.com/historia/">Ver la historia completa →</a></p></div>
   <div class="card"><h3 style="margin-top:0">Formato 2026</h3>
   <p>14 equipos en la Conferencia de los 14 Grandes, divididos en dos grupos según su lugar en 2025. Cada equipo juega 9 partidos en 10 semanas: 6 contra su grupo y 3 cruzados.</p>
   <p>Los 8 mejores de la tabla general avanzan a cuartos de final (1 vs 8, 2 vs 7, 3 vs 6, 4 vs 5). El último lugar desciende a la Conferencia Nacional.</p>
@@ -894,7 +906,7 @@ function openGame(id,keep){
   sh.innerHTML=`<div class="sheet-head"><div class="in"><button class="back" id="close">← Volver</button>
     ${lv?`<div class="gh-live"><i></i><span>En vivo${g.det?' · '+escH(g.det):''}</span></div>`:''}<div class="gmeta">${wkLong(g.w)} · ${g.d} · ${lv?g.t+' h':fin?'Final':g.t+' h'}</div>
     <div class="gh-teams">${tr(g.a,sa,fin&&g.as<g.hs,'Visita')}${tr(g.h,shs,fin&&g.hs<g.as,'Local')}</div></div></div>
-    <div class="wrap" style="padding-bottom:40px"><button class="btn sharebtn" data-share-game="${g.id}">${played?'Compartir resultado':'Compartir partido'}</button>${lv?watchBlock(g):''}${played?gameDetail(g):gamePreview(g)}${fin?watchBlock(g):''}<p class="sub" style="margin-top:14px"><a href="${gamePath(g)}">Página del partido →</a></p></div>`;
+    <div class="wrap" style="padding-bottom:40px"><button class="btn sharebtn" data-share-game="${g.id}">${played?'Compartir resultado':'Compartir partido'}</button>${lv?'':`<div class="card" style="margin-top:12px">${pollHTML('G-'+g.w+'-'+g.a+'-'+g.h,g.a,g.h,!fin)}</div>`}${lv?watchBlock(g):''}${played?gameDetail(g):gamePreview(g)}${fin?watchBlock(g):''}<p class="sub" style="margin-top:14px"><a href="${gamePath(g)}">Página del partido →</a></p></div>`;
   sh.hidden=false;sh.scrollTop=y;
   document.getElementById('close').onclick=()=>{sh.hidden=true;currentGame=null};
   if(!keep){try{gtag('event','ver_partido',{partido:g.a+'-'+g.h,semana:g.w})}catch(e){}}
@@ -1227,6 +1239,40 @@ document.querySelectorAll('.topnav a').forEach(a=>a.addEventListener('click',e=>
   document.getElementById('inst-x').onclick=()=>{box.hidden=true;st.x=Date.now();try{localStorage.setItem(KEY,JSON.stringify(st))}catch(e){}};
   addEventListener('appinstalled',()=>{box.hidden=true;try{gtag('event','app_installed')}catch(e){}});
 })();
+
+const PNAME=k=>TEAMS[k]?TEAMS[k].n:k;
+// ===== ¿Quién crees que gana? + comentarios (Google Forms) =====
+const VOTE_POST='https://docs.google.com/forms/d/1kA7h-L9z0Lgt-Fkn5NOM3oef0m5Hq4NjxcTR78WUbmk/formResponse',VOTE_E=['entry.276666447','entry.1627804977'];
+const VOTES_CSV='https://docs.google.com/spreadsheets/d/e/2PACX-1vQNVclYf7g5WHDSejO-E_1xVXBF-KC__RWAbeSLafpfFK-5fxjCE2JegKDDBVnqalEEV97cBnF1PMzU/pub?gid=931332467&single=true&output=csv';
+const CMT_POST='https://docs.google.com/forms/d/e/1FAIpQLSd11nrsvIp35EkxxWk5X6vFYmnvsgFvLHU2iaB7ZTXnxWKbTA/formResponse',CMT_URL='https://docs.google.com/forms/d/e/1FAIpQLSd11nrsvIp35EkxxWk5X6vFYmnvsgFvLHU2iaB7ZTXnxWKbTA/viewform';
+let VOTES={},MYV={};try{MYV=JSON.parse(localStorage.getItem('lmu-votes')||'{}')}catch(e){}
+const pEsc=x=>String(x??'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+function pCSV(t){return t.split(/\r?\n/).filter(l=>l.trim()).map(l=>{const o=[];let f='',q=false;for(let i=0;i<l.length;i++){const c=l[i];if(q){if(c=='"'){if(l[i+1]=='"'){f+='"';i++}else q=false}else f+=c}else if(c=='"')q=true;else if(c==','){o.push(f);f=''}else f+=c}o.push(f);return o})}
+function loadVotes(){return fetch(VOTES_CSV+'&t='+Date.now(),{cache:'no-store'}).then(r=>r.ok?r.text():'').then(t=>{if(!t)return;const R=pCSV(t);R.shift();const m={};R.forEach(r=>{const id=(r[0]||'').trim(),k=(r[1]||'').trim(),n=+r[2]||0;if(id&&k)(m[id]=m[id]||{})[k]=n});
+  Object.keys(MYV).forEach(id=>{const k=MYV[id];if(k&&!(m[id]&&m[id][k]))(m[id]=m[id]||{})[k]=1});VOTES=m;refreshPolls()}).catch(()=>{})}
+function pollHTML(id,a,h,open){const v=VOTES[id]||{},na=v[a]||0,nh=v[h]||0,T=na+nh,my=MYV[id],at=`data-poll="${pEsc(id)}" data-a="${a}" data-h="${h}" data-open="${open?1:0}"`;
+  if(open&&!my)return`<div class="poll" ${at}><span class="poll-q">¿Quién crees que gana?</span><div class="poll-b"><button type="button" data-vote="${a}">${pEsc(PNAME(a))}</button><button type="button" data-vote="${h}">${pEsc(PNAME(h))}</button></div>${T?`<span class="poll-n">${T} ${T===1?'voto':'votos'} hasta ahora · vota para ver el resultado</span>`:''}</div>`;
+  if(!T)return`<div class="poll" ${at} hidden></div>`;
+  const pa=Math.round(na/T*100),ph=100-pa;
+  return`<div class="poll" ${at}><span class="poll-q">${open?'¿Quién crees que gana?':'Así votó la afición'}</span><div class="poll-r"><span>${pEsc(PNAME(a))} <b>${pa}%</b></span><span><b>${ph}%</b> ${pEsc(PNAME(h))}</span></div><div class="poll-bar"><i style="width:${pa}%"></i><i style="width:${ph}%"></i></div><span class="poll-n">${T} ${T===1?'voto':'votos'}${my?' · tu voto: '+pEsc(PNAME(my)):''}</span></div>`}
+function refreshPolls(){document.querySelectorAll('[data-poll]').forEach(el=>{const t=document.createElement('div');t.innerHTML=pollHTML(el.dataset.poll,el.dataset.a,el.dataset.h,el.dataset.open==='1');el.replaceWith(t.firstElementChild)})}
+function vote(id,k){if(!id||!k||MYV[id])return;MYV[id]=k;try{localStorage.setItem('lmu-votes',JSON.stringify(MYV))}catch(e){}
+  (VOTES[id]=VOTES[id]||{})[k]=(VOTES[id][k]||0)+1;refreshPolls();
+  try{fetch(VOTE_POST,{method:'POST',mode:'no-cors',body:new URLSearchParams({[VOTE_E[0]]:id,[VOTE_E[1]]:k})}).catch(()=>{})}catch(e){}
+  try{gtag('event','votar',{partido:id,equipo:k})}catch(e){}}
+document.addEventListener('click',e=>{const b=e.target.closest('[data-vote]');if(!b)return;e.stopPropagation();e.preventDefault();const p=b.closest('[data-poll]');if(p)vote(p.dataset.poll,b.dataset.vote)},true);
+const CMT_HTML=`<div class="card" id="contacto"><h3 style="margin-top:0">Comentarios, dudas y datos</h3><p>¿Viste un error, tienes un dato o una sugerencia para el sitio? Escríbenos, lo leemos todo.</p>
+<form class="cform" data-cform><label>Tipo<select name="tipo"><option>Comentario</option><option>Duda</option><option>Dato o corrección</option><option>Sugerencia</option></select></label>
+<label>Mensaje<textarea name="msg" required rows="4" maxlength="2000"></textarea></label>
+<label><span>Nombre <small>(opcional)</small></span><input name="nom" maxlength="80" autocomplete="name"></label>
+<label><span>Correo o Instagram para responderte <small>(opcional)</small></span><input name="con" maxlength="120"></label>
+<button class="cf-send" type="submit">Enviar</button><p class="cf-ok" hidden>¡Gracias! Lo recibimos.</p><p class="poll-n" style="margin:8px 0 0">¿No se envía? <a href="${CMT_URL}" target="_blank" rel="noopener">Abre el formulario aquí</a>.</p></form></div>`;
+document.addEventListener('submit',e=>{const f=e.target.closest('[data-cform]');if(!f)return;e.preventDefault();const d=new FormData(f),msg=(d.get('msg')||'').trim();if(!msg)return;
+  const btn=f.querySelector('.cf-send');btn.disabled=true;btn.textContent='Enviando…';
+  const body=new URLSearchParams({'entry.645597009':d.get('nom')||'','entry.773639938':d.get('con')||'','entry.1850832842':d.get('tipo')||'Comentario','entry.22350162':msg+'\n\n[Página: '+location.pathname+location.hash+']'});
+  fetch(CMT_POST,{method:'POST',mode:'no-cors',body}).then(()=>{f.reset();f.querySelector('.cf-ok').hidden=false;btn.textContent='Enviar otro';btn.disabled=false;try{gtag('event','comentario',{tipo:d.get('tipo')})}catch(e){}})
+  .catch(()=>{btn.disabled=false;btn.textContent='Enviar';alert('No se pudo enviar. Usa el enlace al formulario.')})});
+loadVotes();setInterval(loadVotes,60000);
 </script>
 <script>if("serviceWorker" in navigator)addEventListener("load",()=>navigator.serviceWorker.register("/sw.js").catch(()=>{}));</script>
 </body>

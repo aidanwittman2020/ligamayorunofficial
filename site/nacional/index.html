@@ -471,6 +471,18 @@ tr.q3 td.pos{color:#B8901C;font-weight:800}
 .crumbs .cur{color:var(--ink)}
 .br{display:grid;gap:12px}@media (min-width:700px){.br{grid-template-columns:1.2fr 1fr 1fr;align-items:center}}.br-col{min-width:0}.champ{display:flex;align-items:center;gap:10px;background:var(--head);color:var(--head-ink,#fff);border-radius:4px;padding:12px}.champ span{display:block;font-family:var(--display);font-weight:700;font-size:12px;letter-spacing:.1em;text-transform:uppercase;color:#3DBE73}.champ b{font-family:var(--display);font-weight:800;font-size:22px}.br-t .nbi,.br-t .nb{width:28px;height:28px}
 .nteams{display:grid;gap:8px;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));margin-bottom:12px}.nteam{margin:0}.nt-h{display:flex;align-items:center;gap:10px}.nt-h div{flex:1;min-width:0}.nt-h b{display:block;font-weight:700}.nt-h small{color:var(--muted);font-size:12px}.nt-h .rc{font-family:var(--display);font-weight:800;font-size:22px}.nt-f{display:flex;gap:12px;font-family:var(--display);font-size:12px;letter-spacing:.05em;text-transform:uppercase;color:var(--muted);margin:8px 0 4px}.nt-g{border-top:1px solid var(--line);margin-top:6px;padding-top:4px;font-size:13px}.nt-g div{display:grid;grid-template-columns:auto 1fr auto;gap:8px;padding:3px 0}.nt-g span:first-child{color:var(--muted)}.nt-s{display:flex;flex-direction:column;gap:2px;margin-top:8px;font-size:13px}.nt-s i{font-style:normal;font-family:var(--display);font-weight:800;font-size:11px;color:var(--muted);display:inline-block;min-width:20px}.res-g{color:var(--good,#1a7f37)}.res-p{color:var(--bad,#c62828)}
+.poll{grid-column:1/-1;border-top:1px dashed var(--line);margin-top:6px;padding-top:8px;display:grid;gap:6px;cursor:default}
+.poll[hidden]{display:none}
+.poll-q{font-family:var(--display);font-weight:800;font-size:12px;letter-spacing:.06em;text-transform:uppercase;color:var(--muted)}
+.poll-b{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.poll-b button{font:inherit;font-weight:700;font-size:13px;border:1px solid var(--line);background:var(--bg);color:var(--ink);border-radius:4px;padding:9px 6px;cursor:pointer}
+.poll-b button:hover{border-color:var(--accent);color:var(--accent)}
+.poll-r{display:flex;justify-content:space-between;gap:8px;font-size:13px;font-weight:600}.poll-r b{font-family:var(--display);font-weight:800;font-size:17px}
+.poll-bar{display:flex;height:8px;border-radius:4px;overflow:hidden;background:var(--line)}.poll-bar i{display:block;background:var(--accent)}.poll-bar i+i{background:color-mix(in srgb,var(--muted) 55%,transparent)}
+.poll-n{font-size:12px;color:var(--muted)}
+.cform{display:grid;gap:10px}.cform label{display:grid;gap:4px;font-size:13px;font-weight:600}.cform small{font-weight:400;color:var(--muted)}
+.cform input,.cform select,.cform textarea{font:inherit;font-weight:400;font-size:15px;border:1px solid var(--line);background:var(--bg);color:var(--ink);border-radius:4px;padding:9px 10px;width:100%;box-sizing:border-box}
+.cform textarea{resize:vertical}.cf-send{width:100%;border:0;border-radius:4px;background:var(--accent);color:#fff;font-family:var(--display);font-weight:800;font-size:16px;letter-spacing:.06em;text-transform:uppercase;padding:12px;cursor:pointer}.cf-send:disabled{opacity:.6}.cf-ok{color:var(--good,#1a7f37);font-weight:700;margin:4px 0 0}
 </style>
 <script type="application/ld+json">{"@context": "https://schema.org", "@type": "BreadcrumbList", "itemListElement": [{"@type": "ListItem", "position": 1, "name": "Inicio", "item": "https://ligamayorunofficial.com/"}, {"@type": "ListItem", "position": 2, "name": "Conferencia Nacional", "item": "https://ligamayorunofficial.com/nacional/"}]}</script>
 </head>
@@ -540,7 +552,7 @@ function defWeek(rs){for(const r of rs)if(GAMES.some(g=>g.r===r&&!gFin(g)))retur
 function gcard(g){const fin=gFin(g),live=/vivo/.test(g.e)&&g.as!==null&&g.hs!==null,p=fin||live,aw=fin&&g.as>g.hs,hw=fin&&g.hs>g.as;
   const side=(k,sc,lose,lbl)=>`<div class="side ${lose?'lose':''}" data-team="${k}">${nb(k)}<div class="nm">${esc(tk(k).n)}<div class="loc">${lbl}</div></div></div><div class="score ${lose?'lose':''} num">${p?sc:''}</div>`;
   const gr=RN[g.r]?'':(tk(g.h).g===tk(g.a).g?' · Grupo '+esc(tk(g.h).g):'');
-  return`<div class="game${FAV&&(g.a===FAV||g.h===FAV)?' fav':''}"><div class="meta"><span>${wkLng(g.r)}${g.d?' · '+esc(g.d):''}</span><span>${live?'<span class="live">● En vivo</span>':fin?'Final':g.t?esc(hr(g.t))+' h':'Por definir'}</span></div>${side(g.a,g.as,fin&&!aw,'Visita'+gr)}${side(g.h,g.hs,fin&&!hw,'Local'+gr)}</div>`}
+  return`<div class="game${FAV&&(g.a===FAV||g.h===FAV)?' fav':''}"><div class="meta"><span>${wkLng(g.r)}${g.d?' · '+esc(g.d):''}</span><span>${live?'<span class="live">● En vivo</span>':fin?'Final':g.t?esc(hr(g.t))+' h':'Por definir'}</span></div>${side(g.a,g.as,fin&&!aw,'Visita'+gr)}${side(g.h,g.hs,fin&&!hw,'Local'+gr)}${live?'':pollHTML('N-'+g.r+'-'+g.a+'-'+g.h,g.a,g.h,!fin)}</div>`}
 function openTeam(k){const t=tk(k);if(!t||!t.n)return;const Q=qualified(),pos=(Q.by[t.g]||[]).findIndex(x=>x.k===k)+1,S=STAFF[k],d=t.pf-t.pa;
   const gs=GAMES.filter(g=>g.a===k||g.h===k).sort((x,y)=>{const o=r=>/^\d+$/.test(r)?+r:{CF:20,SF:21,F:22}[r];return o(x.r)-o(y.r)});
   const line=g=>{const home=g.h===k,op=home?g.a:g.h,pre=home?'vs':'en';if(gFin(g)){const my=home?g.hs:g.as,ot=home?g.as:g.hs,W=my>ot?'G':'P';return`<div class="li"><span class="wk">${RN[g.r]?g.r:'S'+g.r}</span>${pre} ${nb(op)}<span>${esc(tk(op).n)}</span><span class="res ${W}">${W} ${my}-${ot}</span></div>`}
@@ -668,7 +680,7 @@ function render(){const Q=qualified(),done=GAMES.some(g=>RN[g.r]);
   }else{
     h=`<h2>Conferencia Nacional</h2><div class="card"><p>La Conferencia Nacional es la segunda división de la Liga Mayor de la ONEFA. En 2026 la juegan 18 equipos divididos en tres grupos: Centro, Bajío y Norte.</p>
     <p>Pasan a playoffs los 2 primeros de cada grupo y los 2 mejores terceros (8 equipos). Los cuartos de final se juegan en casa del mejor sembrado, y en semifinales se vuelve a sembrar. El campeón gana el ascenso a los 14 Grandes.</p></div>
-    <p class="sub">Tablas de posiciones: <a href="https://www.instagram.com/statistics_football_mx/" target="_blank" rel="noopener">@statistics_football_mx</a>. Estadísticas individuales: Uriel González (FBA Stats). Sitio no oficial hecho por aficionados.</p>`;
+    ${CMT_HTML}<p class="sub">Tablas de posiciones: <a href="https://www.instagram.com/statistics_football_mx/" target="_blank" rel="noopener">@statistics_football_mx</a>. Estadísticas individuales: Uriel González (FBA Stats). Sitio no oficial hecho por aficionados.</p>`;
   }
   document.getElementById('nac').innerHTML=h;
   renderTicker();
@@ -695,6 +707,40 @@ function loadNac(){return Promise.all([1541467341,910175980,1049818250,172049531
   if(autoTab&&GAMES.some(g=>RN[g.r]))tab='playoffs';autoTab=false;LOADED=true;
   const y=window.scrollY;render();window.scrollTo(0,y)})}
 loadNac().then(()=>setTimeout(loadNac,1500));setInterval(loadNac,60000);
+
+const PNAME=k=>tk(k).n;
+// ===== ¿Quién crees que gana? + comentarios (Google Forms) =====
+const VOTE_POST='https://docs.google.com/forms/d/1kA7h-L9z0Lgt-Fkn5NOM3oef0m5Hq4NjxcTR78WUbmk/formResponse',VOTE_E=['entry.276666447','entry.1627804977'];
+const VOTES_CSV='https://docs.google.com/spreadsheets/d/e/2PACX-1vQNVclYf7g5WHDSejO-E_1xVXBF-KC__RWAbeSLafpfFK-5fxjCE2JegKDDBVnqalEEV97cBnF1PMzU/pub?gid=931332467&single=true&output=csv';
+const CMT_POST='https://docs.google.com/forms/d/e/1FAIpQLSd11nrsvIp35EkxxWk5X6vFYmnvsgFvLHU2iaB7ZTXnxWKbTA/formResponse',CMT_URL='https://docs.google.com/forms/d/e/1FAIpQLSd11nrsvIp35EkxxWk5X6vFYmnvsgFvLHU2iaB7ZTXnxWKbTA/viewform';
+let VOTES={},MYV={};try{MYV=JSON.parse(localStorage.getItem('lmu-votes')||'{}')}catch(e){}
+const pEsc=x=>String(x??'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+function pCSV(t){return t.split(/\r?\n/).filter(l=>l.trim()).map(l=>{const o=[];let f='',q=false;for(let i=0;i<l.length;i++){const c=l[i];if(q){if(c=='"'){if(l[i+1]=='"'){f+='"';i++}else q=false}else f+=c}else if(c=='"')q=true;else if(c==','){o.push(f);f=''}else f+=c}o.push(f);return o})}
+function loadVotes(){return fetch(VOTES_CSV+'&t='+Date.now(),{cache:'no-store'}).then(r=>r.ok?r.text():'').then(t=>{if(!t)return;const R=pCSV(t);R.shift();const m={};R.forEach(r=>{const id=(r[0]||'').trim(),k=(r[1]||'').trim(),n=+r[2]||0;if(id&&k)(m[id]=m[id]||{})[k]=n});
+  Object.keys(MYV).forEach(id=>{const k=MYV[id];if(k&&!(m[id]&&m[id][k]))(m[id]=m[id]||{})[k]=1});VOTES=m;refreshPolls()}).catch(()=>{})}
+function pollHTML(id,a,h,open){const v=VOTES[id]||{},na=v[a]||0,nh=v[h]||0,T=na+nh,my=MYV[id],at=`data-poll="${pEsc(id)}" data-a="${a}" data-h="${h}" data-open="${open?1:0}"`;
+  if(open&&!my)return`<div class="poll" ${at}><span class="poll-q">¿Quién crees que gana?</span><div class="poll-b"><button type="button" data-vote="${a}">${pEsc(PNAME(a))}</button><button type="button" data-vote="${h}">${pEsc(PNAME(h))}</button></div>${T?`<span class="poll-n">${T} ${T===1?'voto':'votos'} hasta ahora · vota para ver el resultado</span>`:''}</div>`;
+  if(!T)return`<div class="poll" ${at} hidden></div>`;
+  const pa=Math.round(na/T*100),ph=100-pa;
+  return`<div class="poll" ${at}><span class="poll-q">${open?'¿Quién crees que gana?':'Así votó la afición'}</span><div class="poll-r"><span>${pEsc(PNAME(a))} <b>${pa}%</b></span><span><b>${ph}%</b> ${pEsc(PNAME(h))}</span></div><div class="poll-bar"><i style="width:${pa}%"></i><i style="width:${ph}%"></i></div><span class="poll-n">${T} ${T===1?'voto':'votos'}${my?' · tu voto: '+pEsc(PNAME(my)):''}</span></div>`}
+function refreshPolls(){document.querySelectorAll('[data-poll]').forEach(el=>{const t=document.createElement('div');t.innerHTML=pollHTML(el.dataset.poll,el.dataset.a,el.dataset.h,el.dataset.open==='1');el.replaceWith(t.firstElementChild)})}
+function vote(id,k){if(!id||!k||MYV[id])return;MYV[id]=k;try{localStorage.setItem('lmu-votes',JSON.stringify(MYV))}catch(e){}
+  (VOTES[id]=VOTES[id]||{})[k]=(VOTES[id][k]||0)+1;refreshPolls();
+  try{fetch(VOTE_POST,{method:'POST',mode:'no-cors',body:new URLSearchParams({[VOTE_E[0]]:id,[VOTE_E[1]]:k})}).catch(()=>{})}catch(e){}
+  try{gtag('event','votar',{partido:id,equipo:k})}catch(e){}}
+document.addEventListener('click',e=>{const b=e.target.closest('[data-vote]');if(!b)return;e.stopPropagation();e.preventDefault();const p=b.closest('[data-poll]');if(p)vote(p.dataset.poll,b.dataset.vote)},true);
+const CMT_HTML=`<div class="card" id="contacto"><h3 style="margin-top:0">Comentarios, dudas y datos</h3><p>¿Viste un error, tienes un dato o una sugerencia para el sitio? Escríbenos, lo leemos todo.</p>
+<form class="cform" data-cform><label>Tipo<select name="tipo"><option>Comentario</option><option>Duda</option><option>Dato o corrección</option><option>Sugerencia</option></select></label>
+<label>Mensaje<textarea name="msg" required rows="4" maxlength="2000"></textarea></label>
+<label><span>Nombre <small>(opcional)</small></span><input name="nom" maxlength="80" autocomplete="name"></label>
+<label><span>Correo o Instagram para responderte <small>(opcional)</small></span><input name="con" maxlength="120"></label>
+<button class="cf-send" type="submit">Enviar</button><p class="cf-ok" hidden>¡Gracias! Lo recibimos.</p><p class="poll-n" style="margin:8px 0 0">¿No se envía? <a href="${CMT_URL}" target="_blank" rel="noopener">Abre el formulario aquí</a>.</p></form></div>`;
+document.addEventListener('submit',e=>{const f=e.target.closest('[data-cform]');if(!f)return;e.preventDefault();const d=new FormData(f),msg=(d.get('msg')||'').trim();if(!msg)return;
+  const btn=f.querySelector('.cf-send');btn.disabled=true;btn.textContent='Enviando…';
+  const body=new URLSearchParams({'entry.645597009':d.get('nom')||'','entry.773639938':d.get('con')||'','entry.1850832842':d.get('tipo')||'Comentario','entry.22350162':msg+'\n\n[Página: '+location.pathname+location.hash+']'});
+  fetch(CMT_POST,{method:'POST',mode:'no-cors',body}).then(()=>{f.reset();f.querySelector('.cf-ok').hidden=false;btn.textContent='Enviar otro';btn.disabled=false;try{gtag('event','comentario',{tipo:d.get('tipo')})}catch(e){}})
+  .catch(()=>{btn.disabled=false;btn.textContent='Enviar';alert('No se pudo enviar. Usa el enlace al formulario.')})});
+loadVotes();setInterval(loadVotes,60000);
 </script>
 <script>if("serviceWorker" in navigator)addEventListener("load",()=>navigator.serviceWorker.register("/sw.js").catch(()=>{}));</script>
 </body>
