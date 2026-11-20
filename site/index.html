@@ -623,6 +623,7 @@ const abbr=k=>{const u=badgeURL(k);return u?`<img class="badge" src="${u}" alt="
 const esc=s=>String(s);
 
 // ---------- Vistas ----------
+(function(){const of=window.fetch.bind(window),used={};window.fetch=function(u,o){try{const s=String(u);if(s.includes('docs.google.com')&&s.includes('output=csv')){const k='lmu-c:'+s.replace(/[?&]t=\d+/g,'');const p=of(u,o).then(r=>{if(r.ok)r.clone().text().then(t=>{try{localStorage.setItem(k,t)}catch(e){}});return r});if(!used[k]){used[k]=1;let c=null;try{c=localStorage.getItem(k)}catch(e){}if(c){p.catch(()=>{});return Promise.resolve(new Response(c,{status:200}))}}return p}}catch(e){}return of(u,o)}})();
 const app=document.getElementById('app');
 let tab='tabla',week=null,simOpen=false;
 let CAN={TIG:{tv:'Canal 53 UANL y YouTube UANL'},MTY:{tv:'Claro Sports / ESPN'},GDL:{tv:'Claro Sports / ESPN'},PUE:{tv:'Claro Sports / ESPN'},CEM:{tv:'Claro Sports / ESPN'},CCM:{tv:'Claro Sports / ESPN'},BUR:{tv:'Canal Once'},AGU:{tv:'Canal Once'},UDL:{tv:'YouTube Aztecas UDLAP'},LAN:{tv:'YouTube Leones Anáhuac'},LAC:{tv:'YouTube Universidad Anáhuac Cancún'},CET:{tv:'YouTube CETYS Universidad'}};
@@ -1100,7 +1101,7 @@ function syncTopnav(){const n=document.getElementById('topnav');if(!n)return;n.q
 document.getElementById('topnav')&&document.getElementById('topnav').addEventListener('click',e=>{const a=e.target.closest('a');if(!a)return;const h=a.getAttribute('href');if(!h.startsWith('/#'))return;e.preventDefault();tab=h.slice(2);try{history.replaceState(null,'','#'+tab)}catch(_){}document.getElementById('sheet').hidden=true;window.scrollTo(0,0);if(tab==='playoffs'&&!simSC)recalc();else render()});
 let WAIT=false;
 function render(){
-  if(WAIT&&autoTab)return;WAIT=false;
+  if(WAIT)return;
   renderTicker();syncTopnav();
   app.innerHTML=tab==='tabla'?viewTabla():tab==='juegos'?viewJuegos():tab==='playoffs'?viewPlayoffs():tab==='equipos'?viewEquipos():tab==='stats'?viewStats():viewInfo();
   document.querySelectorAll('nav.tabs button').forEach(b=>b.setAttribute('aria-current',b.dataset.tab===tab?'page':'false'));
@@ -1150,11 +1151,12 @@ async function loadSheet(){
     PO_GAMES=list.filter(g=>PO_W.includes(g.w));
     GAMES.splice(0,GAMES.length,...list.filter(g=>!PO_W.includes(g.w)));
     BASE_SC=scenarios({});simSC=Object.keys(picks).length?scenarios(picks):BASE_SC;
+    WAIT=false;
     if(autoTab){autoTab=false;if(GAMES.length&&GAMES.every(g=>isPlayed(g))&&tab==='tabla')tab='playoffs'}
     const y=window.scrollY;render();window.scrollTo(0,y);
     const nl=GAMES.filter(g=>g.live).length;
     document.getElementById('upd').innerHTML=nl?`<span class="live">● ${nl} en vivo</span>`:'Act. '+new Date().toLocaleTimeString('es-MX',{hour:'2-digit',minute:'2-digit'});
-  }catch(err){document.getElementById('upd').textContent='Temporada 2026'}
+  }catch(err){document.getElementById('upd').textContent='Temporada 2026';if(WAIT){WAIT=false;autoTab=false;render()}}
 }
 const LEADERS_CSV_URL='https://docs.google.com/spreadsheets/d/e/2PACX-1vQNVclYf7g5WHDSejO-E_1xVXBF-KC__RWAbeSLafpfFK-5fxjCE2JegKDDBVnqalEEV97cBnF1PMzU/pub?gid=1908116186&single=true&output=csv';
 const LCAT={"QB": ["qb", "Top 5 QBs", "Pase", ["YDS", "TD"]], "WR": ["wr", "Top 5 receptores", "Recepción", ["YDS", "REC", "TD"]], "RB": ["rb", "Top 5 corredores", "Acarreo", ["YDS", "TD"]], "YM": ["ap", "Top 5 yardas mezcladas", "Totales", ["YDS"]], "PT": ["pt", "Top 5 anotadores", "Puntos", ["PTS"]], "TK": ["tk", "Top 5 tackleadores", "Defensa", ["TACK"]], "IN": ["in", "Top 3 intercepciones", "Defensa", ["INT"]], "SK": ["sk", "Top 3 sacks", "Defensa", ["SACK"]], "FG": ["fg", "Top 3 pateadores", "Goles de campo", ["FG", "PTS"]]};
@@ -1181,13 +1183,12 @@ async function loadCanales(){try{const res=await fetch(CANALES_CSV_URL+'&t='+Dat
   const rows=parseCSV(await res.text()).filter(r=>r.some(x=>x.trim()));const H=rows.shift().map(norm);const ie=H.indexOf('equipo'),it=H.indexOf('transmision'),il=H.indexOf('link');if(ie<0||it<0)return;
   const m={};rows.forEach(r=>{const k=(r[ie]||'').trim().toUpperCase();if(TEAMS[k])m[k]={tv:(r[it]||'').trim(),lk:il>=0?(r[il]||'').trim():''}});
   if(Object.keys(m).length){CAN=m;const y=window.scrollY;render();window.scrollTo(0,y)}}catch(e){}}
-loadSheet();loadLeaders();loadCanales();loadAnot();loadConfig();loadTeamStats();loadStars();setInterval(()=>{loadSheet();loadLeaders();loadCanales();loadAnot();loadConfig();loadTeamStats();loadStars()},60000);
+loadSheet();loadLeaders();loadCanales();loadAnot();loadConfig();loadTeamStats();loadStars();setTimeout(()=>{loadSheet();loadLeaders();loadCanales();loadAnot();loadConfig();loadTeamStats();loadStars()},1500);setInterval(()=>{loadSheet();loadLeaders();loadCanales();loadAnot();loadConfig();loadTeamStats();loadStars()},60000);
 
 const h0=(location.hash||'').slice(1);let autoTab=true;if(['tabla','juegos','equipos','stats','playoffs','info'].includes(h0)){tab=h0;autoTab=false}
 if(autoTab&&tab==='tabla'&&GAMES.length&&GAMES.every(g=>isPlayed(g)))tab='playoffs';
 simSC=Object.keys(picks).length?null:BASE_SC;
-if(autoTab){WAIT=true;app.innerHTML='<p class="sub" style="padding:48px 0;text-align:center">Cargando…</p>';setTimeout(()=>{if(autoTab){autoTab=false;render()}},3500)}
-else if(tab==='playoffs'&&!simSC)recalc();else render();
+WAIT=true;setTimeout(()=>{if(WAIT)app.innerHTML='<p class="sub" style="padding:48px 0;text-align:center">Cargando…</p>'},250);setTimeout(()=>{if(WAIT){WAIT=false;autoTab=false;render()}},3500);
 document.querySelectorAll('.topnav a').forEach(a=>a.addEventListener('click',e=>{const p=a.getAttribute('href').split('#')[0];if(p!=='/'&&p!=='/nacional/')return;if(p===location.pathname){e.preventDefault();return}a.href=p+'#'+tab}));
 
 </script>
