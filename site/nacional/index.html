@@ -503,7 +503,8 @@ const nm=x=>String(x||'').trim().toLowerCase().normalize('NFD').replace(/[\u0300
 const tk=k=>TEAMS.find(t=>t.k===k)||{k,n:k,s:'',g:''};
 const nb=k=>`<img class="badge nbi" src="/img/N_${k}.png" alt="${k}" width="30" height="30" onerror="this.replaceWith(Object.assign(document.createElement('span'),{className:'nb',textContent:'${k}'}))">`;
 const pct=t=>t.w+t.l?t.w/(t.w+t.l):0;
-const sortG=a=>a.slice().sort((x,y)=>pct(y)-pct(x)||y.w-x.w||x.pa-y.pa);
+const h2h=(k,set)=>{let n=0;GAMES.forEach(g=>{if(!/^\d+$/.test(g.r)||g.e!=='final'||g.as===null||g.hs===null)return;const o=g.a===k?g.h:g.h===k?g.a:null;if(!o||!set.has(o)||g.as===g.hs)return;const my=g.a===k?g.as:g.hs,ot=g.a===k?g.hs:g.as;n+=my>ot?1:-1});return n};
+const sortG=a=>{const s=a.slice().sort((x,y)=>pct(y)-pct(x)||y.w-x.w);const out=[];for(let i=0;i<s.length;){let j=i;while(j<s.length&&pct(s[j])===pct(s[i])&&s[j].w===s[i].w)j++;const tie=s.slice(i,j),set=new Set(tie.map(t=>t.k));out.push(...tie.map(t=>[t,h2h(t.k,set)]).sort((x,y)=>y[1]-x[1]||x[0].pa-y[0].pa).map(x=>x[0]));i=j}return out};
 function qualified(){const by={};GR.forEach(g=>by[g]=sortG(TEAMS.filter(t=>t.g===g)));
   const lead=sortG(GR.map(g=>by[g][0]).filter(Boolean)),sec=sortG(GR.map(g=>by[g][1]).filter(Boolean));
   const thirds=sortG(GR.map(g=>by[g][2]).filter(Boolean)).slice(0,2);
