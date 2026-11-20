@@ -549,7 +549,8 @@ const gKey=g=>{const m=(g.d||'').match(/(\d+)\s+([a-zé]{3})/i),t=(g.t||'').matc
 const hr=t=>(t||'').replace(/\s*hrs?\.?$/i,'');
 const gFin=g=>g.e==='final'&&g.as!==null&&g.hs!==null;
 function roundsC(){const rs=[...new Set(GAMES.map(g=>g.r))];return[...rs.filter(r=>/^\d+$/.test(r)).sort((a,b)=>a-b),...['CF','SF','F'].filter(r=>rs.includes(r))]}
-function defWeek(rs){for(const r of rs)if(GAMES.some(g=>g.r===r&&!gFin(g)))return r;return rs[rs.length-1]}
+let NCFG='';
+function defWeek(rs){if(NCFG&&rs.includes(NCFG))return NCFG;for(const r of rs)if(GAMES.some(g=>g.r===r&&!gFin(g)))return r;return rs[rs.length-1]}
 function gcard(g){const fin=gFin(g),live=/vivo/.test(g.e)&&g.as!==null&&g.hs!==null,p=fin||live,aw=fin&&g.as>g.hs,hw=fin&&g.hs>g.as;
   const side=(k,sc,lose,lbl)=>`<div class="side ${lose?'lose':''}" data-team="${k}">${nb(k)}<div class="nm">${esc(tk(k).n)}<div class="loc">${lbl}</div></div></div><div class="score ${lose?'lose':''} num">${p?sc:''}</div>`;
   const gr=RN[g.r]?'':(tk(g.h).g===tk(g.a).g?' · Grupo '+esc(tk(g.h).g):'');
@@ -694,7 +695,8 @@ document.querySelector('nav.tabs').addEventListener('click',e=>{const b=e.target
 setTimeout(()=>{if(!LOADED&&!document.querySelector('#nac .pre'))document.getElementById('nac').innerHTML='<p class="sub" style="padding:40px 0;text-align:center">Cargando…</p>'},250);setTimeout(()=>{if(!LOADED){LOADED=true;autoTab=false;render()}},3500);
 document.querySelectorAll('.topnav a').forEach(a=>a.addEventListener('click',e=>{const p=a.getAttribute('href').split('#')[0];if(p!=='/'&&p!=='/nacional/')return;if(p===location.pathname){e.preventDefault();return}a.href=p+'#'+tab}));
 let LOADED=false;
-function loadNac(){return Promise.all([1541467341,910175980,1049818250,1720495318].map(g=>fetch(B+g+'&t='+Date.now(),{cache:'no-store'}).then(r=>r.ok?r.text():'').catch(()=>''))).then(([ta,ju,li,es])=>{
+function loadNac(){return Promise.all([1541467341,910175980,1049818250,1720495318,485698180].map(g=>fetch(B+g+'&t='+Date.now(),{cache:'no-store'}).then(r=>r.ok?r.text():'').catch(()=>''))).then(([ta,ju,li,es,cf])=>{
+  if(cf){try{const r=csv(cf).find(r=>nm(r[0])==='semana actual nacional');NCFG=r?String(r[1]||'').trim().toUpperCase().replace(/^S(EMANA)?\s*(?=\d)/,''):''}catch(_){}}
   if(ta){const R=csv(ta),Hh=R.shift().map(nm),c=n=>Hh.indexOf(nm(n)),num=x=>+String(x||'0').replace(/[^0-9-]/g,'')||0;const out=[];
     R.forEach(r=>{if(nm(r[0])==='corte'){CUT=(r[1]||'').trim()||CUT;return}const k=(r[c('Clave')]||'').trim().toUpperCase();if(!k)return;out.push({g:(r[c('Grupo')]||'').trim(),k,n:(r[c('Equipo')]||k).trim(),s:(r[c('Escuela')]||'').trim(),w:num(r[c('G')]),l:num(r[c('P')]),pf:num(r[c('PF')]),pa:num(r[c('PC')])})});
     if(out.length>=15)TEAMS=out}
