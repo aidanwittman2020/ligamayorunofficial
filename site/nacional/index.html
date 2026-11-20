@@ -470,6 +470,7 @@ tr.q3 td.pos{color:#B8901C;font-weight:800}
 .crumbs .sep{opacity:.45;font-weight:400}
 .crumbs .cur{color:var(--ink)}
 .br{display:grid;gap:12px}@media (min-width:700px){.br{grid-template-columns:1.2fr 1fr 1fr;align-items:center}}.br-col{min-width:0}.champ{display:flex;align-items:center;gap:10px;background:var(--head);color:var(--head-ink,#fff);border-radius:4px;padding:12px}.champ span{display:block;font-family:var(--display);font-weight:700;font-size:12px;letter-spacing:.1em;text-transform:uppercase;color:#3DBE73}.champ b{font-family:var(--display);font-weight:800;font-size:22px}.br-t .nbi,.br-t .nb{width:28px;height:28px}
+.nteams{display:grid;gap:8px;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));margin-bottom:12px}.nteam{margin:0}.nt-h{display:flex;align-items:center;gap:10px}.nt-h div{flex:1;min-width:0}.nt-h b{display:block;font-weight:700}.nt-h small{color:var(--muted);font-size:12px}.nt-h .rc{font-family:var(--display);font-weight:800;font-size:22px}.nt-f{display:flex;gap:12px;font-family:var(--display);font-size:12px;letter-spacing:.05em;text-transform:uppercase;color:var(--muted);margin:8px 0 4px}.nt-g{border-top:1px solid var(--line);margin-top:6px;padding-top:4px;font-size:13px}.nt-g div{display:grid;grid-template-columns:auto 1fr auto;gap:8px;padding:3px 0}.nt-g span:first-child{color:var(--muted)}.res-g{color:var(--good,#1a7f37)}.res-p{color:var(--bad,#c62828)}
 </style>
 <script type="application/ld+json">{"@context": "https://schema.org", "@type": "BreadcrumbList", "itemListElement": [{"@type": "ListItem", "position": 1, "name": "Inicio", "item": "https://ligamayorunofficial.com/"}, {"@type": "ListItem", "position": 2, "name": "Conferencia Nacional", "item": "https://ligamayorunofficial.com/nacional/"}]}</script>
 </head>
@@ -478,11 +479,19 @@ tr.q3 td.pos{color:#B8901C;font-weight:800}
 <nav class="topnav" aria-label="Secciones"><a href="/#tabla">14 Grandes</a><a class="on" href="/nacional/">Nacional</a><a href="/historia/">Historia</a></nav></div></header>
 <main class="wrap">
 <nav class="crumbs" aria-label="Ruta"><a href="/">Inicio</a><span class="sep" aria-hidden="true">/</span><span class="cur" aria-current="page">Conferencia Nacional</span></nav>
-<h1 style="font-family:var(--display);font-weight:800;font-size:36px;line-height:1;margin:6px 0 6px;text-transform:uppercase">Conferencia Nacional 2026</h1>
+<h1 style="font-family:var(--display);font-weight:800;font-size:26px;line-height:1;margin:6px 0 6px;text-transform:uppercase">Conferencia Nacional 2026</h1>
 <p class="sub">La segunda división de la Liga Mayor ONEFA: 18 equipos en tres grupos. El campeón gana el ascenso a los 14 Grandes.</p>
 <div id="nac"></div>
 <p class="sitefoot">Sitio no oficial hecho por aficionados. Tablas de posiciones: <a href="https://www.instagram.com/statistics_football_mx/" target="_blank" rel="noopener">@statistics_football_mx</a>. Estadísticas individuales de Uriel González (FBA Stats). <a href="/">Volver a los 14 Grandes</a></p>
 </main>
+<nav class="tabs" aria-label="Secciones"><div class="in">
+  <button data-tab="tabla"><svg viewBox="0 0 24 24"><path d="M4 6h16M4 12h16M4 18h16"/></svg>Tabla</button>
+  <button data-tab="juegos"><svg viewBox="0 0 24 24"><rect x="4" y="5" width="16" height="15" rx="2"/><path d="M4 10h16M9 3v4M15 3v4"/></svg>Juegos</button>
+  <button data-tab="equipos"><svg viewBox="0 0 24 24"><path d="M12 3l7 3v5c0 4.5-3 8-7 10-4-2-7-5.5-7-10V6z"/></svg>Equipos</button>
+  <button data-tab="stats"><svg viewBox="0 0 24 24"><path d="M5 20V11M12 20V5M19 20v-6"/></svg>Líderes</button>
+  <button data-tab="playoffs"><svg viewBox="0 0 24 24"><path d="M4 5h5v6h6v8h5M4 19h5v-8"/></svg>Playoffs</button>
+  <button data-tab="info"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="8.5"/><path d="M12 11v6M12 7.5v.5"/></svg>Info</button>
+</div></nav>
 <script>
 const B='https://docs.google.com/spreadsheets/d/e/2PACX-1vQNVclYf7g5WHDSejO-E_1xVXBF-KC__RWAbeSLafpfFK-5fxjCE2JegKDDBVnqalEEV97cBnF1PMzU/pub?single=true&output=csv&gid=';
 const COL={"PAC": "#1B2A5C", "PSA": "#0B6B3A", "FRA": "#B3202A", "HAL": "#0E4C92", "BUH": "#7A1F3D", "TSA": "#1F4E9A", "PAN": "#D9581F", "LQR": "#B8901C", "TEC": "#A51C30", "ULM": "#3B7DBF", "UIW": "#C8102E", "ASU": "#9E1B32", "UAT": "#1F5FAE", "UCH": "#4B2E83", "ITS": "#0053A0", "UAC": "#1B3F8B", "UCJ": "#2E7D32", "UBC": "#00723F", "LIE": "#8B1E3F"};
@@ -500,6 +509,8 @@ function qualified(){const by={};GR.forEach(g=>by[g]=sortG(TEAMS.filter(t=>t.g==
   return{by,lead,sec,thirds}}
 function csv(t){const R=[];let r=[],f='',q=false;for(let i=0;i<t.length;i++){const c=t[i];if(q){if(c=='"'){if(t[i+1]=='"'){f+='"';i++}else q=false}else f+=c}else if(c=='"')q=true;else if(c==','){r.push(f);f=''}else if(c=='\n'||c=='\r'){if(c=='\r'&&t[i+1]=='\n')i++;r.push(f);R.push(r);r=[];f=''}else f+=c}if(f!==''||r.length){r.push(f);R.push(r)}return R.filter(r=>r.some(x=>x.trim()))}
 const RN={CF:'Cuartos de final',SF:'Semifinales',F:'Final'};
+let tab='tabla',autoTab=true;
+{const h0=(location.hash||'').slice(1);if(['tabla','juegos','equipos','stats','playoffs','info'].includes(h0)){tab=h0;autoTab=false}}
 function render(){const Q=qualified(),done=GAMES.some(g=>RN[g.r]);
   const qrow=(t,lbl,i)=>`<div class="q">${nb(t.k)}<b>${esc(t.n)}<small>${lbl} · ${esc(t.s)}</small></b><span class="rc">${t.w}-${t.l}</span></div>`;
   let all=[...Q.lead.map(t=>[t,'1º grupo '+t.g]),...Q.sec.map(t=>[t,'2º grupo '+t.g]),...Q.thirds.map(t=>[t,'Mejor 3º · '+t.g])];
@@ -518,23 +529,46 @@ function render(){const Q=qualified(),done=GAMES.some(g=>RN[g.r]);
   <div class="br"><div class="br-col"><h4 class="br-round">Cuartos de final</h4>${cf.map((g,i)=>mcard('Juego '+(i+1),g)).join('')}</div>
   <div class="br-col"><h4 class="br-round">Semifinales</h4>${mcard('Semifinal 1',sf[0],['Por definir','Por definir'])}${mcard('Semifinal 2',sf[1],['Por definir','Por definir'])}</div>
   <div class="br-col"><h4 class="br-round">Final</h4>${mcard('Final',fi,['Ganador semifinal 1','Ganador semifinal 2'])}${champ?`<div class="champ">${nb(champ)}<div><span>Campeón Conferencia Nacional 2026</span><b>${esc(tk(champ).n)}</b></div></div>`:''}</div></div>`;
-  let h=done?brk():clas,wk='';
   const card=(g,lbl)=>{const fin=g.e==='final'&&g.as!==null&&g.hs!==null,live=/vivo/.test(g.e)&&g.as!==null&&g.hs!==null,aw=fin&&g.as>g.hs,hw=fin&&g.hs>g.as;
     const row=(k,sc,w,l)=>`<div class="r${w?' w':l?' l':''}">${nb(k)}<b>${esc(tk(k).n)}</b><span class="sc">${fin||live?sc:''}</span></div>`;
     return`<div class="pg"><div class="h"><span>${lbl}</span><span>${fin?'Final':live?'<b style="color:var(--live,#e5383b)">En vivo</b>':esc((g.d+' '+g.t).trim())}</span></div>${row(g.a,g.as,aw,fin&&!aw)}${row(g.h,g.hs,hw,fin&&!hw)}</div>`};
-  [...new Set(GAMES.filter(g=>/^\d+$/.test(g.r)).map(g=>+g.r))].sort((a,b)=>b-a).forEach(w=>{const gs=GAMES.filter(g=>+g.r===w&&/^\d+$/.test(g.r));
-    wk+=`<h3>Juegos · Semana ${w}</h3><div class="pgs">`+gs.map(g=>card(g,'Grupo '+esc(tk(g.h).g||tk(g.a).g||''))).join('')+`</div>`});
   const inQ=new Set(all.map(([t])=>t.k)),t3=new Set(Q.thirds.map(t=>t.k));
-  if(!done)h+=wk;
-  h+=`<h3>Tabla por grupo</h3><p class="sub" style="margin-top:-2px">Corte: ${esc(CUT)} · Tablas: <a href="https://www.instagram.com/statistics_football_mx/" target="_blank" rel="noopener">@statistics_football_mx</a></p>`;
-  GR.forEach(g=>{h+=`<div class="grp-h"><h4 class="br-round">Grupo ${g}</h4></div><div class="tbl-box" style="margin-bottom:12px"><table><thead><tr><th>#</th><th>Equipo</th><th>G-P</th><th>PF</th><th>PC</th><th></th></tr></thead><tbody>${Q.by[g].map((t,i)=>`<tr class="${i<2?'q1':t3.has(t.k)?'q3':''}"><td class="pos">${i+1}</td><td class="team"><div class="tname">${nb(t.k)}<span>${esc(t.n)}</span></div></td><td class="rec">${t.w}-${t.l}</td><td>${t.pf}</td><td>${t.pa}</td><td>${inQ.has(t.k)?`<span class="tag-q ${i<2?'in':'t3'}">${i<2?'Playoffs':'Mejor 3º'}</span>`:''}</td></tr>`).join('')}</tbody></table></div>`});
+  const credT=`Corte: ${esc(CUT)} · Tablas: <a href="https://www.instagram.com/statistics_football_mx/" target="_blank" rel="noopener">@statistics_football_mx</a>`;
+  const tables=()=>{let h='';GR.forEach(g=>{h+=`<div class="grp-h"><h4 class="br-round">Grupo ${g}</h4></div><div class="tbl-box" style="margin-bottom:12px"><table><thead><tr><th>#</th><th>Equipo</th><th>G-P</th><th>PF</th><th>PC</th><th></th></tr></thead><tbody>${Q.by[g].map((t,i)=>`<tr class="${i<2?'q1':t3.has(t.k)?'q3':''}"><td class="pos">${i+1}</td><td class="team"><div class="tname">${nb(t.k)}<span>${esc(t.n)}</span></div></td><td class="rec">${t.w}-${t.l}</td><td>${t.pf}</td><td>${t.pa}</td><td>${inQ.has(t.k)?`<span class="tag-q ${i<2?'in':'t3'}">${i<2?'Playoffs':'Mejor 3º'}</span>`:''}</td></tr>`).join('')}</tbody></table></div>`});return h};
+  const roundLbl=r=>RN[r]||('Semana '+r);
+  const rounds=()=>{const rs=[...new Set(GAMES.map(g=>g.r))];const po=['F','SF','CF'].filter(r=>rs.includes(r));const wk=rs.filter(r=>/^\d+$/.test(r)).sort((a,b)=>b-a);return[...po,...wk]};
+  let h='';
+  if(tab==='tabla'){
+    h=`<h2>Tabla por grupo</h2><p class="sub" style="margin-top:-2px">${credT}</p>`+tables();
+    if(!done)h+=clas;
+    h+=`<div class="legend"><span><b>PF</b> puntos a favor</span><span><b>PC</b> puntos en contra</span><span>Pasan a playoffs los 2 primeros de cada grupo y los 2 mejores terceros.</span></div>`;
+  }else if(tab==='juegos'){
+    h=`<h2>Juegos</h2>`;const rs=rounds();
+    if(!rs.length)h+=`<p class="sub">Todavía no hay partidos capturados.</p>`;
+    rs.forEach(r=>{const gs=GAMES.filter(g=>g.r===r);h+=`<h3>${roundLbl(r)}</h3><div class="pgs">`+gs.map(g=>card(g,RN[r]?RN[r]:'Grupo '+esc(tk(g.h).g||tk(g.a).g||''))).join('')+`</div>`});
+    h+=`<p class="sub" style="margin-top:12px">Por ahora la página tiene los resultados desde la semana 9; las semanas anteriores se irán agregando.</p>`;
+  }else if(tab==='equipos'){
+    h=`<h2>Equipos</h2><p class="sub" style="margin-top:-2px">18 equipos en tres grupos. ${esc(CUT)}.</p>`;
+    GR.forEach(g=>{h+=`<h4 class="br-round">Grupo ${g}</h4><div class="nteams">`+Q.by[g].map((t,i)=>{const gs=GAMES.filter(x=>x.a===t.k||x.h===t.k);
+      return`<div class="card nteam"><div class="nt-h">${nb(t.k)}<div><b>${esc(t.n)}</b><small>${esc(t.s)}</small></div><span class="rc">${t.w}-${t.l}</span></div>
+      <div class="nt-f"><span>${i+1}º grupo ${g}</span><span>PF ${t.pf}</span><span>PC ${t.pa}</span></div>${gs.length?`<div class="nt-g">`+gs.map(x=>{const fin=x.e==='final'&&x.as!==null&&x.hs!==null,home=x.h===t.k,op=home?x.a:x.h,my=home?x.hs:x.as,ot=home?x.as:x.hs;
+        return`<div><span>${esc(roundLbl(x.r))}</span><span>${home?'vs':'en'} ${esc(tk(op).n)}</span><b class="${fin?(my>ot?'res-g':'res-p'):''}">${fin?(my>ot?'G ':'P ')+my+'-'+ot:esc(x.d)}</b></div>`}).join('')+`</div>`:''}</div>`}).join('')+`</div>`});
+  }else if(tab==='stats'){
   const H=LEAD[0].map(nm),ix=n=>H.indexOf(nm(n));const cut=LEAD.find(r=>nm(r[0])==='corte');
   const CAT=[['QB','Pasadores','YDS','yds'],['RB','Corredores','YDS','yds'],['WR','Receptores','YDS','yds'],['YM','Yardas mezcladas','YDS','yds'],['PT','Anotadores','PTS','pts'],['TK','Tackleadores','TACK','tackles'],['IN','Intercepciones','INT','INT'],['SK','Sacks','SACK','sacks'],['FG','Goles de campo','FG','FG']];
-  if(done)h+=wk;
-  h+=`<h3>Líderes</h3><p class="sub" style="margin-top:-2px">Corte: ${esc(cut?cut[2]:CUT)} · Estadísticas de Uriel González (FBA Stats)</p><div class="stars">`+CAT.map(([c,t,f,u])=>{const rs=LEAD.filter(r=>r[0]===c);if(!rs.length)return'';
+    h=`<h2>Líderes</h2><p class="sub" style="margin-top:-2px">Corte: ${esc(cut?cut[2]:CUT)} · Estadísticas de Uriel González (FBA Stats)</p><div class="stars">`+CAT.map(([c,t,f,u])=>{const rs=LEAD.filter(r=>r[0]===c);if(!rs.length)return'';
     return`<div class="card" style="margin:0"><h4 class="br-round" style="margin-top:0">${t}</h4>${rs.map((r,i)=>`<div style="display:flex;align-items:center;gap:8px;padding:5px 0;border-top:${i?'1px solid var(--line)':'0'}">${nb(r[3])}<div style="flex:1;min-width:0;line-height:1.2"><b style="font-weight:${i?500:700}">${esc(r[2])}</b><div class="loc">#${esc(r[4])} · ${esc(tk(r[3]).n)}</div></div><b class="num" style="font-family:var(--display);font-weight:800;font-size:18px">${Number(r[ix(f)]||0).toLocaleString('es-MX')}</b></div>`).join('')}</div>`}).join('')+`</div>`;
+  }else if(tab==='playoffs'){
+    h=done?`<h2>Playoffs 2026</h2>`+brk():`<h2>Playoffs 2026</h2><p class="sub">Los playoffs empiezan al terminar la temporada regular. Así va la proyección:</p>`+clas;
+  }else{
+    h=`<h2>Conferencia Nacional</h2><div class="card"><p>La Conferencia Nacional es la segunda división de la Liga Mayor de la ONEFA. En 2026 la juegan 18 equipos divididos en tres grupos: Centro, Bajío y Norte.</p>
+    <p>Pasan a playoffs los 2 primeros de cada grupo y los 2 mejores terceros (8 equipos). Los cuartos de final se juegan en casa del mejor sembrado, y en semifinales se vuelve a sembrar. El campeón gana el ascenso a los 14 Grandes.</p></div>
+    <p class="sub">Tablas de posiciones: <a href="https://www.instagram.com/statistics_football_mx/" target="_blank" rel="noopener">@statistics_football_mx</a>. Estadísticas individuales: Uriel González (FBA Stats). Sitio no oficial hecho por aficionados.</p>`;
+  }
   document.getElementById('nac').innerHTML=h;
+  document.querySelectorAll('nav.tabs button').forEach(b=>b.setAttribute('aria-current',b.dataset.tab===tab?'page':'false'));
 }
+document.querySelector('nav.tabs').addEventListener('click',e=>{const b=e.target.closest('button');if(!b)return;autoTab=false;tab=b.dataset.tab;try{history.replaceState(null,'','#'+tab)}catch(_){}window.scrollTo(0,0);render()});
 render();
 Promise.all([1541467341,910175980,1049818250].map(g=>fetch(B+g+'&t='+Date.now(),{cache:'no-store'}).then(r=>r.ok?r.text():'').catch(()=>''))).then(([ta,ju,li])=>{
   if(ta){const R=csv(ta),Hh=R.shift().map(nm),c=n=>Hh.indexOf(nm(n)),num=x=>+String(x||'0').replace(/[^0-9-]/g,'')||0;const out=[];
@@ -543,6 +577,7 @@ Promise.all([1541467341,910175980,1049818250].map(g=>fetch(B+g+'&t='+Date.now(),
   if(ju){const R=csv(ju),Hh=R.shift().map(nm),c=n=>Hh.indexOf(nm(n)),n2=x=>{const v=String(x||'').trim();return v===''||isNaN(+v)?null:+v};
     GAMES=R.map(r=>({r:(r[c('Ronda')]||'').trim().toUpperCase().replace(/^S(EMANA)?\s*(?=\d)/,''),d:(r[c('Fecha')]||'').trim(),t:(r[c('Hora')]||'').trim(),a:(r[c('Visitante')]||'').trim().toUpperCase(),h:(r[c('Local')]||'').trim().toUpperCase(),as:n2(r[c('Pts visitante')]),hs:n2(r[c('Pts local')]),e:nm(r[c('Estado')])})).filter(g=>(RN[g.r]||/^\d+$/.test(g.r))&&g.a&&g.h)}
   if(li){const R=csv(li);if(R.length>5)LEAD=R}
+  if(autoTab&&GAMES.some(g=>RN[g.r]))tab='playoffs';autoTab=false;
   render()});
 </script>
 <script>if("serviceWorker" in navigator)addEventListener("load",()=>navigator.serviceWorker.register("/sw.js").catch(()=>{}));</script>
