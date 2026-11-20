@@ -559,7 +559,7 @@ function gcard(g){const fin=gFin(g),live=gLive(g),p=fin||live,aw=fin&&g.as>g.hs,
   const side=(k,sc,lose,lbl)=>`<div class="side ${lose?'lose':''}" data-team="${k}">${nb(k)}<div class="nm">${esc(tk(k).n)}<div class="loc">${lbl}</div></div></div><div class="score ${lose?'lose':''} num">${p?(sc===null?0:sc):''}</div>`;
   const gr=RN[g.r]?'':(tk(g.h).g===tk(g.a).g?' · Grupo '+esc(tk(g.h).g):'');
   return`<div class="game${FAV&&(g.a===FAV||g.h===FAV)?' fav':''}"><div class="meta"><span>${wkLng(g.r)}${g.d?' · '+esc(g.d):''}</span><span>${live?`<span class="live">● En vivo${g.det?' · '+esc(g.det):''}</span>`:fin?'Final':g.t?esc(hr(g.t))+' h':'Por definir'}</span></div>${side(g.a,g.as,fin&&!aw,'Visita'+gr)}${side(g.h,g.hs,fin&&!hw,'Local'+gr)}${fin?'':watchN(g)}${pollHTML('N-'+g.r+'-'+g.a+'-'+g.h,g.a,g.h,!fin&&!live)}</div>`}
-const CAP={UCH:22000,BUH:13000,PSA:5000,UAT:5000};
+const CAP={UCH:22000,BUH:13000,PSA:5000,UAT:10000,UAC:10000,ITS:5000,HAL:4000,PAN:4000,PAC:3500,TSA:3500,ULM:1200};
 const EDO={'Méx.':'Estado de México','CDMX':'Ciudad de México','Ver.':'Veracruz','Qro.':'Querétaro','Jal.':'Jalisco','Gto.':'Guanajuato','Tamps.':'Tamaulipas','Chih.':'Chihuahua','Son.':'Sonora','Coah.':'Coahuila','BC':'Baja California'};
 function teamInfo(k){const S=STAFF[k];if(!S)return'';const [hc,st]=S,i=st.lastIndexOf(','),est=i>0?st.slice(0,i).trim():st,ed=i>0?st.slice(i+1).trim():'';
   const t=tk(k),sea=favStatus(k),G=Math.max(1,t.w+t.l);
@@ -569,7 +569,7 @@ function teamInfo(k){const S=STAFF[k];if(!S)return'';const [hc,st]=S,i=st.lastIn
     const pos={QB:'QB',RB:'RB',WR:'WR',YM:'Ofensiva',PT:'Anotador',TK:'Defensa',IN:'Defensa',SK:'Defensa',FG:'Pateador'};
     const sl=rs.map(x=>{const L=lab[x[0]];return L?`${Number(x[ix(L[0])]||0).toLocaleString('es-MX')} ${L[1]}`:''}).filter(Boolean).slice(0,2).join(' · ');return{n,num:r[4],p:pos[r[0]]||r[0],sl}}).slice(0,4);
   return`<h3>El equipo</h3><div class="card"><p style="margin-top:0">${esc(t.n)} (${esc(t.s)}) terminó la temporada regular ${t.w}-${t.l}, con ${(t.pf/G).toFixed(1)} puntos a favor y ${(t.pa/G).toFixed(1)} en contra por partido.${sea?' '+esc(sea)+'.':''}</p>
-  <dl class="facts"><div><dt>Sede</dt><dd>${esc(EDO[ed]||ed||'—')}</dd></div><div><dt>Estadio</dt><dd>${esc(est)}</dd></div><div><dt>Capacidad</dt><dd class="num">${CAP[k]?CAP[k].toLocaleString('es-MX'):'—'}</dd></div><div><dt>Head coach</dt><dd>${esc(hc)}</dd></div></dl></div>
+  <dl class="facts"><div><dt>Sede</dt><dd>${esc(EDO[ed]||ed||'—')}</dd></div><div><dt>Estadio</dt><dd>${esc(est)}</dd></div><div><dt>Capacidad aprox.</dt><dd class="num">${CAP[k]?CAP[k].toLocaleString('es-MX'):'—'}</dd></div><div><dt>Head coach</dt><dd>${esc(hc)}</dd></div></dl></div>
   ${best.length?`<h3>Jugadores a seguir</h3><p class="sub" style="margin:-2px 0 8px">Sus líderes en las estadísticas de la Conferencia Nacional (Uriel González, FBA Stats).</p><div class="stars">${best.map(b=>`<div class="star"><span class="jn num">#${esc(b.num)}</span><div><b>${esc(b.n)}</b><div class="loc">${esc(b.p)}</div>${b.sl?`<div class="sl">${esc(b.sl)}</div>`:''}</div></div>`).join('')}</div>`:''}`}
 function openTeam(k){const t=tk(k);if(!t||!t.n)return;const Q=qualified(),pos=(Q.by[t.g]||[]).findIndex(x=>x.k===k)+1,S=STAFF[k],d=t.pf-t.pa;
   const gs=GAMES.filter(g=>g.a===k||g.h===k).sort((x,y)=>{const o=r=>/^\d+$/.test(r)?+r:{CF:20,SF:21,F:22}[r];return o(x.r)-o(y.r)});
@@ -581,7 +581,7 @@ function openTeam(k){const t=tk(k);if(!t||!t.n)return;const Q=qualified(),pos=(Q
   <div class="wrap" style="padding-bottom:40px">${teamInfo(k)}
   ${teamStatsBlock(k)}<h3>Historia</h3><div class="card">${TIT[k]?TIT[k].map(([c,y])=>`<p style="margin:0 0 4px"><b>${c}:</b> ${y}</p>`).join(''):'<p style="margin:0 0 4px">Todavía no gana un campeonato de Liga Mayor.</p>'}<p style="margin:6px 0 0"><a href="/historia/#nacional">Todos los campeones de la Nacional →</a></p></div><h3>Resultados</h3><div class="list">${gs.filter(gFin).map(line).join('')||'<p class="sub">Sin resultados capturados.</p>'}</div>
   ${gs.some(g=>!gFin(g))?`<h3>Próximos juegos</h3><div class="list">${gs.filter(g=>!gFin(g)).map(line).join('')}</div>`:''}
-  <p class="credit">Cuerpo técnico y estadio: BN Sports RedZone. Capacidad: Wikipedia (cuando hay dato publicado).</p></div>`;
+  <p class="credit">Cuerpo técnico y estadio: BN Sports RedZone. Capacidad aproximada: Wikipedia y datos de cada escuela.</p></div>`;
   sh.hidden=false;sh.scrollTop=0;document.getElementById('close').onclick=()=>{sh.hidden=true};sh.querySelector('[data-fav]').onclick=e=>{const b=e.currentTarget;setFav(b.dataset.fav);const on=FAV===b.dataset.fav;b.classList.toggle('on',on);b.textContent=on?'★ Mi equipo':'☆ Marcar como mi equipo';render()}}
 let FAV=null;try{FAV=localStorage.getItem('lmu-fav-nac')||null}catch(e){}
 function setFav(k){FAV=FAV===k?null:k;try{FAV?localStorage.setItem('lmu-fav-nac',FAV):localStorage.removeItem('lmu-fav-nac')}catch(e){}}
