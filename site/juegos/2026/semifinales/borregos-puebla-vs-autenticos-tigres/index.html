@@ -427,6 +427,6 @@ const st=nm(r[c("estado")]),a=r[c("pts visitante")].trim(),h=r[c("pts local")].t
 if(st==="en vivo"||st==="final"){el.innerHTML=a+'<span class="d">-</span>'+h;s.textContent=st==="final"?"Final":"● En vivo"+((r[c("detalle")]||"").trim()?" · "+r[c("detalle")].trim():"");s.className="gm-st"+(st==="final"?"":" live")}}).catch(()=>{})}
 go();setInterval(go,60000)})();</script>
 </main>
-<footer class="sitefoot"><p><a href="/">Liga Mayor Unofficial</a> es un sitio no oficial hecho por aficionados; no está afiliado a la ONEFA ni a ninguna universidad. Los escudos son diseños propios, no logos oficiales. Resultados: ClaroSports y captura propia. <a href="/historia/">Historia y campeones de la Liga Mayor</a>.</p></footer>
+<footer class="sitefoot"><p><a href="/">Liga Mayor Unofficial</a> es un sitio no oficial hecho por aficionados; no está afiliado a la ONEFA ni a ninguna universidad. Los escudos son diseños propios, no logos oficiales. Resultados y estadísticas: @statistics_football_mx y Uriel González (FBA Stats). <a href="/historia/">Historia y campeones de la Liga Mayor</a>.</p></footer>
 <script>if("serviceWorker" in navigator)addEventListener("load",()=>navigator.serviceWorker.register("/sw.js").catch(()=>{}));</script>
 </body></html>
