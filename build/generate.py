@@ -14,7 +14,7 @@ SITE = os.path.join(ROOT, 'site')
 URL = 'https://ligamayorunofficial.com'
 YEAR = 2026
 PUB = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQNVclYf7g5WHDSejO-E_1xVXBF-KC__RWAbeSLafpfFK-5fxjCE2JegKDDBVnqalEEV97cBnF1PMzU/pub?gid={}&single=true&output=csv'
-GID = {'juegos': 1243915347, 'anotaciones': 1258472465, 'canales': 1868069815}
+GID = {'juegos': 1243915347, 'anotaciones': 1258472465, 'canales': 1868069815, 'ntabla': 1541467341, 'njuegos': 910175980}
 e = html.escape
 
 # ---------------------------------------------------------------- datos base del sitio
@@ -450,6 +450,123 @@ def sitemap(paths):
         open(p, 'w', encoding='utf-8').write(out)
 
 
+# ---------------------------------------------------------------- versión HTML (sin JavaScript) de la portada y la Nacional
+PRE_A, PRE_B = '<!--PRE-->', '<!--/PRE-->'
+
+
+def tie_sort(rows, games, key_w='w', key_pa='pa'):
+    """Ordena por victorias; empate de dos = juego directo; si no, menos puntos en contra."""
+    rows = sorted(rows, key=lambda r: (-r[key_w], r[key_pa]))
+    out, i = [], 0
+    while i < len(rows):
+        j = i
+        while j < len(rows) and rows[j][key_w] == rows[i][key_w] and rows[j]['l'] == rows[i]['l']:
+            j += 1
+        tie = rows[i:j]
+        ks = {r['k'] for r in tie}
+        def h2h(k):
+            n = 0
+            for a, h, sa, sh in games:
+                if k in (a, h) and (h if k == a else a) in ks and sa != sh:
+                    my, ot = (sa, sh) if k == a else (sh, sa)
+                    n += 1 if my > ot else -1
+            return n
+        out += sorted(tie, key=lambda r: (-h2h(r['k']), r[key_pa]))
+        i = j
+    return out
+
+
+def inject(path, html_):
+    f = os.path.join(SITE, path)
+    s = open(f, encoding='utf-8').read()
+    a, b = s.find(PRE_A), s.find(PRE_B)
+    if a < 0 or b < 0:
+        return False
+    new = s[:a + len(PRE_A)] + html_ + s[b:]
+    if new != s:
+        open(f, 'w', encoding='utf-8').write(new)
+        return True
+    return False
+
+
+def pre_main(G):
+    S = {k: {'k': k, 'w': 0, 'l': 0, 'pf': 0, 'pa': 0} for k in TEAMS}
+    reg = []
+    for g in G:
+        if g['fin'] and g['w'] not in ('CF', 'SF', 'F'):
+            for k, my, ot in ((g['a'], g['as'], g['hs']), (g['h'], g['hs'], g['as'])):
+                S[k]['pf'] += my; S[k]['pa'] += ot
+                S[k]['w' if my > ot else 'l'] += 1
+            reg.append((g['a'], g['h'], g['as'], g['hs']))
+    rows = tie_sort(list(S.values()), reg)
+    lw = max([int(g['w']) for g in G if g['fin'] and g['w'].isdigit()] or [0])
+    h = [f'<div class="pre"><h2>Tabla de posiciones</h2><p class="sub">Liga Mayor ONEFA {YEAR} · Conferencia de los 14 Grandes · tras la semana {lw}</p>',
+         '<div class="tbl-box"><table><thead><tr><th>#</th><th>Equipo</th><th>G-P</th><th>PF</th><th>PC</th><th>Dif</th></tr></thead><tbody>']
+    for i, r in enumerate(rows):
+        d = r['pf'] - r['pa']
+        h.append(f'<tr class="row"><td class="pos">{i + 1}</td><td class="team"><div class="tname">{badge(r["k"], 30)}<span><a href="/equipos/{SLUG[r["k"]]}/" style="color:inherit;text-decoration:none">{e(TEAMS[r["k"]]["n"])}</a></span></div></td><td class="rec">{r["w"]}-{r["l"]}</td><td>{r["pf"]}</td><td>{r["pa"]}</td><td>{"+" if d > 0 else ""}{d}</td></tr>')
+        if i == 7:
+            h.append('<tr class="cut"><td colspan="6"><div class="cutline"><b>Línea de corte · cuartos de final</b></div></td></tr>')
+    h.append('</tbody></table></div>')
+    po = [g for g in G if g['w'] in ('CF', 'SF', 'F')]
+    def li(g):
+        sc = f' {g["as"]}-{g["hs"]}' if g['fin'] else f' · {e(g["d"])} {e(g["t"])} h'
+        return f'<li><a href="{game_path(g)}">{e(wk_label(g["w"]))}: {e(TEAMS[g["a"]]["n"])} en {e(TEAMS[g["h"]]["n"])}</a>{sc}</li>'
+    if po:
+        h.append('<h3>Playoffs</h3><ul>' + ''.join(li(g) for g in po) + '</ul>')
+    else:
+        cur = [g for g in G if g['w'] == str(lw + 1)] or [g for g in G if g['w'] == str(lw)]
+        if cur:
+            h.append(f'<h3>Semana {e(cur[0]["w"])}</h3><ul>' + ''.join(li(g) for g in cur) + '</ul>')
+    h.append(f'<p class="sub"><a href="/juegos/{YEAR}/">Todos los resultados de la temporada {YEAR}</a> · <a href="/nacional/">Conferencia Nacional</a> · <a href="/historia/">Historia y campeones</a></p></div>')
+    return ''.join(h)
+
+
+def pre_nac(local):
+    tr, tc = rows_of(fetch('ntabla', local))
+    jr, jc = rows_of(fetch('njuegos', local))
+    if not tr or 'clave' not in tc:
+        return None
+    v = lambda r, c, n: (r[c[n]] if n in c and c[n] < len(r) else '').strip()
+    T, cut = [], ''
+    for r in tr:
+        if norm(r[0]) == 'corte':
+            cut = (r[1] if len(r) > 1 else '').strip(); continue
+        k = v(r, tc, 'clave').upper()
+        if not k:
+            continue
+        n = lambda x: int(re.sub(r'[^0-9-]', '', x) or 0)
+        T.append({'k': k, 'g': v(r, tc, 'grupo'), 'n': v(r, tc, 'equipo') or k, 's': v(r, tc, 'escuela'),
+                  'w': n(v(r, tc, 'g')), 'l': n(v(r, tc, 'p')), 'pf': n(v(r, tc, 'pf')), 'pa': n(v(r, tc, 'pc'))})
+    if len(T) < 15:
+        return None
+    name = {t['k']: t['n'] for t in T}
+    games, po = [], []
+    for r in jr:
+        rd = re.sub(r'^S(EMANA)?\s*(?=\d)', '', v(r, jc, 'ronda').upper())
+        a, hh = v(r, jc, 'visitante').upper(), v(r, jc, 'local').upper()
+        A, H = num(v(r, jc, 'pts visitante')), num(v(r, jc, 'pts local'))
+        fin = norm(v(r, jc, 'estado')) == 'final' and A is not None and H is not None
+        if rd.isdigit() and fin:
+            games.append((a, hh, A, H))
+        elif rd in ('CF', 'SF', 'F') and a in name and hh in name:
+            po.append((rd, a, hh, A if fin else None, H if fin else None, v(r, jc, 'fecha'), v(r, jc, 'hora')))
+    h = [f'<div class="pre"><h2>Tabla de posiciones</h2><p class="sub">Conferencia Nacional · Liga Mayor ONEFA {YEAR}{" · " + e(cut.lower()) if cut else ""}</p>']
+    for grp in [x for x in dict.fromkeys(t['g'] for t in T) if x]:
+        rows = tie_sort([t for t in T if t['g'] == grp], games)
+        h.append(f'<h4 class="br-round">Grupo {e(grp)}</h4><div class="tbl-box" style="margin-bottom:12px"><table><thead><tr><th>#</th><th>Equipo</th><th>G-P</th><th>PF</th><th>PC</th></tr></thead><tbody>')
+        for i, t in enumerate(rows):
+            h.append(f'<tr class="row"><td class="pos">{i + 1}</td><td class="team"><div class="tname"><img src="/img/N_{t["k"]}.png" alt="{e(t["n"])}" width="30" height="30"><span>{e(t["n"])}</span></div></td><td class="rec">{t["w"]}-{t["l"]}</td><td>{t["pf"]}</td><td>{t["pa"]}</td></tr>')
+        h.append('</tbody></table></div>')
+    if po:
+        RN = {'CF': 'Cuartos de final', 'SF': 'Semifinal', 'F': 'Final'}
+        h.append('<h3>Playoffs</h3><ul>' + ''.join(
+            f'<li>{RN[rd]}: {e(name[a])} en {e(name[hh])}' + (f' {A}-{H}' if A is not None else f' · {e(d)} {e(re.sub(r"\s*hrs?$", "", t))}') + '</li>'
+            for rd, a, hh, A, H, d, t in po) + '</ul>')
+    h.append('<p class="sub"><a href="/">Conferencia de los 14 Grandes</a> · <a href="/historia/">Historia y campeones</a></p></div>')
+    return ''.join(h)
+
+
 def main():
     local = sys.argv[sys.argv.index('--local') + 1] if '--local' in sys.argv else None
     G, PL = load(local)
@@ -471,6 +588,14 @@ def main():
     p, html_ = season_page(weeks, byw)
     out.append((p, write(p, html_)))
     sitemap(out)
+    try:
+        changed = inject('index.html', pre_main(G))
+        nh = pre_nac(local)
+        if nh:
+            changed = inject(os.path.join('nacional', 'index.html'), nh) or changed
+        print('portada/nacional en HTML:', 'actualizadas' if changed else 'sin cambios')
+    except Exception as ex:
+        print('aviso: no se pudo generar el HTML de portada/nacional:', ex)
     print(f'{len(out)} páginas, {sum(c for _, c in out)} cambiaron')
 
 
