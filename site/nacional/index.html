@@ -546,7 +546,7 @@ function render(){const Q=qualified(),done=GAMES.some(g=>RN[g.r]);
     h=`<h2>Juegos</h2>`;const rs=rounds();
     if(!rs.length)h+=`<p class="sub">Todavía no hay partidos capturados.</p>`;
     rs.forEach(r=>{const gs=GAMES.filter(g=>g.r===r);h+=`<h3>${roundLbl(r)}</h3><div class="pgs">`+gs.map(g=>card(g,RN[r]?RN[r]:'Grupo '+esc(tk(g.h).g||tk(g.a).g||''))).join('')+`</div>`});
-    h+=`<p class="sub" style="margin-top:12px">Por ahora la página tiene los resultados desde la semana 9; las semanas anteriores se irán agregando.</p>`;
+    {const ws=GAMES.filter(g=>/^\d+$/.test(g.r)).map(g=>+g.r),mx=ws.length?Math.max(...ws):0,miss=[];for(let w=0;w<=mx;w++)if(!ws.includes(w))miss.push(w);if(miss.length)h+=`<p class="sub" style="margin-top:12px">Todavía faltan por capturar las semanas ${miss.join(', ')}.</p>`}
   }else if(tab==='equipos'){
     h=`<h2>Equipos</h2><p class="sub" style="margin-top:-2px">18 equipos en tres grupos. ${esc(CUT)}.</p>`;
     GR.forEach(g=>{h+=`<h4 class="br-round">Grupo ${g}</h4><div class="nteams">`+Q.by[g].map((t,i)=>{const gs=GAMES.filter(x=>x.a===t.k||x.h===t.k);
