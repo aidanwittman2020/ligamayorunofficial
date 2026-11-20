@@ -549,7 +549,8 @@ const gKey=g=>{const m=(g.d||'').match(/(\d+)\s+([a-zé]{3})/i),t=(g.t||'').matc
 const hr=t=>(t||'').replace(/\s*hrs?\.?$/i,'');
 const gLive=g=>/vivo/.test(g.e);
 const lsc=(g,k)=>{const v=k==='a'?g.as:g.hs;return v===null?0:v};
-function watchN(g){const tv=g.tv||'',lk=/^https?:\/\//.test(g.lk||'')?g.lk:'';if(!tv&&!lk)return'';const lv=gLive(g);return`<div class="tv"><span class="tvl">${lv?'En vivo por':'Dónde ver'}</span><span class="tvn">${esc(tv)}</span>${lk?`<a class="tvb${lv?' live':''}" href="${esc(lk)}" target="_blank" rel="noopener">${lv?'Ver en vivo ▶':'Ir ▶'}</a>`:''}</div>`}
+let CANN={};
+function watchN(g){const d=CANN[g.h]||{},tv=g.tv||d.tv||'',L=g.lk||(g.tv?'':d.lk)||'',lk=/^https?:\/\//.test(L)?L:'';if(!tv&&!lk)return'';const lv=gLive(g);return`<div class="tv"><span class="tvl">${lv?'En vivo por':'Dónde ver'}</span><span class="tvn">${esc(tv)}</span>${lk?`<a class="tvb${lv?' live':''}" href="${esc(lk)}" target="_blank" rel="noopener">${lv?'Ver en vivo ▶':'Ir ▶'}</a>`:''}</div>`}
 const gFin=g=>g.e==='final'&&g.as!==null&&g.hs!==null;
 function roundsC(){const rs=[...new Set(GAMES.map(g=>g.r))];return[...rs.filter(r=>/^\d+$/.test(r)).sort((a,b)=>a-b),...['CF','SF','F'].filter(r=>rs.includes(r))]}
 let NCFG='';
@@ -698,7 +699,8 @@ document.querySelector('nav.tabs').addEventListener('click',e=>{const b=e.target
 setTimeout(()=>{if(!LOADED&&!document.querySelector('#nac .pre'))document.getElementById('nac').innerHTML='<p class="sub" style="padding:40px 0;text-align:center">Cargando…</p>'},250);setTimeout(()=>{if(!LOADED){LOADED=true;autoTab=false;render()}},3500);
 document.querySelectorAll('.topnav a').forEach(a=>a.addEventListener('click',e=>{const p=a.getAttribute('href').split('#')[0];if(p!=='/'&&p!=='/nacional/')return;if(p===location.pathname){e.preventDefault();return}a.href=p+'#'+tab}));
 let LOADED=false;
-function loadNac(){return Promise.all([1541467341,910175980,1049818250,1720495318,485698180].map(g=>fetch(B+g+'&t='+Date.now(),{cache:'no-store'}).then(r=>r.ok?r.text():'').catch(()=>''))).then(([ta,ju,li,es,cf])=>{
+function loadNac(){return Promise.all([1541467341,910175980,1049818250,1720495318,485698180,1868069815].map(g=>fetch(B+g+'&t='+Date.now(),{cache:'no-store'}).then(r=>r.ok?r.text():'').catch(()=>''))).then(([ta,ju,li,es,cf,cn])=>{
+  if(cn){try{const R=csv(cn),Hh=R.shift().map(nm),c=n=>Hh.indexOf(nm(n)),m={};R.forEach(r=>{const k=(r[0]||'').trim().toUpperCase();if(!TEAMS.some(t=>t.k===k))return;m[k]={tv:(r[c('Transmision')]||'').trim(),lk:c('Link')>=0?(r[c('Link')]||'').trim():''}});CANN=m}catch(_){}}
   if(cf){try{const r=csv(cf).find(r=>nm(r[0])==='semana actual nacional');NCFG=r?String(r[1]||'').trim().toUpperCase().replace(/^S(EMANA)?\s*(?=\d)/,''):''}catch(_){}}
   if(ta){const R=csv(ta),Hh=R.shift().map(nm),c=n=>Hh.indexOf(nm(n)),num=x=>+String(x||'0').replace(/[^0-9-]/g,'')||0;const out=[];
     R.forEach(r=>{if(nm(r[0])==='corte'){CUT=(r[1]||'').trim()||CUT;return}const k=(r[c('Clave')]||'').trim().toUpperCase();if(!k)return;out.push({g:(r[c('Grupo')]||'').trim(),k,n:(r[c('Equipo')]||k).trim(),s:(r[c('Escuela')]||'').trim(),w:num(r[c('G')]),l:num(r[c('P')]),pf:num(r[c('PF')]),pa:num(r[c('PC')])})});
