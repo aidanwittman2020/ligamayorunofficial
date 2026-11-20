@@ -547,14 +547,17 @@ const wkLng=r=>RN[r]||'Semana '+r;
 const MES={ene:1,feb:2,mar:3,abr:4,may:5,jun:6,jul:7,ago:8,sep:9,oct:10,nov:11,dic:12};
 const gKey=g=>{const m=(g.d||'').match(/(\d+)\s+([a-zé]{3})/i),t=(g.t||'').match(/(\d+):(\d+)/);return(m?(MES[m[2].toLowerCase()]||0)*3100+(+m[1])*100:999999)+(t?(+t[1])+(+t[2])/60:0)/24};
 const hr=t=>(t||'').replace(/\s*hrs?\.?$/i,'');
+const gLive=g=>/vivo/.test(g.e);
+const lsc=(g,k)=>{const v=k==='a'?g.as:g.hs;return v===null?0:v};
+function watchN(g){const tv=g.tv||'',lk=/^https?:\/\//.test(g.lk||'')?g.lk:'';if(!tv&&!lk)return'';const lv=gLive(g);return`<div class="tv"><span class="tvl">${lv?'En vivo por':'Dónde ver'}</span><span class="tvn">${esc(tv)}</span>${lk?`<a class="tvb${lv?' live':''}" href="${esc(lk)}" target="_blank" rel="noopener">${lv?'Ver en vivo ▶':'Ir ▶'}</a>`:''}</div>`}
 const gFin=g=>g.e==='final'&&g.as!==null&&g.hs!==null;
 function roundsC(){const rs=[...new Set(GAMES.map(g=>g.r))];return[...rs.filter(r=>/^\d+$/.test(r)).sort((a,b)=>a-b),...['CF','SF','F'].filter(r=>rs.includes(r))]}
 let NCFG='';
 function defWeek(rs){if(NCFG&&rs.includes(NCFG))return NCFG;for(const r of rs)if(GAMES.some(g=>g.r===r&&!gFin(g)))return r;return rs[rs.length-1]}
-function gcard(g){const fin=gFin(g),live=/vivo/.test(g.e)&&g.as!==null&&g.hs!==null,p=fin||live,aw=fin&&g.as>g.hs,hw=fin&&g.hs>g.as;
-  const side=(k,sc,lose,lbl)=>`<div class="side ${lose?'lose':''}" data-team="${k}">${nb(k)}<div class="nm">${esc(tk(k).n)}<div class="loc">${lbl}</div></div></div><div class="score ${lose?'lose':''} num">${p?sc:''}</div>`;
+function gcard(g){const fin=gFin(g),live=gLive(g),p=fin||live,aw=fin&&g.as>g.hs,hw=fin&&g.hs>g.as;
+  const side=(k,sc,lose,lbl)=>`<div class="side ${lose?'lose':''}" data-team="${k}">${nb(k)}<div class="nm">${esc(tk(k).n)}<div class="loc">${lbl}</div></div></div><div class="score ${lose?'lose':''} num">${p?(sc===null?0:sc):''}</div>`;
   const gr=RN[g.r]?'':(tk(g.h).g===tk(g.a).g?' · Grupo '+esc(tk(g.h).g):'');
-  return`<div class="game${FAV&&(g.a===FAV||g.h===FAV)?' fav':''}"><div class="meta"><span>${wkLng(g.r)}${g.d?' · '+esc(g.d):''}</span><span>${live?'<span class="live">● En vivo</span>':fin?'Final':g.t?esc(hr(g.t))+' h':'Por definir'}</span></div>${side(g.a,g.as,fin&&!aw,'Visita'+gr)}${side(g.h,g.hs,fin&&!hw,'Local'+gr)}${live?'':pollHTML('N-'+g.r+'-'+g.a+'-'+g.h,g.a,g.h,!fin)}</div>`}
+  return`<div class="game${FAV&&(g.a===FAV||g.h===FAV)?' fav':''}"><div class="meta"><span>${wkLng(g.r)}${g.d?' · '+esc(g.d):''}</span><span>${live?`<span class="live">● En vivo${g.det?' · '+esc(g.det):''}</span>`:fin?'Final':g.t?esc(hr(g.t))+' h':'Por definir'}</span></div>${side(g.a,g.as,fin&&!aw,'Visita'+gr)}${side(g.h,g.hs,fin&&!hw,'Local'+gr)}${fin?'':watchN(g)}${pollHTML('N-'+g.r+'-'+g.a+'-'+g.h,g.a,g.h,!fin&&!live)}</div>`}
 function openTeam(k){const t=tk(k);if(!t||!t.n)return;const Q=qualified(),pos=(Q.by[t.g]||[]).findIndex(x=>x.k===k)+1,S=STAFF[k],d=t.pf-t.pa;
   const gs=GAMES.filter(g=>g.a===k||g.h===k).sort((x,y)=>{const o=r=>/^\d+$/.test(r)?+r:{CF:20,SF:21,F:22}[r];return o(x.r)-o(y.r)});
   const line=g=>{const home=g.h===k,op=home?g.a:g.h,pre=home?'vs':'en';if(gFin(g)){const my=home?g.hs:g.as,ot=home?g.as:g.hs,W=my>ot?'G':'P';return`<div class="li"><span class="wk">${RN[g.r]?g.r:'S'+g.r}</span>${pre} ${nb(op)}<span>${esc(tk(op).n)}</span><span class="res ${W}">${W} ${my}-${ot}</span></div>`}
@@ -579,14 +582,14 @@ function favCard(Q){const t=FAV&&TEAMS.find(x=>x.k===FAV);
   const pos=(Q.by[t.g]||[]).findIndex(x=>x.k===FAV)+1,st=favStatus(FAV);
   const next=GAMES.filter(g=>!gFin(g)&&(g.a===FAV||g.h===FAV)).sort((x,y)=>gKey(x)-gKey(y))[0];
   let nx='<span class="sub" style="margin:0">Terminó su temporada</span>';
-  if(next){const home=next.h===FAV,opp=home?next.a:next.h;nx=`<div class="fc-next"><span class="tvl">Próximo partido · ${esc(wkLng(next.r))}</span><b>${home?'vs':'en'} ${esc(tk(opp).n)}</b><span>${esc(next.d)}${next.t?' · '+esc(hr(next.t))+' h':''}</span></div>`}
+  if(next){const home=next.h===FAV,opp=home?next.a:next.h;nx=`<div class="fc-next"><span class="tvl">${gLive(next)?'● En vivo':'Próximo partido'} · ${esc(wkLng(next.r))}</span><b>${home?'vs':'en'} ${esc(tk(opp).n)}</b><span>${esc(next.d)}${next.t?' · '+esc(hr(next.t))+' h':''}</span></div>`}
   return`<div class="favcard" data-team="${FAV}"><div class="fc-h">${nb(FAV)}<div><span class="tvl">★ Tu equipo</span><b>${esc(t.n)}</b><span class="sub" style="margin:0">${t.w}-${t.l} · ${pos}° grupo ${esc(t.g)}${st?' · '+esc(st):''}</span></div></div>${nx}</div>`}
 const TABN={tabla:'Tabla',juegos:'Juegos',equipos:'Equipos',stats:'Líderes',playoffs:'Playoffs',info:'Info'};
 function renderTicker(){const el=document.getElementById('ticker');if(!el)return;const rs=roundsC();if(!rs.length){el.innerHTML='';return}const cur=defWeek(rs);
   const gs=GAMES.filter(g=>g.r===cur).sort((x,y)=>gKey(x)-gKey(y));
-  el.innerHTML=`<div class="tk-w">${RN[cur]?wkLbl(cur):'Sem<br>'+cur}</div>`+gs.map(g=>{const fin=gFin(g),lv=/vivo/.test(g.e)&&g.as!==null&&g.hs!==null;
-    const st=lv?'<span class="tk-s lv">● En vivo</span>':fin?'<span class="tk-s">Final</span>':`<span class="tk-s">${esc((g.d||'').split(' ')[0])} ${esc(hr(g.t))}</span>`;
-    const r=(k,sc,l)=>`<div class="tk-r${l?' l':''}"><span>${k}</span><span>${fin||lv?sc:''}</span></div>`;
+  el.innerHTML=`<div class="tk-w">${RN[cur]?wkLbl(cur):'Sem<br>'+cur}</div>`+gs.map(g=>{const fin=gFin(g),lv=gLive(g);
+    const st=lv?`<span class="tk-s lv">● ${esc(g.det||'En vivo')}</span>`:fin?'<span class="tk-s">Final</span>':`<span class="tk-s">${esc((g.d||'').split(' ')[0])} ${esc(hr(g.t))}</span>`;
+    const r=(k,sc,l)=>`<div class="tk-r${l?' l':''}"><span>${k}</span><span>${fin||lv?(sc===null?0:sc):''}</span></div>`;
     return`<div class="tkc" data-week="${cur}">${st}${r(g.a,g.as,fin&&g.as<g.hs)}${r(g.h,g.hs,fin&&g.hs<g.as)}</div>`}).join('')}
 const SITE_TXT='ligamayorunofficial.com';
 function imgOf(src){return new Promise(r=>{if(!src)return r(null);const i=new Image();i.onload=()=>r(i);i.onerror=()=>r(null);i.src=src})}
@@ -632,9 +635,9 @@ function render(){const Q=qualified(),done=GAMES.some(g=>RN[g.r]);
   const isFin=g=>g&&g.e==='final'&&g.as!==null&&g.hs!==null;
   const mcard=(title,g,ph)=>{if(!g)return`<div class="br-m tbd"><div class="br-h">${title}<span>Por definir</span></div><div class="br-t"><span class="br-s"></span><b>${ph[0]}</b></div><div class="br-t"><span class="br-s"></span><b>${ph[1]}</b></div></div>`;
     const fin=isFin(g),W=fin?(g.as>g.hs?g.a:g.h):null,[hi,lo]=(seedOf(g.h)||99)<=(seedOf(g.a)||99)?[g.h,g.a]:[g.a,g.h];
-    const sc=k=>fin?(k===g.a?g.as:g.hs):'';
+    const lv=!fin&&gLive(g),sc=k=>fin?(k===g.a?g.as:g.hs):lv?lsc(g,k===g.a?'a':'h'):'';
     const row=k=>`<div class="br-t${W?(W===k?' win':' lose'):''}"><span class="br-s">${seedOf(k)}</span>${nb(k)}<b>${esc(tk(k).n)}</b><span class="br-r">${sc(k)}</span></div>`;
-    return`<div class="br-m"><div class="br-h">${title}<span>${fin?'Final':esc((g.d+' '+(g.t||'')).trim())}</span></div>${row(hi)}${row(lo)}</div>`};
+    return`<div class="br-m"><div class="br-h">${title}<span${lv?' style="color:var(--bad);font-weight:700"':''}>${fin?'Final':lv?'● En vivo'+(g.det?' · '+esc(g.det):''):esc((g.d+' '+hr(g.t||'')).trim())}</span></div>${row(hi)}${row(lo)}${lv?watchN(g):''}</div>`};
   const bySeed=r=>GAMES.filter(g=>g.r===r).sort((x,y)=>Math.min(seedOf(x.a)||99,seedOf(x.h)||99)-Math.min(seedOf(y.a)||99,seedOf(y.h)||99));
   const cf=bySeed('CF'),sf=bySeed('SF'),fi=bySeed('F')[0],champ=isFin(fi)?(fi.as>fi.hs?fi.a:fi.h):null;
   const brk=()=>`<h3>Llave de playoffs</h3><p class="sub" style="margin-top:-2px">El número es la siembra. En semifinales se vuelve a sembrar: el mejor sembrado que sigue vivo recibe al peor.</p>
@@ -701,7 +704,7 @@ function loadNac(){return Promise.all([1541467341,910175980,1049818250,172049531
     R.forEach(r=>{if(nm(r[0])==='corte'){CUT=(r[1]||'').trim()||CUT;return}const k=(r[c('Clave')]||'').trim().toUpperCase();if(!k)return;out.push({g:(r[c('Grupo')]||'').trim(),k,n:(r[c('Equipo')]||k).trim(),s:(r[c('Escuela')]||'').trim(),w:num(r[c('G')]),l:num(r[c('P')]),pf:num(r[c('PF')]),pa:num(r[c('PC')])})});
     if(out.length>=15)TEAMS=out}
   if(ju){const R=csv(ju),Hh=R.shift().map(nm),c=n=>Hh.indexOf(nm(n)),n2=x=>{const v=String(x||'').trim();return v===''||isNaN(+v)?null:+v};
-    GAMES=R.map(r=>({r:(r[c('Ronda')]||'').trim().toUpperCase().replace(/^S(EMANA)?\s*(?=\d)/,''),d:(r[c('Fecha')]||'').trim(),t:(r[c('Hora')]||'').trim(),a:(r[c('Visitante')]||'').trim().toUpperCase(),h:(r[c('Local')]||'').trim().toUpperCase(),as:n2(r[c('Pts visitante')]),hs:n2(r[c('Pts local')]),e:nm(r[c('Estado')])})).filter(g=>(RN[g.r]||/^\d+$/.test(g.r))&&g.a&&g.h)}
+    GAMES=R.map(r=>({r:(r[c('Ronda')]||'').trim().toUpperCase().replace(/^S(EMANA)?\s*(?=\d)/,''),d:(r[c('Fecha')]||'').trim(),t:(r[c('Hora')]||'').trim(),a:(r[c('Visitante')]||'').trim().toUpperCase(),h:(r[c('Local')]||'').trim().toUpperCase(),as:n2(r[c('Pts visitante')]),hs:n2(r[c('Pts local')]),e:nm(r[c('Estado')]),det:c('Detalle')>=0?(r[c('Detalle')]||'').trim():'',tv:c('Transmision')>=0?(r[c('Transmision')]||'').trim():'',lk:c('Link')>=0?(r[c('Link')]||'').trim():''})).filter(g=>(RN[g.r]||/^\d+$/.test(g.r))&&g.a&&g.h)}
   if(li){const R=csv(li);if(R.length>5)LEAD=R}
   if(es){try{const R=csv(es),Hh=R.shift().map(nm),c=n=>Hh.indexOf(nm(n)),n=x=>{const v=String(x||'').replace(/[,\s]/g,'');return v===''||isNaN(+v)?0:+v},m={};let cut=null;
     R.forEach(r=>{const k=(r[0]||'').trim().toUpperCase();if(nm(k)==='corte'){cut=(r[1]||'').trim();return}if(!k||c('Juegos')<0)return;
@@ -709,7 +712,7 @@ function loadNac(){return Promise.all([1541467341,910175980,1049818250,172049531
     if(Object.keys(m).length>=15){TSTATS=m;if(cut)TSTATS_CUT=cut}}catch(_){}}
   if(autoTab&&GAMES.some(g=>RN[g.r]))tab='playoffs';autoTab=false;LOADED=true;
   const y=window.scrollY;render();window.scrollTo(0,y)})}
-loadNac().then(()=>setTimeout(loadNac,1500));setInterval(loadNac,60000);
+loadNac().then(()=>setTimeout(loadNac,1500));(function tick(){setTimeout(()=>loadNac().finally(tick),GAMES.some(gLive)?20000:60000)})();
 
 const PNAME=k=>tk(k).n;
 // ===== ¿Quién crees que gana? + comentarios (Google Forms) =====
