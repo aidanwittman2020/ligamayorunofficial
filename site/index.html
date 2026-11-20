@@ -1098,7 +1098,9 @@ document.getElementById('ticker').addEventListener('click',e=>{const t=e.target.
 
 function syncTopnav(){const n=document.getElementById('topnav');if(!n)return;n.querySelectorAll('a').forEach(a=>a.classList.toggle('on',a.getAttribute('href')==='/#tabla'))}
 document.getElementById('topnav')&&document.getElementById('topnav').addEventListener('click',e=>{const a=e.target.closest('a');if(!a)return;const h=a.getAttribute('href');if(!h.startsWith('/#'))return;e.preventDefault();tab=h.slice(2);try{history.replaceState(null,'','#'+tab)}catch(_){}document.getElementById('sheet').hidden=true;window.scrollTo(0,0);if(tab==='playoffs'&&!simSC)recalc();else render()});
+let WAIT=false;
 function render(){
+  if(WAIT&&autoTab)return;WAIT=false;
   renderTicker();syncTopnav();
   app.innerHTML=tab==='tabla'?viewTabla():tab==='juegos'?viewJuegos():tab==='playoffs'?viewPlayoffs():tab==='equipos'?viewEquipos():tab==='stats'?viewStats():viewInfo();
   document.querySelectorAll('nav.tabs button').forEach(b=>b.setAttribute('aria-current',b.dataset.tab===tab?'page':'false'));
@@ -1182,8 +1184,12 @@ async function loadCanales(){try{const res=await fetch(CANALES_CSV_URL+'&t='+Dat
 loadSheet();loadLeaders();loadCanales();loadAnot();loadConfig();loadTeamStats();loadStars();setInterval(()=>{loadSheet();loadLeaders();loadCanales();loadAnot();loadConfig();loadTeamStats();loadStars()},60000);
 
 const h0=(location.hash||'').slice(1);let autoTab=true;if(['tabla','juegos','equipos','stats','playoffs','info'].includes(h0)){tab=h0;autoTab=false}
+if(autoTab&&tab==='tabla'&&GAMES.length&&GAMES.every(g=>isPlayed(g)))tab='playoffs';
 simSC=Object.keys(picks).length?null:BASE_SC;
-if(tab==='playoffs'&&!simSC)recalc();else render();
+if(autoTab){WAIT=true;app.innerHTML='<p class="sub" style="padding:48px 0;text-align:center">Cargando…</p>';setTimeout(()=>{if(autoTab){autoTab=false;render()}},3500)}
+else if(tab==='playoffs'&&!simSC)recalc();else render();
+document.querySelectorAll('.topnav a').forEach(a=>a.addEventListener('click',e=>{const p=a.getAttribute('href').split('#')[0];if(p!=='/'&&p!=='/nacional/')return;if(p===location.pathname){e.preventDefault();return}a.href=p+'#'+tab}));
+
 </script>
 
 
