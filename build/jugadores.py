@@ -24,7 +24,7 @@ G.HEADER = G.HEADER.replace('<a class="on" href="/#tabla">', '<a href="/#tabla">
 G.GID.update({'lideres': 1908116186, 'estrellas': 1355832789, 'nlideres': 1049818250})
 
 # Tono de piel indicado por Aidan para el muñequito (equipo, número)
-SKIN_FIX = {('LAC', 3), ('MTY', 71), ('GDL', 2), ('CEM', 0)}
+SKIN_FIX = {('LAC', 3), ('MTY', 78), ('GDL', 2), ('CEM', 0)}
 
 POS = {'QB': 'Quarterback', 'RB': 'Corredor', 'FB': 'Fullback', 'WR': 'Receptor', 'TE': 'Ala cerrada', 'PB': 'H-back', 'HB': 'H-back',
        'OL': 'Línea ofensiva', 'DL': 'Línea defensiva', 'DE': 'Ala defensiva', 'DT': 'Tackle defensivo', 'NT': 'Nose tackle',
@@ -190,8 +190,15 @@ def load_cc():
     return out
 
 
+# mismo jugador escrito distinto en Cover Cero y en el roster
+CC_ALIAS = {('PUE', 8, 'Alonso Barrenchea'): 'Alonso Barrenechea Romay', ('LAN', 1, 'Hiram Palomino'): 'Iram Palomino',
+            ('BUR', 13, 'Rodrigo Espinosa'): 'Rodrigo Daniel Espinoza Vite', ('UVM', 5, 'Emanuel Burgos'): 'Emmanuel Burgos Vargas'}
+
+
 def attach_cc(P, cc):
     hit = 0
+    for r in cc:
+        r['name'] = CC_ALIAS.get((r['team'], r['n'], r['name']), r['name'])
     for p in P:
         p['cc'] = {}
     for r in cc:
@@ -363,17 +370,22 @@ def player_page(p, P):
         body += f'<p class="gm-meta">Entre los líderes de {"los 14 Grandes" if T["conf"] == "14 Grandes" else "la Conferencia Nacional"} en estas categorías.</p><div class="st">{stat_cards(cur, "los 14 Grandes" if T["conf"] == "14 Grandes" else "la Conferencia Nacional")}</div>'
     if p.get('star'):
         body += f'<div class="card" style="margin-top:8px"><b>Jugador a seguir de {e(T["n"])}:</b> {e(p["star"])}</div>'
-    if p.get('cc'):
-        jj = max(int(v[0] or 0) for v in p['cc'].values())
-        body += f'<h3 style="font-size:20px;margin:18px 0 0">Estadísticas completas {YEAR}</h3><p class="gm-meta">Temporada regular, {jj} juego{"s" if jj != 1 else ""}.</p><div class="st">{cc_tables(p["cc"])}</div>'
-    if not (cur and cur['cats']) and not p.get('star') and not p.get('cc'):
+    # Cover Cero solo para lo que FBA Stats no trae
+    fcats = set(cur['cats']) if cur else set()
+    tapado = {'passing': 'QB' in fcats, 'rushing': 'RB' in fcats, 'receiving': 'WR' in fcats, 'defense': bool(fcats & {'TK', 'IN', 'SK'})}
+    ccx = {k: v for k, v in (p.get('cc') or {}).items() if not tapado[k]}
+    if ccx:
+        ttl = f'Más estadísticas {YEAR}' if fcats else f'Estadísticas {YEAR}'
+        body += f'<h3 style="font-size:20px;margin:18px 0 0">{ttl}</h3><p class="gm-meta">Temporada regular.</p><div class="st">{cc_tables(ccx)}</div>'
+    if not (cur and cur['cats']) and not p.get('star') and not ccx:
         body += '<p class="gm-meta">Todavía no aparece entre los líderes estadísticos. Las estadísticas por jugador se publican para los primeros lugares de cada categoría.</p>'
     hist = sorted(p['seasons'].items(), reverse=True)
-    if p.get('cc') and str(YEAR) not in p['seasons']:
-        hist = [(str(YEAR), {'liga': p['liga'], 'team': p['team'], 'cats': {}, 'ccs': cc_summary(p['cc'])})] + hist
+    if ccx and str(YEAR) not in p['seasons']:
+        hist = [(str(YEAR), {'liga': p['liga'], 'team': p['team'], 'cats': {}})] + hist
+    hs = lambda y, s: ' · '.join(x for x in [summary(s), cc_summary(ccx) if y == str(YEAR) else ''] if x)
     if hist:
         body += '<h2 style="font-size:26px;margin-top:22px">Historial</h2><div class="tbl-box"><table class="qs"><thead><tr><th>Temporada</th><th>Equipo</th><th>Estadísticas</th></tr></thead><tbody>' + ''.join(
-            f'<tr><td>{y}</td><td>{e(team(s["liga"], s["team"])["n"])}</td><td>{e((cc_summary(p["cc"]) if y == str(YEAR) and p.get("cc") else "") or s.get("ccs") or summary(s)) or "—"}</td></tr>' for y, s in hist) + '</tbody></table></div>'
+            f'<tr><td>{y}</td><td>{e(team(s["liga"], s["team"])["n"])}</td><td>{e(hs(y, s)) or "—"}</td></tr>' for y, s in hist) + '</tbody></table></div>'
     mates = [q for q in P if q is not p and q['liga'] == p['liga'] and q['team'] == p['team'] and q['pos'] == p['pos']][:12]
     if mates:
         body += f'<h2 style="font-size:24px;margin-top:22px">Otros {e(p["pos"])} de {e(T["n"])}</h2><div class="pl2">' + ''.join(
@@ -384,8 +396,8 @@ def player_page(p, P):
         src.append('Nombre, número y posición: Guía ONEFA 2026 de Lucio Trucíos (@luciotrucios)')
     if age or h or w:
         src.append('edad, estatura y peso: rosters publicados por los equipos')
-    if p.get('cc'):
-        src.append('estadísticas completas: Cover Cero (<a href="https://covercero.com.mx/estadisticas-2026/" rel="noopener">covercero.com.mx</a>)')
+    if ccx:
+        src.append('otras estadísticas: Cover Cero (<a href="https://covercero.com.mx/estadisticas-2026/" rel="noopener">covercero.com.mx</a>)')
     if p['seasons']:
         src.append('líderes estadísticos: Uriel González (FBA Stats)')
     txt = "; ".join(src)
@@ -412,7 +424,7 @@ def team_list_page(T, ps):
     body = nav + f'<h1 class="gm-h1">Jugadores de {e(T["n"])} {YEAR}</h1><p class="gm-meta">{len(ps)} jugadores · {T["conf"]}. Pica un nombre para ver su perfil.</p>'
     body += f'<div class="tbl-box"><table class="roster"><thead><tr><th>#</th><th>Nombre</th><th>Pos.</th><th>Edad</th><th>Est.</th><th>Peso</th></tr></thead><tbody>{rows}</tbody></table></div><p class="note" style="margin-top:6px">Estatura en metros y peso en kilos.</p>'
     body += f'<div class="more" style="margin-top:14px"><a href="{T["url"]}">Página de {e(T["n"])} →</a><a href="/jugadores/">Todos los equipos →</a></div>'
-    body += '<p class="note">Roster: Guía ONEFA 2026 de Lucio Trucíos. Edad, estatura y peso: rosters publicados por los equipos. Estadísticas: Cover Cero (covercero.com.mx).</p>' if T['conf'] == '14 Grandes' else '<p class="note">Edad, estatura y peso: rosters publicados por los equipos. Estadísticas: Uriel González (FBA Stats).</p>'
+    body += '<p class="note">Roster: Guía ONEFA 2026 de Lucio Trucíos. Edad, estatura y peso: rosters publicados por los equipos.</p>' if T['conf'] == '14 Grandes' else '<p class="note">Edad, estatura y peso: rosters publicados por los equipos. Estadísticas: Uriel González (FBA Stats).</p>'
     return path, G.page(f"Roster {T['n']} {YEAR}: jugadores, edad, estatura y peso | Liga Mayor Unofficial",
                         f"Los {len(ps)} jugadores de {T['n']} en la Liga Mayor ONEFA {YEAR} con número, posición, edad, estatura y peso.", path, CSS + body, [ld_b])
 
