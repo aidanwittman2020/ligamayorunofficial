@@ -23,6 +23,9 @@ DATA = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'data')
 G.HEADER = G.HEADER.replace('<a class="on" href="/#tabla">', '<a href="/#tabla">').replace('<a href="/jugadores/">', '<a class="on" href="/jugadores/">')
 G.GID.update({'lideres': 1908116186, 'estrellas': 1355832789, 'nlideres': 1049818250})
 
+# Tono de piel indicado por Aidan para el muñequito (equipo, número)
+SKIN_FIX = {('LAC', 3), ('MTY', 71), ('GDL', 2), ('CEM', 0)}
+
 POS = {'QB': 'Quarterback', 'RB': 'Corredor', 'FB': 'Fullback', 'WR': 'Receptor', 'TE': 'Ala cerrada', 'PB': 'H-back', 'HB': 'H-back',
        'OL': 'Línea ofensiva', 'DL': 'Línea defensiva', 'DE': 'Ala defensiva', 'DT': 'Tackle defensivo', 'NT': 'Nose tackle',
        'LB': 'Apoyador', 'CB': 'Esquinero', 'S': 'Profundo', 'FS': 'Profundo libre', 'SS': 'Profundo fuerte', 'DB': 'Back defensivo',
@@ -154,6 +157,86 @@ def find_player(P, liga, k, n, name):
     return c3[0] if len(c3) == 1 else None
 
 
+# ---------------------------------------------------------------- Cover Cero (estadísticas completas 14 Grandes)
+CC_TEAM = {'MTY': 'MTY', 'CETYS': 'CET', 'PUE': 'PUE', 'CU': 'PUM', 'CEM': 'CEM', 'UAMN': 'LAN', 'AT': 'TIG', 'ABS': 'AGU',
+           'UDLA': 'UDL', 'CCM': 'CCM', 'BBS': 'BUR', 'UVM': 'UVM', 'GDL': 'GDL', 'UAC': 'LAC'}
+CC_COLS = {'passing': ('Pase', ['JJ', 'COMP', 'INT.', '%', 'YDS', 'Y/I', 'TD', 'INT', 'RTG', 'Y/J']),
+           'rushing': ('Acarreo', ['JJ', 'ACAR', 'YDS', 'PROM', 'TD', 'Y/J']),
+           'receiving': ('Recepción', ['JJ', 'REC', 'YDS', 'PROM', 'TD', 'Y/J']),
+           'defense': ('Defensiva', ['JJ', 'TACK', 'SOLO', 'AST', 'SACK', 'TFL', 'INT', 'FF'])}
+CC_SHOW = {'passing': [0, 1, 2, 3, 4, 6, 7, 8], 'rushing': [0, 1, 2, 3, 4, 5], 'receiving': [0, 1, 2, 3, 4, 5], 'defense': [0, 1, 4, 5, 6, 7]}
+
+
+def ccnum(x):
+    x = x.strip()
+    if x in ('—', '-', ''):
+        return None
+    return float(x.replace('.', '').replace(',', '.')) if re.match(r'^-?[\d.]+(,\d+)?$', x) else None
+
+
+def load_cc():
+    fp = os.path.join(DATA, 'covercero_2026.txt')
+    out = []
+    if not os.path.exists(fp):
+        return out
+    for ln in open(fp, encoding='utf-8'):
+        if not ln.strip() or ln.startswith('#'):
+            continue
+        f = ln.rstrip('\n').split('|')
+        m = re.match(r'^(.*?) #(\d+) · (\w+)$', f[1])
+        if not m or f[2] not in CC_TEAM:
+            continue
+        out.append({'cat': f[0], 'name': m.group(1), 'n': int(m.group(2)), 'pos': m.group(3), 'team': CC_TEAM[f[2]], 'v': [ccnum(x) for x in f[3:]]})
+    return out
+
+
+def attach_cc(P, cc):
+    hit = 0
+    for p in P:
+        p['cc'] = {}
+    for r in cc:
+        p = find_player(P, '14G', r['team'], r['n'], r['name'])
+        if p:
+            p['cc'][r['cat']] = r['v']
+            hit += 1
+    return hit
+
+
+def fmtv(v, dec):
+    if v is None:
+        return '—'
+    if dec or v != int(v):
+        return f'{v:.1f}'
+    return f'{int(v):,}'
+
+
+def cc_tables(cc):
+    out = ''
+    for cat in ('passing', 'rushing', 'receiving', 'defense'):
+        if cat not in cc:
+            continue
+        lbl, cols = CC_COLS[cat]
+        idx = CC_SHOW[cat]
+        dec = {'%', 'Y/I', 'RTG', 'Y/J', 'PROM'}
+        out += (f'<div class="c"><div class="ct">{lbl}</div><div class="tbl-box"><table class="cc"><thead><tr>' + ''.join(f'<th>{cols[i]}</th>' for i in idx) +
+                '</tr></thead><tbody><tr>' + ''.join(f'<td>{fmtv(cc[cat][i], cols[i] in dec)}</td>' for i in idx) + '</tr></tbody></table></div></div>')
+    return out
+
+
+def cc_summary(cc):
+    parts = []
+    if 'passing' in cc:
+        v = cc['passing']; parts.append(f'{int(v[4]):,} yds de pase, {int(v[6])} TD')
+    if 'rushing' in cc:
+        v = cc['rushing']; parts.append(f'{int(v[2]):,} yds por tierra, {int(v[4])} TD')
+    if 'receiving' in cc:
+        v = cc['receiving']; parts.append(f'{int(v[1])} rec., {int(v[2]):,} yds, {int(v[4])} TD')
+    if 'defense' in cc:
+        v = cc['defense']; d = [f'{int(v[1])} tackleadas'] + [f'{x:g} {t}' for x, t in ((v[4], 'sacks'), (v[6], 'INT')) if x]
+        parts.append(', '.join(d))
+    return ' · '.join(parts)
+
+
 def attach(P, rows, stars, hist):
     for p in P:
         p['seasons'] = {}
@@ -181,7 +264,7 @@ def attach(P, rows, stars, hist):
 CSS = '''<style>
 .ph{display:grid;grid-template-columns:auto 1fr;gap:14px;align-items:center;background:var(--head);color:var(--head-ink);border-radius:4px;padding:16px;margin-top:6px}
 .ph .av{background:linear-gradient(#DDE7DF,#C7D8CB);border-radius:4px;padding:10px 8px 6px;display:grid;place-items:end center}
-.ph .tl{display:inline-flex;align-items:center;gap:5px;text-decoration:none}.ph .tl img{width:24px;height:24px;image-rendering:pixelated}
+.ph .sub2{display:flex;flex-direction:column;align-items:flex-start;gap:3px}.ph .sub2 span{padding-left:1px}.ph .tl{display:inline-flex;align-items:center;gap:5px;text-decoration:none}.ph .tl img{width:24px;height:24px;image-rendering:pixelated}
 @media (max-width:420px){.ph .av svg{width:96px;height:auto}.ph h1{font-size:30px}}
 .ph .num{font-family:var(--display);font-size:54px;line-height:1;color:#3DBE73}
 .ph h1{font-family:var(--display);font-weight:800;font-size:34px;line-height:1.02;text-transform:uppercase;margin:0;text-wrap:balance}
@@ -201,6 +284,7 @@ CSS = '''<style>
 .st .v span{font-size:12px;color:var(--muted);display:block}
 .st .rnk{font-size:13px;margin-top:6px;font-weight:600}
 .qs td{white-space:normal}
+.st .tbl-box{margin:0}table.cc{width:100%}table.cc th,table.cc td{text-align:center;font-variant-numeric:tabular-nums}table.cc td{font-family:var(--display);font-weight:800;font-size:20px}
 .pl2{display:grid;gap:6px}
 .pl2 a{display:grid;grid-template-columns:42px 1fr auto;gap:10px;align-items:center;background:var(--surface);border:1px solid var(--line);border-radius:4px;padding:8px 10px;text-decoration:none;color:inherit}
 .pl2 a:hover{border-color:var(--accent)}
@@ -266,9 +350,9 @@ def player_page(p, P):
              'RB': ('tuck', 'ball_r', 'ball_l', 'two_hands'), 'FB': ('tuck', 'two_hands'), 'PB': ('tuck', 'ball_r'), 'HB': ('tuck', 'ball_r')}
     ops = POSES.get(p['pos'])
     pose = ops[zlib.crc32(p['name'].encode('utf-8')) % len(ops)] if ops else None
-    av = AV.svg(p['n'], AV.uniform(p['liga'], p['team']), 112, seed=p['name'], pose=pose, title=f'Muñequito con el uniforme de {e(T["n"])}' + (f' y el número {p["n"]}' if p['n'] is not None else ''))
+    av = AV.svg(p['n'], AV.uniform(p['liga'], p['team']), 112, seed=p['name'], pose=pose, skin=AV.SKIN_DARK if (p['team'], p['n']) in SKIN_FIX else None, title=f'Muñequito con el uniforme de {e(T["n"])}' + (f' y el número {p["n"]}' if p['n'] is not None else ''))
     head = (f'<div class="ph"><div class="av">{av}</div><div>{num}'
-            f'<h1>{e(p["name"])}</h1><div class="sub2"><a class="tl" href="{T["url"]}"><img src="{T["img"]}" alt="" width="24" height="24">{e(T["n"])}</a> · {e(pos) if pos else "Jugador"} · {T["conf"]}</div></div></div>')
+            f'<h1>{e(p["name"])}</h1><div class="sub2"><a class="tl" href="{T["url"]}"><img src="{T["img"]}" alt="" width="24" height="24">{e(T["n"])}</a><span>{e(pos) if pos else "Jugador"} · {T["conf"]}</span></div></div></div>')
     tiles = [(age or '—', 'Edad', 'años' if age else ''), (h or '—', 'Estatura', ft(h) if h else ''), (w or '—', 'Peso', f'{round(int(w) * 2.2046)} lb' if w else ''), (e(p['pos'] or '—'), 'Posición', '')]
     if not h:
         tiles[1] = (('#' + str(p['n'])) if p['n'] is not None else '—', 'Número', '')
@@ -279,12 +363,17 @@ def player_page(p, P):
         body += f'<p class="gm-meta">Entre los líderes de {"los 14 Grandes" if T["conf"] == "14 Grandes" else "la Conferencia Nacional"} en estas categorías.</p><div class="st">{stat_cards(cur, "los 14 Grandes" if T["conf"] == "14 Grandes" else "la Conferencia Nacional")}</div>'
     if p.get('star'):
         body += f'<div class="card" style="margin-top:8px"><b>Jugador a seguir de {e(T["n"])}:</b> {e(p["star"])}</div>'
-    if not (cur and cur['cats']) and not p.get('star'):
+    if p.get('cc'):
+        jj = max(int(v[0] or 0) for v in p['cc'].values())
+        body += f'<h3 style="font-size:20px;margin:18px 0 0">Estadísticas completas {YEAR}</h3><p class="gm-meta">Temporada regular, {jj} juego{"s" if jj != 1 else ""}.</p><div class="st">{cc_tables(p["cc"])}</div>'
+    if not (cur and cur['cats']) and not p.get('star') and not p.get('cc'):
         body += '<p class="gm-meta">Todavía no aparece entre los líderes estadísticos. Las estadísticas por jugador se publican para los primeros lugares de cada categoría.</p>'
     hist = sorted(p['seasons'].items(), reverse=True)
+    if p.get('cc') and str(YEAR) not in p['seasons']:
+        hist = [(str(YEAR), {'liga': p['liga'], 'team': p['team'], 'cats': {}, 'ccs': cc_summary(p['cc'])})] + hist
     if hist:
         body += '<h2 style="font-size:26px;margin-top:22px">Historial</h2><div class="tbl-box"><table class="qs"><thead><tr><th>Temporada</th><th>Equipo</th><th>Estadísticas</th></tr></thead><tbody>' + ''.join(
-            f'<tr><td>{y}</td><td>{e(team(s["liga"], s["team"])["n"])}</td><td>{e(summary(s)) or "—"}</td></tr>' for y, s in hist) + '</tbody></table></div>'
+            f'<tr><td>{y}</td><td>{e(team(s["liga"], s["team"])["n"])}</td><td>{e((cc_summary(p["cc"]) if y == str(YEAR) and p.get("cc") else "") or s.get("ccs") or summary(s)) or "—"}</td></tr>' for y, s in hist) + '</tbody></table></div>'
     mates = [q for q in P if q is not p and q['liga'] == p['liga'] and q['team'] == p['team'] and q['pos'] == p['pos']][:12]
     if mates:
         body += f'<h2 style="font-size:24px;margin-top:22px">Otros {e(p["pos"])} de {e(T["n"])}</h2><div class="pl2">' + ''.join(
@@ -295,8 +384,10 @@ def player_page(p, P):
         src.append('Nombre, número y posición: Guía ONEFA 2026 de Lucio Trucíos (@luciotrucios)')
     if age or h or w:
         src.append('edad, estatura y peso: rosters publicados por los equipos')
+    if p.get('cc'):
+        src.append('estadísticas completas: Cover Cero (<a href="https://covercero.com.mx/estadisticas-2026/" rel="noopener">covercero.com.mx</a>)')
     if p['seasons']:
-        src.append('estadísticas: Uriel González (FBA Stats)')
+        src.append('líderes estadísticos: Uriel González (FBA Stats)')
     txt = "; ".join(src)
     body += f'<p class="note">{txt[:1].upper() + txt[1:]}. ¿Ves un dato equivocado? <a href="/#info">Avísanos</a>.</p>'
     title = f"{p['name']} · {pos} de {T['n']} | Liga Mayor Unofficial" if pos else f"{p['name']} · {T['n']} | Liga Mayor Unofficial"
@@ -321,7 +412,7 @@ def team_list_page(T, ps):
     body = nav + f'<h1 class="gm-h1">Jugadores de {e(T["n"])} {YEAR}</h1><p class="gm-meta">{len(ps)} jugadores · {T["conf"]}. Pica un nombre para ver su perfil.</p>'
     body += f'<div class="tbl-box"><table class="roster"><thead><tr><th>#</th><th>Nombre</th><th>Pos.</th><th>Edad</th><th>Est.</th><th>Peso</th></tr></thead><tbody>{rows}</tbody></table></div><p class="note" style="margin-top:6px">Estatura en metros y peso en kilos.</p>'
     body += f'<div class="more" style="margin-top:14px"><a href="{T["url"]}">Página de {e(T["n"])} →</a><a href="/jugadores/">Todos los equipos →</a></div>'
-    body += '<p class="note">Roster: Guía ONEFA 2026 de Lucio Trucíos. Edad, estatura y peso: rosters publicados por los equipos.</p>' if T['conf'] == '14 Grandes' else '<p class="note">Edad, estatura y peso: rosters publicados por los equipos. Estadísticas: Uriel González (FBA Stats).</p>'
+    body += '<p class="note">Roster: Guía ONEFA 2026 de Lucio Trucíos. Edad, estatura y peso: rosters publicados por los equipos. Estadísticas: Cover Cero (covercero.com.mx).</p>' if T['conf'] == '14 Grandes' else '<p class="note">Edad, estatura y peso: rosters publicados por los equipos. Estadísticas: Uriel González (FBA Stats).</p>'
     return path, G.page(f"Roster {T['n']} {YEAR}: jugadores, edad, estatura y peso | Liga Mayor Unofficial",
                         f"Los {len(ps)} jugadores de {T['n']} en la Liga Mayor ONEFA {YEAR} con número, posición, edad, estatura y peso.", path, CSS + body, [ld_b])
 
@@ -388,6 +479,8 @@ def main():
         print(f'Temporada {YEAR} guardada en el historial ({len(rows)} renglones).')
     assign_urls(P)
     extra = attach(P, rows, stars, hist)
+    cc = load_cc()
+    print(f"Cover Cero: {attach_cc(P, cc)}/{len(cc)} renglones ligados a un perfil")
     assign_urls(P)
     out = []
     for p in P:

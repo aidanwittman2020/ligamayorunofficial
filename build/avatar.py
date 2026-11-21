@@ -33,6 +33,7 @@ NAC_NUM = {'UCH': '#F2B705', 'LQR': '#111111', 'PAN': '#111111'}
 
 SKIN = ['#F2CBA8', '#E3B08A', '#CF9870', '#B57A52', '#9C6440']   # de tez clara a morena
 HAIR = ['#2A1C14', '#3B2A1E', '#1E1712']
+SKIN_DARK = '#6E4630'   # para los jugadores que Aidan indicó (ver SKIN_FIX en jugadores.py)
 
 
 def uniform(liga, k):
@@ -61,7 +62,7 @@ def shade(c, f):
     return '#%02X%02X%02X' % (r, g, b)
 
 
-def svg(num, u, size=132, title='', seed='', pose=None):
+def svg(num, u, size=132, title='', seed='', pose=None, skin=None):
     G = [[None] * W for _ in range(H)]
 
     def px(x, y, c):
@@ -73,7 +74,7 @@ def svg(num, u, size=132, title='', seed='', pose=None):
             px(x, y, c)
 
     hsh = zlib.crc32(seed.encode('utf-8'))
-    skin = SKIN[hsh % len(SKIN)]
+    skin = skin or SKIN[hsh % len(SKIN)]
     hair = HAIR[(hsh >> 4) % len(HAIR)]
     sk2 = shade(skin, .86)
 
