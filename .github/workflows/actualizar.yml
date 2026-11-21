@@ -44,6 +44,7 @@ jobs:
             echo "cambio=no" >> "$GITHUB_OUTPUT"
           else
             git commit -m "Actualiza partidos desde la hoja"
+            git pull --rebase -X theirs || true
             git push
             echo "cambio=si" >> "$GITHUB_OUTPUT"
           fi
