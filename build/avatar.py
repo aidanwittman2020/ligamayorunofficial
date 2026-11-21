@@ -11,19 +11,19 @@ import zlib
 BASE = dict(h='#0033A0', hd='#FFFFFF', hm='#9AA0A6', j='#0033A0', s='#0033A0', ss='#FFFFFF', n='#FFFFFF', no=None, deco='stripe')
 UNI = {
     # Fotos enviadas por Aidan (temporada 2026)
-    'TIG': dict(h='#C9A646', hd='#1F4FC1', hm='#1F4FC1', j='#1F4FC1', s='#C9A646', ss='#FFFFFF', n='#FFFFFF', no='#C9A646', deco='logo'),
-    'PUE': dict(h='#1F4FD8', hd='#FFFFFF', hm='#1F4FD8', j='#151515', s='#1F4FD8', ss='#151515', n='#1F4FD8', no='#FFFFFF', deco='horn'),
+    'TIG': dict(h='#C9A646', hd='#1F4FC1', hm='#1F4FC1', j='#1F4FC1', s='#C9A646', ss='#FFFFFF', n='#FFFFFF', no='#C9A646', deco='logo', p='#C9A646', g='#FFFFFF'),
+    'PUE': dict(h='#1F4FD8', hd='#FFFFFF', hm='#1F4FD8', j='#151515', s='#1F4FD8', ss='#151515', n='#1F4FD8', no='#FFFFFF', deco='horn', p='#151515', g='#1F4FD8'),
+    'PUM': dict(h='#B8964A', hd='#1B2448', hm='#1B2448', j='#1B2448', s='#1B2448', ss='#B8964A', n='#C8A24A', no=None, deco='logo', p='#1B2448', g='#1B2448'),
+    'AGU': dict(h='#C8202A', hd='#FFFFFF', hm='#FFFFFF', j='#C8202A', s='#C8202A', ss='#FFFFFF', n='#FFFFFF', no=None, deco='stripe', p='#C8202A', g='#151515', arm='#151515'),
+    'BUR': dict(h='#F4F4F2', hd='#6B2235', hm='#F4F4F2', j='#F4F4F2', s='#F4F4F2', ss='#6B2235', n='#6B2235', no=None, deco='logo', p='#F4F4F2', g='#F4F4F2'),
+    'GDL': dict(h='#F4F4F2', hd='#1F55C9', hm='#F4F4F2', j='#1F55C9', s='#1F55C9', ss='#F4F4F2', n='#FFFFFF', no=None, deco='horn', p='#1F55C9', g='#F4F4F2'),
+    'LAN': dict(h='#E8502A', hd='#151515', hm='#151515', j='#151515', s='#151515', ss='#151515', n='#FFFFFF', no='#E8502A', deco='logo', p='#151515', g='#E8502A', visor=True),
     # Aproximados (pendientes de foto)
-    'PUM': dict(h='#C9A227', hd='#0B2A6F', hm='#0B2A6F', j='#0B2A6F', s='#0B2A6F', ss='#C9A227', n='#C9A227', no=None, deco='stripe'),
     'MTY': dict(BASE, deco='horn'),
-    'GDL': dict(BASE, deco='horn'),
     'CEM': dict(BASE, deco='horn'),
     'CCM': dict(BASE, deco='horn'),
-    'BUR': dict(h='#FFFFFF', hd='#7A1F3D', hm='#7A1F3D', j='#FFFFFF', s='#FFFFFF', ss='#7A1F3D', n='#7A1F3D', no=None, deco='stripe'),
-    'AGU': dict(h='#FFFFFF', hd='#7A1F3D', hm='#7A1F3D', j='#7A1F3D', s='#7A1F3D', ss='#FFFFFF', n='#FFFFFF', no=None, deco='stripe'),
     'UDL': dict(h='#00704A', hd='#F47920', hm='#FFFFFF', j='#00704A', s='#00704A', ss='#F47920', n='#FFFFFF', no='#F47920', deco='stripe'),
     'UVM': dict(h='#C8102E', hd='#FFFFFF', hm='#9AA0A6', j='#C8102E', s='#C8102E', ss='#FFFFFF', n='#FFFFFF', no=None, deco='stripe'),
-    'LAN': dict(h='#E35205', hd='#111111', hm='#111111', j='#E35205', s='#E35205', ss='#111111', n='#FFFFFF', no='#111111', deco='stripe'),
     'LAC': dict(h='#E35205', hd='#FFFFFF', hm='#9AA0A6', j='#FFFFFF', s='#FFFFFF', ss='#E35205', n='#E35205', no=None, deco='stripe'),
     'CET': dict(h='#F2B705', hd='#0A2A66', hm='#0A2A66', j='#0A2A66', s='#0A2A66', ss='#F2B705', n='#F2B705', no=None, deco='stripe'),
 }
@@ -48,7 +48,7 @@ DIG = {'0': ['111', '101', '101', '101', '111'], '1': ['010', '110', '010', '010
        '6': ['111', '100', '111', '101', '111'], '7': ['111', '001', '010', '010', '010'], '8': ['111', '101', '111', '101', '111'],
        '9': ['111', '101', '111', '001', '111']}
 
-W, H = 32, 32
+W, H = 32, 38
 OUT = '#141414'
 
 
@@ -78,27 +78,35 @@ def svg(num, u, size=132, title='', seed=''):
     hair = HAIR[(hsh >> 4) % len(HAIR)]
     sk2 = shade(skin, .86)
 
-    # ---- hombros y jersey (filas 17-31)
-    j, s = u['j'], u['s']
-    widths = {17: (9, 22), 18: (6, 25), 19: (4, 27), 20: (3, 28)}
-    for y in range(17, H):
-        x0, x1 = widths.get(y, (2, 29))
-        row(y, x0, x1, j)
-    for y in range(17, 25):                    # hombreras/mangas
-        x0, x1 = widths.get(y, (2, 29))
-        for x in range(x0, x1 + 1):
-            if x <= 8 or x >= 23:
-                px(x, y, s)
-    if u['ss'] and u['ss'] != s:               # franja de la manga
-        for y in (22, 23):
-            for x in list(range(2, 8)) + list(range(24, 30)):
-                if G[y][x]:
-                    px(x, y, u['ss'])
-    for y in range(25, H):                     # costados un poco más oscuros
-        for x in (2, 3, 28, 29):
-            px(x, y, shade(j, .8))
-    row(17, 12, 19, shade(j, .75)); row(18, 13, 18, shade(j, .75))   # cuello del jersey
-    row(15, 13, 18, sk2); row(16, 13, 18, sk2); row(17, 14, 17, sk2)  # cuello
+    # ---- medio cuerpo: torso, brazos con guantes y cintura (filas 15-35)
+    j, sl = u['j'], u['s']
+    pants, glove = u.get('p') or shade(j, .6), u.get('g') or '#1B1B1B'
+    arm = u.get('arm') or skin
+    for y in range(16, 33):                       # torso
+        a0, a1 = (9, 22) if y == 16 else (8, 23)
+        row(y, a0, a1, j)
+    for y in range(17, 33):                       # costados del torso un poco más oscuros
+        px(8, y, shade(j, .82)); px(23, y, shade(j, .82))
+    row(16, 7, 24, sl); row(17, 5, 26, sl); row(18, 4, 27, sl); row(19, 4, 27, sl)   # hombreras
+    for x in list(range(4, 8)) + list(range(24, 28)):                                   # mangas
+        for y in (20, 21):
+            px(x, y, sl)
+    if u['ss'] and u['ss'] != sl:                 # franja de la manga
+        for x in list(range(4, 8)) + list(range(24, 28)):
+            px(x, 21, u['ss'])
+    for y in range(22, 30):                       # brazos
+        for x in (4, 5, 6, 25, 26, 27):
+            px(x, y, arm)
+        px(6, y, shade(arm, .85)); px(25, y, shade(arm, .85))
+    for y in range(30, 33):                       # guantes
+        row(y, 3, 6, glove); row(y, 25, 28, glove)
+    row(33, 8, 23, '#1B1B1B')                     # cinturón
+    px(15, 33, '#C9C9C9'); px(16, 33, '#C9C9C9')
+    for y in range(34, H):                        # pantalón
+        row(y, 8, 23, pants)
+        px(15, y, shade(pants, .8)); px(16, y, shade(pants, .8))
+    row(16, 12, 19, shade(j, .7)); row(17, 13, 18, shade(j, .7))   # cuello del jersey
+    row(15, 13, 18, sk2)                          # cuello
 
     # ---- casco (filas 1-14)
     h = u['h']
@@ -131,6 +139,8 @@ def svg(num, u, size=132, title='', seed=''):
     px(15, 11, sk2); px(16, 11, sk2)           # nariz
     row(13, 14, 17, shade(skin, .62))          # boca
     px(11, 15, sk2); px(20, 15, sk2)
+    if u.get('visor'):
+        row(9, 11, 20, '#1E1E1E'); row(10, 11, 20, '#2B2B2B')
     m = u['hm']                                # careta (solo la parte de abajo)
     for y in range(10, 16):
         px(10, y, m); px(21, y, m)
@@ -180,5 +190,5 @@ def svg(num, u, size=132, title='', seed=''):
             rects.append(f'<rect x="{x}" y="{y}" width="{x2 - x + 1}" height="1" fill="{c}"/>')
             x = x2 + 1
     t = f'<title>{title}</title>' if title else ''
-    return (f'<svg class="pxp" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 {W} {H}" width="{size}" height="{size}" '
+    return (f'<svg class="pxp" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 {W} {H}" width="{size}" height="{round(size * H / W)}" '
             f'shape-rendering="crispEdges" role="img" aria-label="{title}">{t}{"".join(rects)}</svg>')
