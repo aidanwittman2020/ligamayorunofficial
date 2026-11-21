@@ -3,7 +3,7 @@
 
 Fuentes:
   - Roster (nombre, número, posición): ROSTERS dentro de site/index.html (Guía ONEFA de Lucio Trucíos).
-  - Edad, estatura y peso: build/data/fisico_2026.csv (BN Sports RedZone, cruzado con el roster).
+  - Edad, estatura y peso: build/data/fisico_2026.csv (rosters publicados por los equipos, cruzados con el roster).
   - Estadísticas de la temporada en curso: pestañas Lideres, Jugadores y Nacional_Lideres de la hoja.
   - Temporadas pasadas: build/data/historial_jugadores.csv (se llena al cerrar cada temporada con --guardar).
 
@@ -288,7 +288,7 @@ def player_page(p, P):
     if p['liga'] == '14G':
         src.append('Nombre, número y posición: Guía ONEFA 2026 de Lucio Trucíos (@luciotrucios)')
     if age or h or w:
-        src.append('edad, estatura y peso: BN Sports RedZone')
+        src.append('edad, estatura y peso: rosters publicados por los equipos')
     if p['seasons']:
         src.append('estadísticas: Uriel González (FBA Stats)')
     txt = "; ".join(src)
@@ -315,7 +315,7 @@ def team_list_page(T, ps):
     body = nav + f'<h1 class="gm-h1">Jugadores de {e(T["n"])} {YEAR}</h1><p class="gm-meta">{len(ps)} jugadores · {T["conf"]}. Pica un nombre para ver su perfil.</p>'
     body += f'<div class="tbl-box"><table class="roster"><thead><tr><th>#</th><th>Nombre</th><th>Pos.</th><th>Edad</th><th>Est. (m)</th><th>Peso (kg)</th></tr></thead><tbody>{rows}</tbody></table></div>'
     body += f'<div class="more" style="margin-top:14px"><a href="{T["url"]}">Página de {e(T["n"])} →</a><a href="/jugadores/">Todos los equipos →</a></div>'
-    body += '<p class="note">Roster: Guía ONEFA 2026 de Lucio Trucíos. Edad, estatura y peso: BN Sports RedZone.</p>' if T['conf'] == '14 Grandes' else '<p class="note">Edad, estatura y peso: BN Sports RedZone. Estadísticas: Uriel González (FBA Stats).</p>'
+    body += '<p class="note">Roster: Guía ONEFA 2026 de Lucio Trucíos. Edad, estatura y peso: rosters publicados por los equipos.</p>' if T['conf'] == '14 Grandes' else '<p class="note">Edad, estatura y peso: rosters publicados por los equipos. Estadísticas: Uriel González (FBA Stats).</p>'
     return path, G.page(f"Roster {T['n']} {YEAR}: jugadores, edad, estatura y peso | Liga Mayor Unofficial",
                         f"Los {len(ps)} jugadores de {T['n']} en la Liga Mayor ONEFA {YEAR} con número, posición, edad, estatura y peso.", path, CSS + body, [ld_b])
 
@@ -357,7 +357,7 @@ def patch_team_pages(P):
         new = new.replace('table.roster th:nth-child(3),table.roster td:nth-child(3){text-align:right}',
                           'table.roster th:nth-child(n+3),table.roster td:nth-child(n+3){text-align:right}table.roster td.team a{color:inherit}')
         if '/jugadores/' + s + '/' not in new.split('<table class="roster">')[1]:
-            new = new.replace('</table></div></details>', '</table></div><p class="credit" style="margin-top:6px"><a href="/jugadores/' + s + '/">Ver perfiles de los jugadores →</a> Edad, estatura y peso: BN Sports RedZone.</p></details>', 1)
+            new = new.replace('</table></div></details>', '</table></div><p class="credit" style="margin-top:6px"><a href="/jugadores/' + s + '/">Ver perfiles de los jugadores →</a> Edad, estatura y peso: rosters publicados por los equipos.</p></details>', 1)
         if new != h:
             open(fp, 'w', encoding='utf-8').write(new)
             n += 1

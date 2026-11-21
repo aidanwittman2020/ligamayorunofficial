@@ -40,43 +40,46 @@ DIG = {'0': ['111', '101', '101', '101', '111'], '1': ['010', '110', '010', '010
        '6': ['111', '100', '111', '101', '111'], '7': ['111', '001', '010', '010', '010'], '8': ['111', '101', '111', '101', '111'],
        '9': ['111', '101', '111', '001', '111']}
 
-# Silueta 22 x 30. Letras: O contorno, H casco, V visera, M careta, J jersey, S hombrera(franja), A brazo, G guante, P pantalón, T calceta, C taco, B cinturón
+# Busto 28 x 26 (del torso para arriba). O contorno, H casco, S franja/hombreras, V hueco de la careta, M careta, J jersey, A costado
 BODY = [
-    '.......OOOOOOOO.......',
-    '......OHHHHHHHHO......',
-    '.....OHHHHHHHHHHO.....',
-    '.....OHHHHHHHHHHO.....',
-    '.....OHVVVVVVVVHO.....',
-    '.....OHMMMMMMMMHO.....',
-    '......OHMMMMMMHO......',
-    '..OOOOOOOOOOOOOOOOOO..',
-    '.OSSSSJJJJJJJJJJSSSSO.',
-    'OSSSSSJJJJJJJJJJSSSSSO',
-    'OAAOJJJJJJJJJJJJJJOAAO',
-    'OAAOJJJJJJJJJJJJJJOAAO',
-    'OAAOJJJJJJJJJJJJJJOAAO',
-    'OAAOJJJJJJJJJJJJJJOAAO',
-    'OAAOJJJJJJJJJJJJJJOAAO',
-    'OAAOJJJJJJJJJJJJJJOAAO',
-    'OGGOJJJJJJJJJJJJJJOGGO',
-    'OGGOOBBBBBBBBBBBBOOGGO',
-    '.OO.OPPPPPPPPPPPPO.OO.',
-    '....OPPPPPPPPPPPPO....',
-    '....OPPPPPOOPPPPPO....',
-    '....OPPPPPOOPPPPPO....',
-    '....OPPPPO..OPPPPO....',
-    '....OTTTTO..OTTTTO....',
-    '....OTTTTO..OTTTTO....',
-    '....OTTTTO..OTTTTO....',
-    '....OCCCCO..OCCCCO....',
-    '...OCCCCCO..OCCCCCO...',
-    '...OOOOOOO..OOOOOOO...',
+    '..........OOOOOOOO..........',
+    '........OOHHHHSSHHHHOO......',
+    '.......OHHHHHHSSHHHHHHO.....',
+    '......OHHHHHHHSSHHHHHHHO....',
+    '......OHHHHHHHSSHHHHHHHO....',
+    '......OHHHHHHHHHHHHHHHHO....',
+    '......OHHHVVVVVVVVVVVVHO....',
+    '......OHHMMMMMMMMMMMMMMO....',
+    '......OHHVVMVVVVVVVVMVVO....',
+    '......OHHMMMMMMMMMMMMMMO....',
+    '.......OHOVVVMVVVVMVVVO.....',
+    '........OOOOMMMMMMMMOO......',
+    '...OOOOOOOOOOOOOOOOOOOOOOO..',
+    '..OSSSSSSJJJJJJJJJJSSSSSSSO.',
+    '.OSSSSSSSJJJJJJJJJJSSSSSSSSO',
+    '.OAAJJJJJJJJJJJJJJJJJJJJJAAO',
+    '.OAAJJJJJJJJJJJJJJJJJJJJJAAO',
+    '.OAAJJJJJJJJJJJJJJJJJJJJJAAO',
+    '.OAAJJJJJJJJJJJJJJJJJJJJJAAO',
+    '.OAAJJJJJJJJJJJJJJJJJJJJJAAO',
+    '.OAAJJJJJJJJJJJJJJJJJJJJJAAO',
+    '.OAAJJJJJJJJJJJJJJJJJJJJJAAO',
+    '.OAAJJJJJJJJJJJJJJJJJJJJJAAO',
+    '.OAAJJJJJJJJJJJJJJJJJJJJJAAO',
+    '.OAAJJJJJJJJJJJJJJJJJJJJJAAO',
+    '.OAAJJJJJJJJJJJJJJJJJJJJJAAO',
 ]
+NUM_X, NUM_W, NUM_Y, SCALE = 4, 21, 15, 2
+
+
+def shade(h, f=0.78):
+    h = h.lstrip('#')
+    r, g, b = (int(h[i:i + 2], 16) for i in (0, 2, 4))
+    return '#%02X%02X%02X' % (int(r * f), int(g * f), int(b * f))
 
 
 def svg(num, u, size=132, title=''):
-    col = {'O': '#111111', 'H': u['h'], 'V': '#1B1B1B', 'M': '#9AA0A6', 'J': u['j'], 'S': u['t'], 'A': u['j'], 'G': '#1B1B1B',
-           'P': u['p'], 'T': u['t'], 'C': '#111111', 'B': '#1B1B1B'}
+    col = {'O': '#111111', 'H': u['h'], 'V': '#1B1B1B', 'M': '#9AA0A6', 'J': u['j'], 'S': u['t'], 'A': shade(u['j'])}
     W, H = len(BODY[0]), len(BODY)
     grid = [list(r) for r in BODY]
     rects = []
@@ -92,16 +95,16 @@ def svg(num, u, size=132, title=''):
                 x2 += 1
             rects.append(f'<rect x="{x}" y="{y}" width="{x2 - x + 1}" height="1" fill="{col[ch]}"/>')
             x = x2 + 1
-    # número en el pecho (filas 10-14), centrado en el jersey (columnas 4-17)
-    s = '' if num is None else str(num)[-2:]
-    if s:
-        w = len(s) * 3 + (len(s) - 1)
-        x0 = 4 + (14 - w) // 2
-        for i, d in enumerate(s):
+    # número en el pecho, al doble de tamaño
+    st = '' if num is None else str(num)[-2:]
+    if st:
+        w = (len(st) * 3 + (len(st) - 1)) * SCALE
+        x0 = NUM_X + (NUM_W - w) // 2
+        for i, d in enumerate(st):
             for yy, bits in enumerate(DIG[d]):
                 for xx, b in enumerate(bits):
                     if b == '1':
-                        rects.append(f'<rect x="{x0 + i * 4 + xx}" y="{10 + yy}" width="1" height="1" fill="{u["n"]}"/>')
+                        rects.append(f'<rect x="{x0 + (i * 4 + xx) * SCALE}" y="{NUM_Y + yy * SCALE}" width="{SCALE}" height="{SCALE}" fill="{u["n"]}"/>')
     t = f'<title>{title}</title>' if title else ''
     return (f'<svg class="pxp" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 {W} {H}" width="{size}" height="{round(size * H / W)}" '
             f'shape-rendering="crispEdges" role="img" aria-label="{title}">{t}{"".join(rects)}</svg>')
