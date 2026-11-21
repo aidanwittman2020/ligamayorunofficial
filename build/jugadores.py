@@ -211,6 +211,8 @@ CSS = '''<style>
 .tg img{width:30px;height:30px;image-rendering:pixelated}
 .srch{width:100%;font:inherit;font-size:16px;padding:10px 12px;border:1px solid var(--line);border-radius:4px;background:var(--surface);color:var(--ink);margin:8px 0}
 .note{font-size:12px;color:var(--muted);margin-top:14px}
+table.roster th:nth-child(n+3),table.roster td:nth-child(n+3){text-align:right}table.roster td.team a{color:inherit}table.roster td.num{color:var(--muted);font-variant-numeric:tabular-nums}
+@media (max-width:420px){table.roster th,table.roster td{padding-left:5px;padding-right:5px}table.roster td.team{font-size:14px}}
 </style>'''
 
 
@@ -317,7 +319,7 @@ def team_list_page(T, ps):
         age, h, w = phys(p)
         rows += f'<tr><td class="pos num">{p["n"] if p["n"] is not None else ""}</td><td class="team"><a href="{p["url"]}">{e(p["name"])}</a></td><td><span class="abbr">{e(p["pos"])}</span></td><td class="num">{age or ""}</td><td class="num">{h or ""}</td><td class="num">{w or ""}</td></tr>'
     body = nav + f'<h1 class="gm-h1">Jugadores de {e(T["n"])} {YEAR}</h1><p class="gm-meta">{len(ps)} jugadores · {T["conf"]}. Pica un nombre para ver su perfil.</p>'
-    body += f'<div class="tbl-box"><table class="roster"><thead><tr><th>#</th><th>Nombre</th><th>Pos.</th><th>Edad</th><th>Est. (m)</th><th>Peso (kg)</th></tr></thead><tbody>{rows}</tbody></table></div>'
+    body += f'<div class="tbl-box"><table class="roster"><thead><tr><th>#</th><th>Nombre</th><th>Pos.</th><th>Edad</th><th>Est.</th><th>Peso</th></tr></thead><tbody>{rows}</tbody></table></div><p class="note" style="margin-top:6px">Estatura en metros y peso en kilos.</p>'
     body += f'<div class="more" style="margin-top:14px"><a href="{T["url"]}">Página de {e(T["n"])} →</a><a href="/jugadores/">Todos los equipos →</a></div>'
     body += '<p class="note">Roster: Guía ONEFA 2026 de Lucio Trucíos. Edad, estatura y peso: rosters publicados por los equipos.</p>' if T['conf'] == '14 Grandes' else '<p class="note">Edad, estatura y peso: rosters publicados por los equipos. Estadísticas: Uriel González (FBA Stats).</p>'
     return path, G.page(f"Roster {T['n']} {YEAR}: jugadores, edad, estatura y peso | Liga Mayor Unofficial",
@@ -413,6 +415,18 @@ def main():
         w = csv.writer(f)
         w.writerow(['Equipo', 'Numero', 'Jugador', 'Pos'])
         w.writerows(nac)
+    # datos físicos para el roster desplegable de la portada
+    dj = {}
+    for p in P:
+        if p['liga'] != '14G':
+            continue
+        age, h, w = phys(p)
+        if age or h or w:
+            dj.setdefault(p['team'], {})[f"{p['n']}|{slug(p['name'])}"] = [int(age) if age else None, h, int(w) if w else None]
+    jp = os.path.join(SITE, 'jugadores', 'datos.json')
+    js = json.dumps(dj, ensure_ascii=False, separators=(',', ':'))
+    if not os.path.exists(jp) or open(jp, encoding='utf-8').read() != js:
+        open(jp, 'w', encoding='utf-8').write(js)
     nt = patch_team_pages(P)
     # sitemap
     sp = os.path.join(SITE, 'sitemap.xml')

@@ -158,7 +158,7 @@ a{color:var(--accent)}
 .jn{font-family:var(--display);font-weight:400;font-size:32px;color:var(--accent);min-width:42px}
 .search{width:100%;font:inherit;padding:10px 12px;border:1px solid var(--line);border-radius:8px;background:var(--surface);color:var(--ink)}
 table.roster td.team{font-weight:500}
-table.roster th:nth-child(n+3),table.roster td:nth-child(n+3){text-align:right}table.roster td.team a{color:inherit}
+table.roster th:nth-child(n+3),table.roster td:nth-child(n+3){text-align:right}table.roster td.team a{color:inherit}table.roster td.num{color:var(--muted);font-variant-numeric:tabular-nums}@media (max-width:420px){table.roster th,table.roster td{padding-left:5px;padding-right:5px}table.roster td.team{font-size:14px}}
 .credit{font-size:12px;color:var(--muted);margin-top:12px}
 .teamgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:8px}
 .tcard{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:12px;display:grid;grid-template-columns:auto 1fr auto;gap:2px 10px;align-items:center;align-content:center;grid-template-rows:auto auto;cursor:pointer;text-align:left;font:inherit;color:inherit}
@@ -412,6 +412,7 @@ header.top .in:has(.topnav){flex-wrap:wrap;row-gap:6px}
 .more{display:grid;gap:6px;margin-top:8px}
 .more a{color:var(--ink)}
 </style>
+<style>@view-transition{navigation:auto}::view-transition-old(root),::view-transition-new(root){animation-duration:.14s}header.top{view-transition-name:top}</style><script type="speculationrules">{"prerender":[{"where":{"and":[{"href_matches":"/*"},{"not":{"href_matches":"/*.json"}}]},"eagerness":"moderate"}]}</script>
 </head>
 <body>
 <header class="top"><div class="in"><a class="brand" href="/" style="text-decoration:none">Liga Mayor <span>Unofficial</span></a>
@@ -450,7 +451,9 @@ header.top .in:has(.topnav){flex-wrap:wrap;row-gap:6px}
 .tg img{width:30px;height:30px;image-rendering:pixelated}
 .srch{width:100%;font:inherit;font-size:16px;padding:10px 12px;border:1px solid var(--line);border-radius:4px;background:var(--surface);color:var(--ink);margin:8px 0}
 .note{font-size:12px;color:var(--muted);margin-top:14px}
-</style><nav class="crumbs" aria-label="Ruta"><a href="/">Inicio</a><span class="sep" aria-hidden="true">/</span><a href="/jugadores/">Jugadores</a><span class="sep" aria-hidden="true">/</span><span class="cur" aria-current="page">Lobos UAdeC</span></nav><h1 class="gm-h1">Jugadores de Lobos UAdeC 2026</h1><p class="gm-meta">1 jugadores · Conferencia Nacional. Pica un nombre para ver su perfil.</p><div class="tbl-box"><table class="roster"><thead><tr><th>#</th><th>Nombre</th><th>Pos.</th><th>Edad</th><th>Est. (m)</th><th>Peso (kg)</th></tr></thead><tbody><tr><td class="pos num">1</td><td class="team"><a href="/jugadores/lobos-uadec/nestor-molina/">Néstor Molina</a></td><td><span class="abbr">RB</span></td><td class="num"></td><td class="num"></td><td class="num"></td></tr></tbody></table></div><div class="more" style="margin-top:14px"><a href="/nacional/#equipos">Página de Lobos UAdeC →</a><a href="/jugadores/">Todos los equipos →</a></div><p class="note">Edad, estatura y peso: rosters publicados por los equipos. Estadísticas: Uriel González (FBA Stats).</p>
+table.roster th:nth-child(n+3),table.roster td:nth-child(n+3){text-align:right}table.roster td.team a{color:inherit}table.roster td.num{color:var(--muted);font-variant-numeric:tabular-nums}
+@media (max-width:420px){table.roster th,table.roster td{padding-left:5px;padding-right:5px}table.roster td.team{font-size:14px}}
+</style><nav class="crumbs" aria-label="Ruta"><a href="/">Inicio</a><span class="sep" aria-hidden="true">/</span><a href="/jugadores/">Jugadores</a><span class="sep" aria-hidden="true">/</span><span class="cur" aria-current="page">Lobos UAdeC</span></nav><h1 class="gm-h1">Jugadores de Lobos UAdeC 2026</h1><p class="gm-meta">1 jugadores · Conferencia Nacional. Pica un nombre para ver su perfil.</p><div class="tbl-box"><table class="roster"><thead><tr><th>#</th><th>Nombre</th><th>Pos.</th><th>Edad</th><th>Est.</th><th>Peso</th></tr></thead><tbody><tr><td class="pos num">1</td><td class="team"><a href="/jugadores/lobos-uadec/nestor-molina/">Néstor Molina</a></td><td><span class="abbr">RB</span></td><td class="num"></td><td class="num"></td><td class="num"></td></tr></tbody></table></div><p class="note" style="margin-top:6px">Estatura en metros y peso en kilos.</p><div class="more" style="margin-top:14px"><a href="/nacional/#equipos">Página de Lobos UAdeC →</a><a href="/jugadores/">Todos los equipos →</a></div><p class="note">Edad, estatura y peso: rosters publicados por los equipos. Estadísticas: Uriel González (FBA Stats).</p>
 </main>
 <footer class="sitefoot"><p><a href="/">Liga Mayor Unofficial</a> es un sitio no oficial hecho por aficionados; no está afiliado a la ONEFA ni a ninguna universidad. Los escudos son diseños propios, no logos oficiales. Resultados y estadísticas: @statistics_football_mx y Uriel González (FBA Stats). <a href="/historia/">Historia y campeones de la Liga Mayor</a>.</p></footer>
 <script>if("serviceWorker" in navigator)addEventListener("load",()=>navigator.serviceWorker.register("/sw.js").catch(()=>{}));</script>

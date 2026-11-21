@@ -187,6 +187,7 @@ def page(title, desc, path, body, ld_list, og_type='website'):
 <meta name="twitter:card" content="summary_large_image"><meta name="twitter:image" content="{URL}/og.png">
 {lds}{FONTS}{STYLE}
 {EXTRA_CSS}
+<style>@view-transition{{navigation:auto}}::view-transition-old(root),::view-transition-new(root){{animation-duration:.14s}}header.top{{view-transition-name:top}}</style><script type="speculationrules">{{"prerender":[{{"where":{{"and":[{{"href_matches":"/*"}},{{"not":{{"href_matches":"/*.json"}}}}]}},"eagerness":"moderate"}}]}}</script>
 </head>
 <body>
 {HEADER}

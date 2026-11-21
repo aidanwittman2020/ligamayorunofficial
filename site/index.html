@@ -177,7 +177,7 @@ a{color:var(--accent)}
 .jn{font-family:var(--display);font-weight:400;font-size:32px;color:var(--accent);min-width:42px}
 .search{width:100%;font:inherit;padding:10px 12px;border:1px solid var(--line);border-radius:8px;background:var(--surface);color:var(--ink)}
 table.roster td.team{font-weight:500}
-table.roster th:nth-child(3),table.roster td:nth-child(3){text-align:right}
+table.roster th:nth-child(n+3),table.roster td:nth-child(n+3){text-align:right}a.plink{color:inherit;text-decoration-color:color-mix(in srgb,currentColor 35%,transparent)}table.roster td.team a{color:inherit;text-decoration-color:color-mix(in srgb,currentColor 35%,transparent)}table.roster td.ph{color:var(--muted);font-variant-numeric:tabular-nums;white-space:nowrap}@media (max-width:420px){table.roster th,table.roster td{padding-left:5px;padding-right:5px}table.roster td.team{font-size:14px}}
 .credit{font-size:12px;color:var(--muted);margin-top:12px}
 .teamgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:8px}
 .tcard{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:12px;display:grid;grid-template-columns:auto 1fr auto;gap:2px 10px;align-items:center;align-content:center;grid-template-rows:auto auto;cursor:pointer;text-align:left;font:inherit;color:inherit}
@@ -467,6 +467,7 @@ header.top .in{flex-wrap:wrap;row-gap:6px}
 .cform input,.cform select,.cform textarea{font:inherit;font-weight:400;font-size:15px;border:1px solid var(--line);background:var(--bg);color:var(--ink);border-radius:4px;padding:9px 10px;width:100%;box-sizing:border-box}
 .cform textarea{resize:vertical}.cf-send{width:100%;border:0;border-radius:4px;background:var(--accent);color:#fff;font-family:var(--display);font-weight:800;font-size:16px;letter-spacing:.06em;text-transform:uppercase;padding:12px;cursor:pointer}.cf-send:disabled{opacity:.6}.cf-ok{color:var(--good,#1a7f37);font-weight:700;margin:4px 0 0}
 </style>
+<style>@view-transition{navigation:auto}::view-transition-old(root),::view-transition-new(root){animation-duration:.14s}header.top{view-transition-name:top}</style><script type="speculationrules">{"prerender":[{"where":{"and":[{"href_matches":"/*"},{"not":{"href_matches":"/*.json"}}]},"eagerness":"moderate"}]}</script>
 </head>
 <body>
 
@@ -732,7 +733,7 @@ function viewStats(){
   <div class="credit-top">Estadísticas de Uriel González (FBA Stats), compartidas por <a href="https://www.instagram.com/statistics_football_mx/" target="_blank" rel="noopener">@statistics_football_mx</a>.</div>
   ${STATS.map(b=>{const m=max(b);return`<section class="lead" id="st-${b.id}"><div class="lead-h"><h3>${b.t}</h3><span class="tag2">${b.u}</span></div>
     <ol class="ranks">${b.rows.map((r,i)=>{const [n,k,num,...v]=r;return`<li class="rk${i===0?' top':''}" data-team="${k}">
-      <span class="rn">${i+1}</span>${abbr(k)}<div class="who"><b>${n}</b><span class="loc">#${num} · ${TEAMS[k].n}</span>
+      <span class="rn">${i+1}</span>${abbr(k)}<div class="who"><b>${pLink(k,num,n)}</b><span class="loc">#${num} · ${TEAMS[k].n}</span>
       <span class="sbar"><i style="width:${Math.round(v[0]/m*100)}%"></i></span></div>
       <div class="vals">${b.cols.map((c,j)=>`<div class="${j?'v2':'v1'}"><b class="num">${v[j].toLocaleString('es-MX')}</b><span>${c}</span></div>`).join('')}</div></li>`}).join('')}</ol></section>`}).join('')}${teamLeadersHTML()}`;
 }
@@ -789,20 +790,28 @@ function teamExtra(k){
   return`<h3>El equipo</h3><div class="card"><p>${blurb}</p>
     <dl class="facts"><div><dt>Sede</dt><dd>${city}</dd></div><div><dt>Estadio</dt><dd>${stadium}</dd></div><div><dt>Capacidad</dt><dd class="num">${cap.toLocaleString('es-MX')}</dd></div></dl></div>
   <h3>Cuerpo técnico</h3><div class="list">${staff.map(([n,r])=>`<div class="li"><b>${n}</b><span class="res" style="color:var(--muted);font-weight:500">${r}</span></div>`).join('')}</div>
-  <h3>Jugadores a seguir</h3><p class="sub" style="margin:-2px 0 8px">Los líderes del equipo según las estadísticas de la ${STATS_CUTOFF.toLowerCase()} (Uriel González, FBA Stats).</p><div class="stars">${stars.map(([n,p,num,sl])=>`<div class="star"><span class="jn num">#${num}</span><div><b>${n}</b><div class="loc">${p}</div>${sl?`<div class="sl">${sl}</div>`:''}</div></div>`).join('')}</div>
+  <h3>Jugadores a seguir</h3><p class="sub" style="margin:-2px 0 8px">Los líderes del equipo según las estadísticas de la ${STATS_CUTOFF.toLowerCase()} (Uriel González, FBA Stats).</p><div class="stars">${stars.map(([n,p,num,sl])=>`<div class="star"><span class="jn num">#${num}</span><div><b>${pLink(k,num,n)}</b><div class="loc">${p}</div>${sl?`<div class="sl">${sl}</div>`:''}</div></div>`).join('')}</div>
   <details class="fold" style="margin-top:22px"><summary><span>Roster completo</span><span class="cnt">${ROSTERS[k].length} jugadores</span></summary><p class="credit" style="margin:4px 0 10px">Fuente: Guía ONEFA 2026 de <a href="https://www.instagram.com/luciotrucios/" target="_blank" rel="noopener">Lucio Trucíos (@luciotrucios)</a></p>
   <div class="row-btns" style="margin-top:0">${Object.keys(GROUPS).map(g=>`<button class="btn" data-rf="${g}" aria-pressed="${g===rosterF}">${g}</button>`).join('')}</div>
   <input id="rq" class="search" type="search" placeholder="Buscar por nombre, número o posición" value="${rosterQ}" aria-label="Buscar jugador">
-  <div class="tbl-box" style="margin-top:8px"><table class="roster"><thead><tr><th>#</th><th>Nombre</th><th>Pos.</th></tr></thead><tbody id="rbody"></tbody></table></div></details>
+  <div class="tbl-box" style="margin-top:8px"><table class="roster"><thead><tr><th>#</th><th>Nombre</th><th>Pos.</th><th>Edad</th><th>Est.</th><th>Peso</th></tr></thead><tbody id="rbody"></tbody></table></div><p class="credit" style="margin-top:6px">Pica un nombre para ver su perfil. Edad, estatura (m) y peso (kg): rosters publicados por los equipos.</p></details>
   <p class="credit">Roster y cuerpo técnico: <b>Guía ONEFA 2026</b> de <a href="https://www.instagram.com/luciotrucios/" target="_blank" rel="noopener">Lucio Trucíos (@luciotrucios)</a>, hecha posible por Rayo Negro.</p>`;
 }
+const pSlug=x=>String(x).normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/^-|-$/g,'');
+function pFor(k,num,name){const R=ROSTERS[k];if(!R)return'';const tk=x=>new Set(pSlug(x).split('-'));const A=tk(name);
+  const same=r=>{const B=tk(r[1]);let c=0;A.forEach(t=>{if(B.has(t))c++});return c>=Math.min(2,A.size)};
+  let c=R.filter(r=>String(r[0])===String(num));let r=c.find(same)||(c.length===1?c[0]:null)||R.filter(same).length===1&&R.find(same);if(!r)return'';
+  const b=pSlug(r[1]),d=R.filter(x=>pSlug(x[1])===b).length>1;return`/jugadores/${SLUG[k]}/${b}${d?'-'+r[0]:''}/`}
+const pLink=(k,num,name)=>{const u=pFor(k,num,name);return u?`<a class="plink" href="${u}">${name}</a>`:name};
+let PHYS=null,PHYS_P=null;
+function loadPhys(){if(PHYS_P)return PHYS_P;PHYS_P=fetch('/jugadores/datos.json').then(r=>r.ok?r.json():{}).catch(()=>({})).then(d=>{PHYS=d;if(currentTeam&&!document.getElementById('sheet').hidden)renderRoster(currentTeam);return d});return PHYS_P}
 function renderRoster(k){
-  const tb=document.getElementById('rbody');if(!tb)return;
+  const tb=document.getElementById('rbody');if(!tb)return;if(!PHYS)loadPhys();
   const set=GROUPS[rosterF],q=rosterQ.trim().toLowerCase();
   const starNums=new Set((INFO[k]||[])[4]?.map(s=>s[2]));
   const rows=ROSTERS[k].filter(r=>(!set||set.includes(r[2]))&&(!q||(r[1].toLowerCase().includes(q)||String(r[0])===q||r[2].toLowerCase()===q)));
   const sl=x=>x.normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/^-|-$/g,''),purl=r=>{const b=sl(r[1]),d=ROSTERS[k].filter(x=>sl(x[1])===b).length>1;return`/jugadores/${SLUG[k]}/${b}${d?'-'+r[0]:''}/`};
-  tb.innerHTML=rows.map(r=>`<tr><td class="pos num">${r[0]}</td><td class="team"><a href="${purl(r)}" style="color:inherit">${r[1]}</a>${starNums.has(r[0])&&INFO[k][4].some(s=>s[2]===r[0]&&s[1][0]===r[2][0])?' <span class="pill in">A seguir</span>':''}</td><td><span class="abbr">${r[2]}</span></td></tr>`).join('')||'<tr><td colspan="3" style="text-align:center;color:var(--muted)">Sin jugadores con ese filtro</td></tr>';
+  tb.innerHTML=rows.map(r=>`<tr><td class="pos num">${r[0]}</td><td class="team"><a href="${purl(r)}" style="color:inherit">${r[1]}</a>${starNums.has(r[0])&&INFO[k][4].some(s=>s[2]===r[0]&&s[1][0]===r[2][0])?' <span class="pill in">A seguir</span>':''}</td><td><span class="abbr">${r[2]}</span></td>${(()=>{const f=((PHYS||{})[k]||{})[r[0]+'|'+sl(r[1])]||[];return`<td class="ph">${f[0]??''}</td><td class="ph">${f[1]??''}</td><td class="ph">${f[2]??''}</td>`})()}</tr>`).join('')||'<tr><td colspan="6" style="text-align:center;color:var(--muted)">Sin jugadores con ese filtro</td></tr>';
 }
 document.getElementById('sheet').addEventListener('click',e=>{
   const fb=e.target.closest('[data-fav]');if(fb){setFav(fb.dataset.fav);const on=FAV===fb.dataset.fav;fb.classList.toggle('on',on);fb.textContent=on?'★ Mi equipo':'☆ Marcar como mi equipo';render();return}

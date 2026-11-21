@@ -165,7 +165,7 @@ a{color:var(--accent)}
 .jn{font-family:var(--display);font-weight:400;font-size:32px;color:var(--accent);min-width:42px}
 .search{width:100%;font:inherit;padding:10px 12px;border:1px solid var(--line);border-radius:8px;background:var(--surface);color:var(--ink)}
 table.roster td.team{font-weight:500}
-table.roster th:nth-child(n+3),table.roster td:nth-child(n+3){text-align:right}table.roster td.team a{color:inherit}
+table.roster th:nth-child(n+3),table.roster td:nth-child(n+3){text-align:right}table.roster td.team a{color:inherit}table.roster td.num{color:var(--muted);font-variant-numeric:tabular-nums}@media (max-width:420px){table.roster th,table.roster td{padding-left:5px;padding-right:5px}table.roster td.team{font-size:14px}}
 .credit{font-size:12px;color:var(--muted);margin-top:12px}
 .teamgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:8px}
 .tcard{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:12px;display:grid;grid-template-columns:auto 1fr auto;gap:2px 10px;align-items:center;align-content:center;grid-template-rows:auto auto;cursor:pointer;text-align:left;font:inherit;color:inherit}
@@ -378,6 +378,7 @@ header.top .in:has(.topnav){flex-wrap:wrap;row-gap:6px}
 .crumbs .sep{opacity:.45;font-weight:400}
 .crumbs .cur{color:var(--ink)}
 </style>
+<style>@view-transition{navigation:auto}::view-transition-old(root),::view-transition-new(root){animation-duration:.14s}header.top{view-transition-name:top}</style><script type="speculationrules">{"prerender":[{"where":{"and":[{"href_matches":"/*"},{"not":{"href_matches":"/*.json"}}]},"eagerness":"moderate"}]}</script>
 </head>
 <body>
 <header class="top"><div class="in"><a class="brand" href="/" style="text-decoration:none">Liga Mayor <span>Unofficial</span></a>
