@@ -596,7 +596,7 @@ nav.tabs .in{grid-template-columns:repeat(5,1fr)}
   header.top .in,header.top .in:has(.topnav){flex-wrap:nowrap!important;align-items:center;gap:32px;padding-block:0}
   header.top .brand{font-size:18px}
   #upd:not(:has(.live)){display:none}
-  .topnav{display:flex;width:auto;flex:1;justify-content:center;gap:28px;font-size:17px;letter-spacing:.05em;overflow:visible;padding:0}
+  .topnav{display:flex;width:auto;flex:1;justify-content:flex-start;gap:28px;font-size:17px;letter-spacing:.05em;overflow:visible;padding:0}
   .topnav a{padding:20px 0 17px;border-bottom:3px solid transparent;opacity:.85}
   .topnav a.on{opacity:1;color:var(--head-ink)!important;border-bottom-color:#3DBE73}
   .confs a{min-height:36px;padding:0 14px;border-radius:4px;font-size:14px}
@@ -608,7 +608,7 @@ nav.tabs .in{grid-template-columns:repeat(5,1fr)}
   .ml-c{grid-template-columns:1fr}
   .home{padding-top:8px}
 }
-</style></head>
+</style><link rel="stylesheet" href="/layout.css?v=3" id="lay"></head>
 <body>
 
 <header class="top"><div class="in">
@@ -1311,7 +1311,7 @@ function heroHTML(g,rk,R){
     road=`<p class="road"><b>Último enfrentamiento:</b> ${last?`${wkLong(last.w)}, ${last.a} ${last.as}-${last.hs} ${last.h}`:'no se han enfrentado esta temporada'}</p>`}
   const id='G-'+g.w+'-'+g.a+'-'+g.h;
   return`<section class="hero" aria-label="Partido principal"><div class="hero-h"><b>${wkLong(g.w)} · Liga Mayor 2026</b><span>${meta}</span></div>
-  <div class="hero-m">${side(g.a,false,false)}<div class="hero-c">${cdHTML(g)}${btn}</div>${side(g.h,true,true)}</div>
+  <div class="hero-m" style="--ca:${TCOL[g.a]||'#333'};--ch:${TCOL[g.h]||'#333'}">${side(g.a,false,false)}<div class="hero-c">${cdHTML(g)}${btn}</div>${side(g.h,true,true)}</div>
   <div class="hero-b"><section><h4>Cara a cara</h4><div class="cmp">${cmp}</div><p class="hnote">Temporada regular</p></section>
   <section class="hk"><h4>Jugadores clave</h4><div class="kp">${kp}</div>${road}</section>
   <section><h4>¿Quién gana?</h4>${pollHTML(id,g.a,g.h,!fin)||''}<a class="hlink2" href="${gamePath(g)}">${fin?'Ver el partido completo':'Ver previa completa del partido'} →</a></section></div></section>`;

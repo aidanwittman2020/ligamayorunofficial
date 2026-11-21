@@ -1,0 +1,101 @@
+/* Liga Mayor Unofficial · layout compartido (compu y celular) y acabado tipo sitio deportivo profesional.
+   Se carga al final de cada página, así que manda sobre los estilos de cada una. */
+
+/* ---------- Encabezado único ---------- */
+header.top .brand{text-decoration:none;white-space:nowrap;flex-shrink:0}
+.confs{display:flex;gap:8px;flex-shrink:0}
+.confs a{display:inline-flex;align-items:center;min-height:44px;padding:0 16px;border:1px solid #2A302C;border-radius:999px;color:#F1F3F2;text-decoration:none;font-family:"Roboto",system-ui,sans-serif;font-size:14px;font-weight:500;letter-spacing:0;text-transform:none;white-space:nowrap}
+.confs a.on{background:#3DBE73;border-color:#3DBE73;color:#06130B;font-weight:700}
+.topnav a{color:#F1F3F2;text-decoration:none;white-space:nowrap}
+.topnav a.on{color:#3DBE73}
+
+@media (max-width:768px){
+  header.top{position:static}
+  header.top .in{flex-wrap:wrap!important;row-gap:10px}
+  .confs{order:2;width:100%}
+  header.top .topnav{order:3;display:flex;width:100%;gap:18px;overflow-x:auto;scrollbar-width:none;font-family:"Barlow Condensed","Arial Narrow",sans-serif;font-weight:700;font-size:15px;letter-spacing:.04em;text-transform:uppercase;padding:2px 0 4px}
+  header.top .topnav::-webkit-scrollbar{display:none}
+  header.top .topnav a{display:inline-flex;align-items:center;min-height:36px;opacity:.85}
+  header.top .topnav a.on{opacity:1;box-shadow:inset 0 -3px 0 #3DBE73}
+  header.top[data-app] .topnav{display:none!important}
+}
+
+@media (min-width:769px){
+  body{font-size:15.5px}
+  .wrap,header.top .in,.ticker .in,footer .in,.seo .wrap-f,.foot .in{max-width:1280px!important;padding-left:32px!important;padding-right:32px!important}
+  main.wrap{max-width:1180px!important}
+  header.top{position:sticky;top:0}
+  header.top .in,header.top .in:has(.topnav){display:flex;flex-wrap:nowrap!important;align-items:center;gap:32px;padding-block:0!important}
+  header.top .brand{font-size:18px}
+  header.top .topnav{display:flex;flex:1;min-width:0;justify-content:center;gap:28px;overflow-x:auto;scrollbar-width:none;width:auto;padding:0;font-family:"Barlow Condensed","Arial Narrow",sans-serif;font-weight:700;font-size:17px;letter-spacing:.05em;text-transform:uppercase}
+  header.top .topnav::-webkit-scrollbar{display:none}
+  header.top .topnav{justify-content:flex-start!important}
+  header.top .topnav>a:first-child{margin-left:auto}header.top .topnav>a:last-child{margin-right:auto}
+  header.top .topnav a{padding:20px 0 17px;border-bottom:3px solid transparent;opacity:.85}
+  header.top .topnav a.on{opacity:1;color:#F1F3F2;border-bottom-color:#3DBE73}
+  .confs a{min-height:36px;padding:0 14px;border-radius:3px}
+  nav.tabs{display:none!important}
+  .seo .wrap-f{padding-bottom:36px!important}
+  .sheet-head .in,.sheet .wrap{max-width:1000px!important}
+  /* listas y rejillas aprovechan el ancho */
+  .pl2{grid-template-columns:repeat(2,1fr)}
+  .teamgrid{grid-template-columns:repeat(auto-fill,minmax(300px,1fr))}
+  .games{grid-template-columns:repeat(2,1fr)}
+  .ranks{grid-template-columns:1fr}
+  .stars{grid-template-columns:repeat(3,1fr)}
+}
+@media (min-width:769px) and (max-width:1180px){
+  header.top .topnav{gap:16px;font-size:15px;justify-content:flex-start}
+  header.top .in{gap:18px!important}
+  header.top .brand{font-size:15px}
+}
+
+/* ---------- Acabado profesional ---------- */
+/* Menos cajas redondeadas y bordes verdes; superficies planas con filetes finos, como ESPN o The Athletic. */
+.tbl-box,.game,.card,.qf,.pick,.bye,.note,.li,.play,.wb,.favcard,.tcard,.star,.rk,.br-m,.mas a,.res-g,.histcard{border-radius:2px!important}
+.rk.top{box-shadow:inset 3px 0 0 var(--accent)}
+h3{border-bottom-width:1px}
+
+/* Partido principal: banda con los colores de cada equipo, sin marco verde */
+.hero{border:0!important;border-radius:2px!important;box-shadow:0 0 0 1px var(--line)}
+.hero-h{background:var(--head)!important;color:#C9D1CC!important;border-bottom:1px solid #222826;padding:11px 22px!important}
+.hero-h b{color:#F1F3F2!important;font-size:15px!important;letter-spacing:.1em!important}
+.hero-h span{font-size:13px}
+.hero-m{background:linear-gradient(90deg,color-mix(in srgb,var(--ca,#333) 34%,transparent) 0%,transparent 42%,transparent 58%,color-mix(in srgb,var(--ch,#333) 34%,transparent) 100%)}
+.ht .badge{filter:drop-shadow(0 2px 6px rgba(0,0,0,.35))}
+.ht small{letter-spacing:.02em}
+.cd-n{gap:2px!important}
+.cd-n div{background:none!important;border:0!important;min-width:58px!important;padding:0 4px!important;position:relative}
+.cd-n div+div::before{content:":";position:absolute;left:-4px;top:2px;font-family:"Barlow Condensed",sans-serif;font-weight:700;font-size:34px;color:var(--muted);line-height:1}
+.cd-n b{font-size:46px!important;letter-spacing:.01em}
+.cd-n span{text-transform:uppercase;letter-spacing:.1em;font-size:10px!important}
+.cd-l{font-size:12px!important}
+.h-tv{border-radius:2px!important;text-transform:uppercase;letter-spacing:.06em;font-family:"Barlow Condensed",sans-serif;font-size:17px!important}
+.hero-b>section{padding-top:18px!important}
+.hero-b h4,.hb-h h3{font-family:"Barlow Condensed",sans-serif;font-weight:800;letter-spacing:.08em!important;text-transform:uppercase}
+.cmp-bar{height:4px!important}
+.cmp-bar i{border-radius:0!important}
+
+/* Módulos del inicio: encabezado con filete grueso arriba, sin caja */
+@media (min-width:769px){
+  .hb-t,.hb-l,.hb-d,.hb-x{background:none!important;border:0!important;border-radius:0!important;padding:0!important;border-top:3px solid var(--ink)!important}
+  .hb-h{padding-top:10px}
+}
+.hb-h h3{font-size:18px!important}
+.hb-h a{font-family:"Barlow Condensed",sans-serif;font-weight:700;font-size:14px!important;letter-spacing:.06em;text-transform:uppercase}
+.ml-g{border-radius:2px!important}
+.ml-g.nx{border-color:var(--line)!important;background:var(--surface)!important;box-shadow:inset 3px 0 0 var(--accent)}
+.mt th{font-family:"Barlow Condensed",sans-serif;font-weight:700;letter-spacing:.08em;text-transform:uppercase}
+.mt td:nth-child(2){font-weight:500}
+.cutnote{color:var(--muted)!important}
+.mt tr.cut8 td{border-bottom-color:var(--cut)!important}
+
+/* Botones 14 Grandes / Nacional y marcadores */
+.tkc{border-radius:0}
+.tk-s{letter-spacing:.08em}
+
+/* Historia y equipos en compu: dos columnas donde hay listas largas */
+@media (min-width:769px){
+  ol.tl,ul.tl{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+  ol.tl>li,ul.tl>li{margin:0!important}
+}

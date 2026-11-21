@@ -31,6 +31,8 @@ jobs:
         run: python3 build/generate.py
       - name: Generar perfiles de jugadores
         run: python3 build/jugadores.py
+      - name: Layout compartido
+        run: python3 build/layout.py
       - name: Guardar cambios (solo si la hoja cambió)
         id: guardar
         run: |
