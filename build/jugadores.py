@@ -192,7 +192,9 @@ def load_cc():
 
 # mismo jugador escrito distinto en Cover Cero y en el roster
 CC_ALIAS = {('PUE', 8, 'Alonso Barrenchea'): 'Alonso Barrenechea Romay', ('LAN', 1, 'Hiram Palomino'): 'Iram Palomino',
-            ('BUR', 13, 'Rodrigo Espinosa'): 'Rodrigo Daniel Espinoza Vite', ('UVM', 5, 'Emanuel Burgos'): 'Emmanuel Burgos Vargas'}
+            ('BUR', 13, 'Rodrigo Espinosa'): 'Rodrigo Daniel Espinoza Vite', ('UVM', 5, 'Emanuel Burgos'): 'Emmanuel Burgos Vargas',
+            ('LAN', 18, 'Emmanuel Premio'): 'Tonathiu Premio', ('LAN', 2, 'Manuel Rivera'): 'Roberto Rivera',
+            ('LAN', 3, 'Diego Vargas'): 'Diego Salvador', ('LAN', 6, 'Rafael Jaime'): 'Rafael Dupre'}
 
 
 def attach_cc(P, cc):
