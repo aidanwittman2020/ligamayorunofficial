@@ -159,7 +159,7 @@ a{color:var(--accent)}
 .jn{font-family:var(--display);font-weight:400;font-size:32px;color:var(--accent);min-width:42px}
 .search{width:100%;font:inherit;padding:10px 12px;border:1px solid var(--line);border-radius:8px;background:var(--surface);color:var(--ink)}
 table.roster td.team{font-weight:500}
-table.roster th:nth-child(3),table.roster td:nth-child(3){text-align:right}
+table.roster th:nth-child(n+3),table.roster td:nth-child(n+3){text-align:right}table.roster td.team a{color:inherit}
 .credit{font-size:12px;color:var(--muted);margin-top:12px}
 .teamgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:8px}
 .tcard{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:12px;display:grid;grid-template-columns:auto 1fr auto;gap:2px 10px;align-items:center;align-content:center;grid-template-rows:auto auto;cursor:pointer;text-align:left;font:inherit;color:inherit}
