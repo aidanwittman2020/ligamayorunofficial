@@ -31,6 +31,8 @@ jobs:
         run: python3 build/generate.py
       - name: Generar perfiles de jugadores
         run: python3 build/jugadores.py
+      - name: Generar página de la LFA
+        run: python3 build/lfa.py
       - name: Guardar cambios (solo si la hoja cambió)
         id: guardar
         run: |
