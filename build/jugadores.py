@@ -245,9 +245,9 @@ def summary(season):
     parts = []
     for c, r in season['cats'].items():
         if c in CAT:
-            k, t = CAT[c][1][0]
-            if re.match(r'^\d+', r.get(k) or ''):
-                parts.append(f'{int(float(r[k])):,} {t}')
+            for k, t in CAT[c][1]:
+                if re.match(r'^\d+', r.get(k) or '') and not (k == 'TD' and any(t2 == 'TD' for t2 in [p.split(' ', 1)[1] for p in parts])):
+                    parts.append(f'{int(float(r[k])):,} {t}')
     return ' · '.join(dict.fromkeys(parts))
 
 
@@ -266,7 +266,7 @@ def player_page(p, P):
     cur = p['seasons'].get(str(YEAR))
     body += f'<h2 style="font-size:26px;margin-top:22px">Temporada {YEAR}</h2>'
     if cur and cur['cats']:
-        body += f'<p class="gm-meta">Entre los líderes de la {T["conf"]} en estas categorías.</p><div class="st">{stat_cards(cur, "los 14 Grandes" if T["conf"] == "14 Grandes" else "la Conferencia Nacional")}</div>'
+        body += f'<p class="gm-meta">Entre los líderes de {"los 14 Grandes" if T["conf"] == "14 Grandes" else "la Conferencia Nacional"} en estas categorías.</p><div class="st">{stat_cards(cur, "los 14 Grandes" if T["conf"] == "14 Grandes" else "la Conferencia Nacional")}</div>'
     if p.get('star'):
         body += f'<div class="card" style="margin-top:8px"><b>Jugador a seguir de {e(T["n"])}:</b> {e(p["star"])}</div>'
     if not (cur and cur['cats']) and not p.get('star'):
