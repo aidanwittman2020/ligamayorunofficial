@@ -6,6 +6,9 @@ muestra la tabla final de la temporada anterior. La página también se actualiz
 (marcadores en vivo) leyendo la misma hoja.
 
 Uso: python3 build/lfa.py [--local DIR]
+
+EN PAUSA: la sección está oculta (no se publica ni aparece en el menú). Para activarla, agregar
+el paso al workflow y el link "LFA" al menú.
 """
 import csv, io, json, os, re, sys, html, datetime
 

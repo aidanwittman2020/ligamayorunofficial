@@ -11,7 +11,7 @@ También agrega edad/estatura/peso y el link al perfil en la tabla de roster de 
 
 Uso: python3 build/jugadores.py [--local DIR] [--guardar]
 """
-import csv, io, json, os, re, sys, html, unicodedata, datetime
+import csv, io, json, os, re, sys, html, unicodedata, datetime, zlib
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 import generate as G
@@ -260,7 +260,10 @@ def player_page(p, P):
     pos = POS.get(p['pos'], p['pos'])
     nav, ld_b = G.crumbs([('Inicio', '/'), ('Jugadores', '/jugadores/'), (T['n'], f"/jugadores/{T['slug']}/"), (p['name'], None)])
     num = f'<div class="num">#{p["n"]}</div>' if p['n'] is not None else ''
-    pose = (('ball_r', 'ball_l')[len(p['name']) % 2]) if p['pos'] in ('QB', 'RB', 'FB', 'WR', 'TE', 'PB', 'HB') else None
+    POSES = {'QB': ('ball_up', 'ball_r', 'two_hands'), 'WR': ('ball_up', 'ball_r', 'ball_l', 'tuck'), 'TE': ('tuck', 'ball_r', 'ball_up'),
+             'RB': ('tuck', 'ball_r', 'ball_l', 'two_hands'), 'FB': ('tuck', 'two_hands'), 'PB': ('tuck', 'ball_r'), 'HB': ('tuck', 'ball_r')}
+    ops = POSES.get(p['pos'])
+    pose = ops[zlib.crc32(p['name'].encode('utf-8')) % len(ops)] if ops else None
     av = AV.svg(p['n'], AV.uniform(p['liga'], p['team']), 112, seed=p['name'], pose=pose, title=f'Muñequito con el uniforme de {e(T["n"])}' + (f' y el número {p["n"]}' if p['n'] is not None else ''))
     head = (f'<div class="ph"><div class="av">{av}</div><div>{num}'
             f'<h1>{e(p["name"])}</h1><div class="sub2"><a class="tl" href="{T["url"]}"><img src="{T["img"]}" alt="" width="24" height="24">{e(T["n"])}</a> · {e(pos) if pos else "Jugador"} · {T["conf"]}</div></div></div>')

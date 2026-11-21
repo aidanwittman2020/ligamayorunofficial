@@ -19,8 +19,8 @@ UNI = {
     'GDL': dict(h='#F4F4F2', hd='#1F55C9', hm='#F4F4F2', j='#1F55C9', s='#1F55C9', ss='#F4F4F2', n='#FFFFFF', no=None, deco='horn', p='#1F55C9', g='#F4F4F2'),
     'LAN': dict(h='#E8502A', hd='#151515', hm='#151515', j='#151515', s='#151515', ss='#151515', n='#FFFFFF', no='#E8502A', deco='logo', p='#151515', g='#E8502A', visor=True),
     'CEM': dict(h='#F4F4F2', hd='#2A3BD6', hm='#2A3BD6', j='#F4F4F2', s='#F4F4F2', ss='#2A3BD6', n='#2A3BD6', no=None, deco='horn', p='#F4F4F2', g='#F4F4F2'),
-    'CCM': dict(h='#1F5BD6', hd='#F4F4F2', hm='#F4F4F2', j='#1F5BD6', s='#1F5BD6', ss='#1F5BD6', n='#F4F4F2', no=None, deco='stripe', p='#1F5BD6', g='#151515', visor=True),
-    'MTY': dict(h='#1F55D0', hd='#F4F4F2', hm='#1F55D0', j='#1F55D0', s='#1F55D0', ss='#1F55D0', n='#F4F4F2', no=None, deco='horn', p='#1F55D0', g='#151515', arm='#151515'),
+    'CCM': dict(h='#B9C0C8', hd='#1F5BD6', hm='#F4F4F2', j='#1F5BD6', s='#1F5BD6', ss='#1F5BD6', n='#F4F4F2', no=None, deco='horn_only', p='#1F5BD6', g='#151515', visor=True, metal=True),
+    'MTY': dict(h='#F4F4F2', hd='#1F55D0', hm='#1F55D0', j='#1F55D0', s='#1F55D0', ss='#1F55D0', n='#F4F4F2', no=None, deco='horn_only', p='#1F55D0', g='#151515', arm='#151515'),
     'UDL': dict(h='#1E6B45', hd='#F4F4F2', hm='#F4F4F2', j='#1E6B45', s='#1E6B45', ss='#1E6B45', n='#F4F4F2', no='#E85A2A', deco='logo', p='#1E6B45', g='#151515', arm='#151515'),
     'UVM': dict(h='#F4F4F2', hd='#D42A2A', hm='#F4F4F2', j='#D42A2A', s='#D42A2A', ss='#D42A2A', n='#F4F4F2', no=None, deco='stripe', p='#F4F4F2', g='#F4F4F2'),
     'LAC': dict(h='#D9601E', hd='#F4F4F2', hm='#151515', j='#F4F4F2', s='#F4F4F2', ss='#F4F4F2', n='#F05A28', no=None, deco='logo', p='#B8BBB9', g='#F4F4F2'),
@@ -120,11 +120,14 @@ def svg(num, u, size=132, title='', seed='', pose=None):
     if deco == 'stripe':
         for y in range(1, 6):
             px(15, y, u['hd']); px(16, y, u['hd'])
-    elif deco == 'horn':                       # cuerno de borrego a los lados
-        for (x, y) in [(8, 5), (8, 6), (8, 7), (9, 8), (10, 8), (10, 7), (9, 4), (10, 4)]:
+    elif deco in ('horn', 'horn_only'):        # cuerno de borrego a los lados
+        for (x, y) in [(8, 5), (8, 6), (8, 7), (9, 8), (10, 8), (10, 7), (9, 4), (10, 4), (11, 3), (12, 2), (11, 4)]:
             px(x, y, u['hd']); px(W - 1 - x, y, u['hd'])
-        for y in range(1, 5):
-            px(15, y, u['hd']); px(16, y, u['hd'])
+        if deco == 'horn':
+            for y in range(1, 5):
+                px(15, y, u['hd']); px(16, y, u['hd'])
+    if u.get('metal'):                         # brillo metálico
+        row(2, 13, 18, shade(h, 1.35)); px(21, 4, shade(h, 1.5)); px(22, 5, shade(h, 1.5))
     elif deco == 'logo':                       # logo pequeño a los lados
         for (x, y) in [(8, 5), (9, 5), (8, 6), (9, 6), (9, 7)]:
             px(x, y, u['hd']); px(W - 1 - x, y, u['hd'])
@@ -169,20 +172,67 @@ def svg(num, u, size=132, title='', seed='', pose=None):
         for (x, y) in cells:
             px(x, y, u['n'])
 
-    # ---- balón en la mano (jugadores ofensivos)
-    if pose in ('ball_r', 'ball_l'):
-        BALL = ['..BBBBB..', '.BBWBWBB.', 'BBBWWWBBB', '.BBBBBBB.', '..BBBBB..']
-        x0 = 21 if pose == 'ball_r' else 2
-        for yy, r_ in enumerate(BALL):
+    # ---- poses con balón (jugadores ofensivos)
+    BALL = ['..BBBBB..', '.BBWBWBB.', 'BBBWWWBBB', '.BBBBBBB.', '..BBBBB..']
+    BALLV = ['.BBB.', 'BBBBB', 'BWBBB', 'BWWBB', 'BWBBB', 'BBBBB', '.BBB.']   # balón parado (de punta)
+    glove = u.get('g') or '#1B1B1B'
+
+    def ball(x0, y0, shape=BALL):
+        cells = {(x0 + xx, y0 + yy) for yy, r_ in enumerate(shape) for xx, ch in enumerate(r_) if ch != '.'}
+        for (x, y) in cells:                   # contorno para que se vea sobre el jersey
+            for dx, dy in ((1, 0), (-1, 0), (0, 1), (0, -1)):
+                if (x + dx, y + dy) not in cells:
+                    px(x + dx, y + dy, OUT)
+        for yy, r_ in enumerate(shape):
             for xx, ch in enumerate(r_):
                 if ch == 'B':
-                    px(x0 + xx, 27 + yy, '#8A4726' if yy < 3 else '#6B3519')
+                    px(x0 + xx, y0 + yy, '#8A4726' if yy < len(shape) // 2 + 1 else '#6B3519')
                 elif ch == 'W':
-                    px(x0 + xx, 27 + yy, '#F4F4F2')
-        gx = range(25, 29) if pose == 'ball_r' else range(3, 7)   # guante abrazando el balón
-        for x in gx:
+                    px(x0 + xx, y0 + yy, '#F4F4F2')
+
+    def clear_arm(side):                       # quita el brazo que cuelga (para doblarlo)
+        xs = range(24, 30) if side == 'r' else range(2, 8)
+        for y in range(22, 33):
+            for x in xs:
+                G[y][x] = None
+
+    if pose in ('ball_r', 'ball_l'):           # balón en la mano, brazo abajo
+        ball(21 if pose == 'ball_r' else 2, 27)
+        for x in (range(25, 29) if pose == 'ball_r' else range(3, 7)):
             for y in (30, 31, 32):
-                px(x, y, u.get('g') or '#1B1B1B')
+                px(x, y, glove)
+    elif pose == 'ball_up':                    # balón en alto junto al casco (brazo derecho doblado)
+        clear_arm('r')
+        for y in range(10, 22):                # antebrazo hacia arriba
+            for x in (26, 27, 28):
+                px(x, y, arm)
+            px(26, y, shade(arm, .85))
+        for y in range(16, 22):                # manga
+            for x in range(24, 29):
+                px(x, y, sl)
+        ball(25, 2, BALLV)
+        for y in (8, 9, 10):
+            row(y, 25, 29, glove)
+    elif pose == 'tuck':                       # balón pegado al pecho, bajo el brazo derecho
+        clear_arm('r')
+        for y in range(22, 27):                # brazo doblado sobre el pecho
+            for x in range(24, 28):
+                px(x, y, arm)
+        for y in range(22, 26):
+            row(y, 22, 23, arm)
+        ball(15, 23)
+        for y in (25, 26, 27):
+            row(y, 21, 25, glove)
+    elif pose == 'two_hands':                  # balón con las dos manos, a la altura de la cintura
+        clear_arm('r'); clear_arm('l')
+        for y in range(22, 28):
+            for x in (4, 5, 6, 25, 26, 27):
+                px(x, y, arm)
+        for y in range(26, 30):
+            row(y, 7, 9, arm); row(y, 22, 24, arm)
+        ball(11, 27)
+        for y in (28, 29, 30):
+            row(y, 8, 11, glove); row(y, 20, 23, glove)
 
     # ---- contorno exterior
     outline = [(x, y) for y in range(H) for x in range(W) if G[y][x] is None and any(
