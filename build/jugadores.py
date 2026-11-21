@@ -68,6 +68,9 @@ def team(liga, k):
 
 
 # ---------------------------------------------------------------- jugadores
+NACP_FILE = os.path.join(DATA, 'nacional_jugadores.csv')
+
+
 def build_players(fis):
     P = []
     for k, lst in ROSTERS.items():
@@ -76,6 +79,12 @@ def build_players(fis):
     for r in fis:
         if r['Liga'] == 'NAC':
             P.append({'liga': 'NAC', 'team': r['Equipo'], 'n': int(r['Numero']), 'name': r['Nombre'], 'pos': r['Posicion']})
+    # jugadores de la Nacional que ya salieron en las estadísticas (se guardan para que su perfil no desaparezca)
+    if os.path.exists(NACP_FILE):
+        for r in csv.DictReader(open(NACP_FILE, encoding='utf-8')):
+            n = int(r['Numero']) if r['Numero'].isdigit() else None
+            if not any(q['liga'] == 'NAC' and q['team'] == r['Equipo'] and q['n'] == n and same(q['name'], r['Jugador']) for q in P):
+                P.append({'liga': 'NAC', 'team': r['Equipo'], 'n': n, 'name': r['Jugador'], 'pos': r['Pos']})
     # datos físicos (mismo orden que el roster: equipo + número + nombre)
     idx = {}
     for r in fis:
@@ -391,6 +400,11 @@ def main():
             os.remove(os.path.join(d, 'index.html'))
         if os.path.isdir(d) and not os.listdir(d):
             os.rmdir(d)
+    nac = sorted({(p['team'], '' if p['n'] is None else str(p['n']), p['name'], p['pos']) for p in P if p['liga'] == 'NAC' and not p.get('fis')})
+    with open(NACP_FILE, 'w', newline='', encoding='utf-8') as f:
+        w = csv.writer(f)
+        w.writerow(['Equipo', 'Numero', 'Jugador', 'Pos'])
+        w.writerows(nac)
     nt = patch_team_pages(P)
     # sitemap
     sp = os.path.join(SITE, 'sitemap.xml')
