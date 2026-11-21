@@ -15,6 +15,7 @@ import csv, io, json, os, re, sys, html, unicodedata, datetime
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 import generate as G
+import avatar as AV
 
 e = html.escape
 SITE, URL, YEAR = G.SITE, G.URL, G.YEAR
@@ -179,7 +180,9 @@ def attach(P, rows, stars, hist):
 # ---------------------------------------------------------------- páginas
 CSS = '''<style>
 .ph{display:grid;grid-template-columns:auto 1fr;gap:14px;align-items:center;background:var(--head);color:var(--head-ink);border-radius:4px;padding:16px;margin-top:6px}
-.ph img{width:72px;height:72px;image-rendering:pixelated}
+.ph .av{background:linear-gradient(#DDE7DF,#C7D8CB);border-radius:4px;padding:10px 8px 6px;display:grid;place-items:end center}
+.ph .tl{display:inline-flex;align-items:center;gap:5px;text-decoration:none}.ph .tl img{width:24px;height:24px;image-rendering:pixelated}
+@media (max-width:420px){.ph .av svg{width:100px;height:auto}.ph h1{font-size:30px}}
 .ph .num{font-family:var(--display);font-size:54px;line-height:1;color:#3DBE73}
 .ph h1{font-family:var(--display);font-weight:800;font-size:34px;line-height:1.02;text-transform:uppercase;margin:0;text-wrap:balance}
 .ph .sub2{opacity:.75;font-size:14px;margin-top:4px}
@@ -257,8 +260,9 @@ def player_page(p, P):
     pos = POS.get(p['pos'], p['pos'])
     nav, ld_b = G.crumbs([('Inicio', '/'), ('Jugadores', '/jugadores/'), (T['n'], f"/jugadores/{T['slug']}/"), (p['name'], None)])
     num = f'<div class="num">#{p["n"]}</div>' if p['n'] is not None else ''
-    head = (f'<div class="ph"><a href="{T["url"]}"><img src="{T["img"]}" alt="Escudo de {e(T["n"])}" width="72" height="72"></a><div>{num}'
-            f'<h1>{e(p["name"])}</h1><div class="sub2">{e(pos) if pos else "Jugador"} · <a href="{T["url"]}">{e(T["n"])}</a> · {T["conf"]}</div></div></div>')
+    av = AV.svg(p['n'], AV.uniform(p['liga'], p['team']), 104, f'Muñequito con el uniforme de {e(T["n"])}' + (f' y el número {p["n"]}' if p['n'] is not None else ''))
+    head = (f'<div class="ph"><div class="av">{av}</div><div>{num}'
+            f'<h1>{e(p["name"])}</h1><div class="sub2"><a class="tl" href="{T["url"]}"><img src="{T["img"]}" alt="" width="24" height="24">{e(T["n"])}</a> · {e(pos) if pos else "Jugador"} · {T["conf"]}</div></div></div>')
     tiles = [(age or '—', 'Edad', 'años' if age else ''), (h or '—', 'Estatura', ft(h) if h else ''), (w or '—', 'Peso', f'{round(int(w) * 2.2046)} lb' if w else ''), (e(p['pos'] or '—'), 'Posición', '')]
     if not h:
         tiles[1] = (('#' + str(p['n'])) if p['n'] is not None else '—', 'Número', '')
