@@ -260,7 +260,8 @@ def player_page(p, P):
     pos = POS.get(p['pos'], p['pos'])
     nav, ld_b = G.crumbs([('Inicio', '/'), ('Jugadores', '/jugadores/'), (T['n'], f"/jugadores/{T['slug']}/"), (p['name'], None)])
     num = f'<div class="num">#{p["n"]}</div>' if p['n'] is not None else ''
-    av = AV.svg(p['n'], AV.uniform(p['liga'], p['team']), 112, seed=p['name'], title=f'Muñequito con el uniforme de {e(T["n"])}' + (f' y el número {p["n"]}' if p['n'] is not None else ''))
+    pose = (('ball_r', 'ball_l')[len(p['name']) % 2]) if p['pos'] in ('QB', 'RB', 'FB', 'WR', 'TE', 'PB', 'HB') else None
+    av = AV.svg(p['n'], AV.uniform(p['liga'], p['team']), 112, seed=p['name'], pose=pose, title=f'Muñequito con el uniforme de {e(T["n"])}' + (f' y el número {p["n"]}' if p['n'] is not None else ''))
     head = (f'<div class="ph"><div class="av">{av}</div><div>{num}'
             f'<h1>{e(p["name"])}</h1><div class="sub2"><a class="tl" href="{T["url"]}"><img src="{T["img"]}" alt="" width="24" height="24">{e(T["n"])}</a> · {e(pos) if pos else "Jugador"} · {T["conf"]}</div></div></div>')
     tiles = [(age or '—', 'Edad', 'años' if age else ''), (h or '—', 'Estatura', ft(h) if h else ''), (w or '—', 'Peso', f'{round(int(w) * 2.2046)} lb' if w else ''), (e(p['pos'] or '—'), 'Posición', '')]

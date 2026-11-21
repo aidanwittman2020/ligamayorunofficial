@@ -18,14 +18,13 @@ UNI = {
     'BUR': dict(h='#F4F4F2', hd='#6B2235', hm='#F4F4F2', j='#F4F4F2', s='#F4F4F2', ss='#6B2235', n='#6B2235', no=None, deco='logo', p='#F4F4F2', g='#F4F4F2'),
     'GDL': dict(h='#F4F4F2', hd='#1F55C9', hm='#F4F4F2', j='#1F55C9', s='#1F55C9', ss='#F4F4F2', n='#FFFFFF', no=None, deco='horn', p='#1F55C9', g='#F4F4F2'),
     'LAN': dict(h='#E8502A', hd='#151515', hm='#151515', j='#151515', s='#151515', ss='#151515', n='#FFFFFF', no='#E8502A', deco='logo', p='#151515', g='#E8502A', visor=True),
-    # Aproximados (pendientes de foto)
-    'MTY': dict(BASE, deco='horn'),
-    'CEM': dict(BASE, deco='horn'),
-    'CCM': dict(BASE, deco='horn'),
-    'UDL': dict(h='#00704A', hd='#F47920', hm='#FFFFFF', j='#00704A', s='#00704A', ss='#F47920', n='#FFFFFF', no='#F47920', deco='stripe'),
-    'UVM': dict(h='#C8102E', hd='#FFFFFF', hm='#9AA0A6', j='#C8102E', s='#C8102E', ss='#FFFFFF', n='#FFFFFF', no=None, deco='stripe'),
-    'LAC': dict(h='#E35205', hd='#FFFFFF', hm='#9AA0A6', j='#FFFFFF', s='#FFFFFF', ss='#E35205', n='#E35205', no=None, deco='stripe'),
-    'CET': dict(h='#F2B705', hd='#0A2A66', hm='#0A2A66', j='#0A2A66', s='#0A2A66', ss='#F2B705', n='#F2B705', no=None, deco='stripe'),
+    'CEM': dict(h='#F4F4F2', hd='#2A3BD6', hm='#2A3BD6', j='#F4F4F2', s='#F4F4F2', ss='#2A3BD6', n='#2A3BD6', no=None, deco='horn', p='#F4F4F2', g='#F4F4F2'),
+    'CCM': dict(h='#1F5BD6', hd='#F4F4F2', hm='#F4F4F2', j='#1F5BD6', s='#1F5BD6', ss='#1F5BD6', n='#F4F4F2', no=None, deco='stripe', p='#1F5BD6', g='#151515', visor=True),
+    'MTY': dict(h='#1F55D0', hd='#F4F4F2', hm='#1F55D0', j='#1F55D0', s='#1F55D0', ss='#1F55D0', n='#F4F4F2', no=None, deco='horn', p='#1F55D0', g='#151515', arm='#151515'),
+    'UDL': dict(h='#1E6B45', hd='#F4F4F2', hm='#F4F4F2', j='#1E6B45', s='#1E6B45', ss='#1E6B45', n='#F4F4F2', no='#E85A2A', deco='logo', p='#1E6B45', g='#151515', arm='#151515'),
+    'UVM': dict(h='#F4F4F2', hd='#D42A2A', hm='#F4F4F2', j='#D42A2A', s='#D42A2A', ss='#D42A2A', n='#F4F4F2', no=None, deco='stripe', p='#F4F4F2', g='#F4F4F2'),
+    'LAC': dict(h='#D9601E', hd='#F4F4F2', hm='#151515', j='#F4F4F2', s='#F4F4F2', ss='#F4F4F2', n='#F05A28', no=None, deco='logo', p='#B8BBB9', g='#F4F4F2'),
+    'CET': dict(h='#151515', hd='#D9A520', hm='#151515', j='#151515', s='#151515', ss='#151515', n='#F2C318', no=None, deco='logo', p='#151515', g='#151515'),
 }
 NAC = {"PAC": "#1B2A5C", "PSA": "#0B6B3A", "FRA": "#B3202A", "HAL": "#0E4C92", "BUH": "#7A1F3D", "TSA": "#1F4E9A", "PAN": "#D9581F", "LQR": "#B8901C",
        "TEC": "#A51C30", "ULM": "#3B7DBF", "UIW": "#C8102E", "ASU": "#9E1B32", "UAT": "#1F5FAE", "UCH": "#4B2E83", "ITS": "#0053A0", "UAC": "#1B3F8B",
@@ -62,7 +61,7 @@ def shade(c, f):
     return '#%02X%02X%02X' % (r, g, b)
 
 
-def svg(num, u, size=132, title='', seed=''):
+def svg(num, u, size=132, title='', seed='', pose=None):
     G = [[None] * W for _ in range(H)]
 
     def px(x, y, c):
@@ -169,6 +168,21 @@ def svg(num, u, size=132, title='', seed=''):
                         px(x + dx, y + dy, u['no'])
         for (x, y) in cells:
             px(x, y, u['n'])
+
+    # ---- balón en la mano (jugadores ofensivos)
+    if pose in ('ball_r', 'ball_l'):
+        BALL = ['..BBBBB..', '.BBWBWBB.', 'BBBWWWBBB', '.BBBBBBB.', '..BBBBB..']
+        x0 = 21 if pose == 'ball_r' else 2
+        for yy, r_ in enumerate(BALL):
+            for xx, ch in enumerate(r_):
+                if ch == 'B':
+                    px(x0 + xx, 27 + yy, '#8A4726' if yy < 3 else '#6B3519')
+                elif ch == 'W':
+                    px(x0 + xx, 27 + yy, '#F4F4F2')
+        gx = range(25, 29) if pose == 'ball_r' else range(3, 7)   # guante abrazando el balón
+        for x in gx:
+            for y in (30, 31, 32):
+                px(x, y, u.get('g') or '#1B1B1B')
 
     # ---- contorno exterior
     outline = [(x, y) for y in range(H) for x in range(W) if G[y][x] is None and any(
