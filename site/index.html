@@ -411,7 +411,7 @@ header.top .in{flex-wrap:nowrap}
 header.top .in:has(.topnav){flex-wrap:wrap;row-gap:6px}
 .hright{display:flex;align-items:center;gap:8px}
 @media (max-width:520px){.hright .tag{display:none}}
-.topnav{flex-wrap:nowrap;overflow-x:auto;scrollbar-width:none;width:100%;gap:18px;padding-bottom:2px}
+.topnav{flex-wrap:nowrap;overflow-x:auto;scrollbar-width:none;width:100%;gap:14px;padding-bottom:2px;letter-spacing:.03em}@media (max-width:430px){.topnav{gap:11px;font-size:12px}}
 .topnav::-webkit-scrollbar{display:none}
 .topnav a{white-space:nowrap}
 .ticker{position:static}
@@ -448,7 +448,7 @@ h4.br-round{font-family:var(--display);font-weight:800;font-size:15px;letter-spa
 .hright{flex-direction:row!important;flex-wrap:nowrap}
 .hright .hlink{font-size:11px;padding:4px 7px}
 @media (max-width:380px){header.top .brand{font-size:13px}.hright{gap:6px}.hright .hlink{font-size:10px;padding:3px 5px;letter-spacing:.06em}}
-.topnav{display:flex;gap:18px;flex-wrap:nowrap;overflow-x:auto;scrollbar-width:none;width:100%;font-family:var(--display);font-weight:700;font-size:13px;letter-spacing:.08em;text-transform:uppercase}
+.topnav{display:flex;gap:14px;flex-wrap:nowrap;overflow-x:auto;scrollbar-width:none;width:100%;font-family:var(--display);font-weight:700;font-size:13px;letter-spacing:.04em;text-transform:uppercase}@media (max-width:430px){.topnav{gap:11px;font-size:12px;letter-spacing:.02em}}
 .topnav::-webkit-scrollbar{display:none}
 .topnav a{color:var(--head-ink);text-decoration:none;opacity:.8;white-space:nowrap}.topnav a.on,.topnav a:hover{opacity:1;color:#3DBE73}
 header.top .in{flex-wrap:wrap;row-gap:6px}
@@ -472,7 +472,7 @@ header.top .in{flex-wrap:wrap;row-gap:6px}
 
 <header class="top"><div class="in">
   <h1 class="brand" style="margin:0">Liga Mayor <span>Unofficial</span><span style="position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap"> · Liga Mayor ONEFA 2026, tabla de los 14 Grandes</span></h1><div class="tag" id="upd">Temporada 2026</div>
-  <nav class="topnav" id="topnav" aria-label="Secciones"><a class="on" href="/#tabla">14 Grandes</a><a href="/nacional/">Nacional</a><a href="/historia/">Historia</a></nav>
+  <nav class="topnav" id="topnav" aria-label="Secciones"><a class="on" href="/#tabla">14 Grandes</a><a href="/nacional/">Nacional</a><a href="/jugadores/">Jugadores</a><a href="/historia/">Historia</a></nav>
 </div></header>
 
 <div class="ticker" aria-label="Marcadores de la semana"><div class="in" id="ticker"></div></div>
@@ -801,7 +801,8 @@ function renderRoster(k){
   const set=GROUPS[rosterF],q=rosterQ.trim().toLowerCase();
   const starNums=new Set((INFO[k]||[])[4]?.map(s=>s[2]));
   const rows=ROSTERS[k].filter(r=>(!set||set.includes(r[2]))&&(!q||(r[1].toLowerCase().includes(q)||String(r[0])===q||r[2].toLowerCase()===q)));
-  tb.innerHTML=rows.map(r=>`<tr><td class="pos num">${r[0]}</td><td class="team">${r[1]}${starNums.has(r[0])&&INFO[k][4].some(s=>s[2]===r[0]&&s[1][0]===r[2][0])?' <span class="pill in">A seguir</span>':''}</td><td><span class="abbr">${r[2]}</span></td></tr>`).join('')||'<tr><td colspan="3" style="text-align:center;color:var(--muted)">Sin jugadores con ese filtro</td></tr>';
+  const sl=x=>x.normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/^-|-$/g,''),purl=r=>{const b=sl(r[1]),d=ROSTERS[k].filter(x=>sl(x[1])===b).length>1;return`/jugadores/${SLUG[k]}/${b}${d?'-'+r[0]:''}/`};
+  tb.innerHTML=rows.map(r=>`<tr><td class="pos num">${r[0]}</td><td class="team"><a href="${purl(r)}" style="color:inherit">${r[1]}</a>${starNums.has(r[0])&&INFO[k][4].some(s=>s[2]===r[0]&&s[1][0]===r[2][0])?' <span class="pill in">A seguir</span>':''}</td><td><span class="abbr">${r[2]}</span></td></tr>`).join('')||'<tr><td colspan="3" style="text-align:center;color:var(--muted)">Sin jugadores con ese filtro</td></tr>';
 }
 document.getElementById('sheet').addEventListener('click',e=>{
   const fb=e.target.closest('[data-fav]');if(fb){setFav(fb.dataset.fav);const on=FAV===fb.dataset.fav;fb.classList.toggle('on',on);fb.textContent=on?'★ Mi equipo':'☆ Marcar como mi equipo';render();return}
