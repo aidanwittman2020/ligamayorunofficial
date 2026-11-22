@@ -14,7 +14,8 @@ SITE = os.path.join(ROOT, 'site')
 URL = 'https://ligamayorunofficial.com'
 YEAR = 2026
 PUB = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQNVclYf7g5WHDSejO-E_1xVXBF-KC__RWAbeSLafpfFK-5fxjCE2JegKDDBVnqalEEV97cBnF1PMzU/pub?gid={}&single=true&output=csv'
-GID = {'juegos': 1243915347, 'anotaciones': 1258472465, 'canales': 1868069815, 'ntabla': 1541467341, 'njuegos': 910175980}
+GID = {'juegos': 1243915347, 'anotaciones': 1258472465, 'canales': 1868069815, 'ntabla': 1541467341, 'njuegos': 910175980,
+       'lideres': 1908116186, 'estrellas': 1355832789, 'tstats': 1066629721}
 e = html.escape
 
 # ---------------------------------------------------------------- datos base del sitio
@@ -490,6 +491,150 @@ def inject(path, html_):
     return False
 
 
+RLBL = {'P': 'Pend.', 'CF': 'Cuartos', 'SF': 'Semis', 'F': 'Final'}
+
+
+def patch_team_calendars(G):
+    """Calendario de cada ficha desde la pestaña Juegos (temporada regular + playoffs), ligado por partido y no por fila."""
+    n = 0
+    for k, sl in SLUG.items():
+        fp = os.path.join(SITE, 'equipos', sl, 'index.html')
+        if not os.path.exists(fp):
+            continue
+        h = open(fp, encoding='utf-8').read()
+        rows = ''
+        for g in G:
+            if k not in (g['a'], g['h']):
+                continue
+            home = g['h'] == k
+            o = g['a'] if home else g['h']
+            lbl = RLBL.get(g['w'], 'S' + g['w'])
+            if g['fin']:
+                me, ot = (g['hs'], g['as']) if home else (g['as'], g['hs'])
+                W = 'G' if me > ot else 'P'
+                res = f'<span class="res {W}">{W} {me}-{ot}</span>'
+            else:
+                d = g['d'][:1].upper() + g['d'][1:]
+                res = f'<span style="color:var(--muted)">{e(d)} · {e(g["t"])} h</span>'
+            rows += (f'<tr data-m="{g["w"]}-{g["a"]}-{g["h"]}"><td class="pos">{lbl}</td><td class="team"><div class="tname"><img class="badge" src="/img/{o}.png" alt="Escudo de {e(TEAMS[o]["n"])}" width="28" height="28" style="width:28px;height:28px">'
+                     f'<span>{"vs" if home else "en"} <a href="/equipos/{SLUG[o]}/">{e(TEAMS[o]["n"])}</a></span></div></td><td class="r">{res}</td></tr>')
+        new = re.sub(r'(<table class="sched">.*?<tbody>).*?(</tbody>)', lambda m: m.group(1) + rows + m.group(2), h, count=1, flags=re.S)
+        new = new.replace("""document.querySelector('tr[data-gid="'+id+'"] td.r')""", """document.querySelector('tr[data-m="'+(r[SW]||'').trim().toUpperCase()+'-'+a+'-'+h+'"] td.r')""")
+        if new != h:
+            open(fp, 'w', encoding='utf-8').write(new)
+            n += 1
+    return n
+
+
+def _fnum(x):
+    x = str(x or '').replace(',', '').strip()
+    try:
+        return float(x) if '.' in x else int(x)
+    except ValueError:
+        return None
+
+
+def refresh_embedded(local):
+    """Escribe en el HTML los datos y cortes vigentes de la hoja (lo que ve Google y quien abre sin conexión)."""
+    main_p = os.path.join(SITE, 'index.html')
+    M = open(main_p, encoding='utf-8').read()
+    M0 = M
+    # estadísticas por equipo
+    try:
+        tr, tc = rows_of(fetch('tstats', local))
+        F = [('J', 'juegos'), ('rush', 'yds tierra'), ('pass', 'yds aire'), ('tot', 'yds totales'), ('ypg', 'yds por juego'), ('fd', 'primeros y diez'),
+             ('to', 'perdidas de balon'), ('rushA', 'yds permitidas tierra'), ('passA', 'yds permitidas aire'), ('totA', 'yds permitidas'),
+             ('yapg', 'yds permitidas por juego'), ('pen', 'castigos'), ('penY', 'yds de castigo')]
+        T, cut = {}, ''
+        for r in tr:
+            k = r[0].strip().upper()
+            if norm(k) == 'corte':
+                cut = (r[1] if len(r) > 1 else '').strip()
+            elif k in TEAMS:
+                T[k] = {a: _fnum(r[tc[b]]) if b in tc and tc[b] < len(r) else None for a, b in F}
+        if len(T) >= 10 and cut:
+            js = json.dumps(T, ensure_ascii=False)
+            M = re.sub(r"let TSTATS=\{.*?\}\},TSTATS_CUT='[^']*'", lambda m: f"let TSTATS={js},TSTATS_CUT='{cut}'", M, count=1, flags=re.S)
+            for sl in SLUG.values():
+                fp = os.path.join(SITE, 'equipos', sl, 'index.html')
+                h = open(fp, encoding='utf-8').read()
+                h2 = re.sub(r"let T=\{.*?\}\},CUT='[^']*'", lambda m: f"let T={js},CUT='{cut}'", h, count=1, flags=re.S)
+                if h2 != h:
+                    open(fp, 'w', encoding='utf-8').write(h2)
+    except Exception as ex:
+        print('aviso tstats:', ex)
+    # líderes individuales (FBA Stats)
+    try:
+        lr, lc = rows_of(fetch('lideres', local))
+        LCAT = json.loads(re.search(r'const LCAT=(\{.*?\});', M).group(1))
+        cut, st = '', []
+        for key, (cid, t, u, cols) in LCAT.items():
+            rows = []
+            for r in lr:
+                g = lambda n: (r[lc[n]] if n in lc and lc[n] < len(r) else '').strip()
+                if norm(g('categoria')) == 'corte':
+                    cut = g('jugador') or cut
+                if g('categoria').upper() != key or g('equipo').upper() not in TEAMS or not g('jugador'):
+                    continue
+                vals = [_fnum(g(c.lower())) for c in cols]
+                if any(v is None for v in vals):
+                    continue
+                rows.append((_fnum(g('lugar')) or 99, [g('jugador'), g('equipo').upper(), _fnum(g('numero'))] + vals))
+            if rows:
+                st.append({'id': cid, 't': t, 'u': u, 'cols': cols, 'rows': [x for _, x in sorted(rows, key=lambda y: y[0])]})
+        if len(st) >= 5 and cut:
+            M = re.sub(r"let STATS_CUTOFF='[^']*';\nlet STATS=\[.*?\];\n", lambda m: f"let STATS_CUTOFF='{cut}';\nlet STATS={json.dumps(st, ensure_ascii=False)};\n", M, count=1, flags=re.S)
+    except Exception as ex:
+        print('aviso lideres:', ex)
+    # jugadores a seguir (pestaña Jugadores): portada (INFO) y fichas
+    try:
+        er, ec = rows_of(fetch('estrellas', local))
+        S = {}
+        for r in er:
+            g = lambda n: (r[ec[n]] if n in ec and ec[n] < len(r) else '').strip()
+            k = g('equipo').upper()
+            if k in TEAMS and g('jugador'):
+                S.setdefault(k, []).append([g('jugador'), g('posicion'), _fnum(g('numero')), g('estadistica')])
+        m = re.search(r'const INFO=(\{.*?\});\n', M, re.S)
+        I = json.loads(m.group(1))
+        for k, L in S.items():
+            if k in I and len(I[k]) > 4:
+                I[k][4] = L
+        M = M[:m.start(1)] + json.dumps(I, ensure_ascii=False) + M[m.end(1):]
+        for k, L in S.items():
+            fp = os.path.join(SITE, 'equipos', SLUG[k], 'index.html')
+            h = open(fp, encoding='utf-8').read()
+            cards = ''.join(f'<div class="star"><span class="jn num">#{x[2] if x[2] is not None else ""}</span><div><b>{e(x[0])}</b><div class="loc">{e(x[1])}</div><div class="sl">{e(x[3])}</div></div></div>' for x in L)
+            star = r'<div class="star"><span class="jn num">[^<]*</span><div><b>[^<]*</b><div class="loc">[^<]*</div><div class="sl">[^<]*</div></div></div>'
+            h2 = re.sub(r'(<div class="stars" id="stars" data-k="' + k + r'">)(?:' + star + r')*', lambda mm: mm.group(1) + cards, h, count=1)
+            if h2 != h:
+                open(fp, 'w', encoding='utf-8').write(h2)
+    except Exception as ex:
+        print('aviso estrellas:', ex)
+    if M != M0:
+        open(main_p, 'w', encoding='utf-8').write(M)
+    # Nacional: tabla oficial y su corte
+    try:
+        np_ = os.path.join(SITE, 'nacional', 'index.html')
+        N = open(np_, encoding='utf-8').read()
+        tr, tc = rows_of(fetch('ntabla', local))
+        cut, out = '', []
+        for r in tr:
+            g = lambda n: (r[tc[n]] if n in tc and tc[n] < len(r) else '').strip()
+            if norm(r[0]) == 'corte':
+                cut = (r[1] if len(r) > 1 else '').strip()
+                continue
+            if not g('clave'):
+                continue
+            out.append({'g': g('grupo'), 'k': g('clave').upper(), 'n': g('equipo'), 's': g('escuela'), 'w': _fnum(g('g')) or 0, 'l': _fnum(g('p')) or 0, 'pf': _fnum(g('pf')) or 0, 'pa': _fnum(g('pc')) or 0})
+        if len(out) >= 15 and cut:
+            N2 = re.sub(r"let TEAMS=\[.*?\],CUT='[^']*'", lambda m: f"let TEAMS={json.dumps(out, ensure_ascii=False)},CUT='{cut}'", N, count=1, flags=re.S)
+            if N2 != N:
+                open(np_, 'w', encoding='utf-8').write(N2)
+    except Exception as ex:
+        print('aviso nacional:', ex)
+
+
 def patch_team_facts(G):
     """Récord, lugar y puntos de temporada regular en el HTML de cada página de equipo (lo que ve Google)."""
     S = {k: {'k': k, 'w': 0, 'l': 0, 'pf': 0, 'pa': 0} for k in TEAMS}
@@ -617,7 +762,8 @@ def main():
     out.append((p, write(p, html_)))
     sitemap(out)
     try:
-        print('equipos (récord en HTML):', patch_team_facts(G))
+        print('equipos (récord en HTML):', patch_team_facts(G), '· calendarios:', patch_team_calendars(G))
+        refresh_embedded(local)
         changed = inject('index.html', pre_main(G))
         nh = pre_nac(local)
         if nh:

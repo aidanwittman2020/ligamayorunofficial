@@ -160,7 +160,7 @@ def find_player(P, liga, k, n, name):
 # ---------------------------------------------------------------- Cover Cero (estadísticas completas 14 Grandes)
 CC_TEAM = {'MTY': 'MTY', 'CETYS': 'CET', 'PUE': 'PUE', 'CU': 'PUM', 'CEM': 'CEM', 'UAMN': 'LAN', 'AT': 'TIG', 'ABS': 'AGU',
            'UDLA': 'UDL', 'CCM': 'CCM', 'BBS': 'BUR', 'UVM': 'UVM', 'GDL': 'GDL', 'UAC': 'LAC'}
-CC_COLS = {'passing': ('Pase', ['JJ', 'COMP', 'INT.', '%', 'YDS', 'Y/I', 'TD', 'INT', 'RTG', 'Y/J']),
+CC_COLS = {'passing': ('Pase', ['JJ', 'COMP', 'INTENT.', '%', 'YDS', 'Y/I', 'TD', 'INT', 'RTG', 'Y/J']),
            'rushing': ('Acarreo', ['JJ', 'ACAR', 'YDS', 'PROM', 'TD', 'Y/J']),
            'receiving': ('Recepción', ['JJ', 'REC', 'YDS', 'PROM', 'TD', 'Y/J']),
            'defense': ('Defensiva', ['JJ', 'TACK', 'SOLO', 'AST', 'SACK', 'TFL', 'INT', 'FF'])}
@@ -274,7 +274,40 @@ def attach(P, rows, stars, hist):
         p = find_player(P, '14G', s['Equipo'], s['Numero'], s['Jugador'])
         if p:
             p['star'] = s['Linea']
+            # FBA Stats es la base: la línea de "jugador a seguir" también cuenta como estadística FBA del perfil
+            cats = p['seasons'].setdefault(str(YEAR), {'team': p['team'], 'liga': p['liga'], 'cats': {}})['cats']
+            for cat, d in star_cats(s['Linea']).items():
+                if cat not in cats:
+                    cats[cat] = dict({'Liga': p['liga'], 'Equipo': p['team'], 'Numero': str(p['n']), 'Jugador': p['name'], 'Categoria': cat, 'Lugar': '', 'Temporada': str(YEAR)}, **d)
     return extra
+
+
+def star_cats(line):
+    """'810 yds de pase · 8 TD' -> {'QB': {'YDS': '810', 'TD': '8'}}; igual para tierra, recepción, tackles, sacks e INT."""
+    n = lambda x: x.replace(',', '')
+    out = {}
+    m = re.search(r'([\d,]+) yds de pase · (\d+) TD', line)
+    if m:
+        out['QB'] = {'YDS': n(m.group(1)), 'TD': m.group(2)}
+    m = re.search(r'([\d,]+) yds por tierra · (\d+) TD', line)
+    if m:
+        out['RB'] = {'YDS': n(m.group(1)), 'TD': m.group(2)}
+    m = re.search(r'(\d+) recepciones · ([\d,]+) yds · (\d+) TD', line)
+    if m:
+        out['WR'] = {'REC': m.group(1), 'YDS': n(m.group(2)), 'TD': m.group(3)}
+    m = re.search(r'([\d,]+) yds totales', line)
+    if m:
+        out['YM'] = {'YDS': n(m.group(1))}
+    m = re.search(r'(\d+) tackles', line)
+    if m:
+        out['TK'] = {'TACK': m.group(1)}
+    m = re.search(r'(\d+) sacks?', line)
+    if m:
+        out['SK'] = {'SACK': m.group(1)}
+    m = re.search(r'(\d+) INT', line)
+    if m:
+        out['IN'] = {'INT': m.group(1)}
+    return out
 
 
 # ---------------------------------------------------------------- páginas
@@ -377,15 +410,16 @@ def player_page(p, P):
     cur = p['seasons'].get(str(YEAR))
     body += f'<h2 style="font-size:26px;margin-top:22px">Temporada {YEAR}</h2>'
     if cur and cur['cats']:
-        body += f'<p class="gm-meta">Entre los líderes de {"los 14 Grandes" if T["conf"] == "14 Grandes" else "la Conferencia Nacional"} en estas categorías.</p><div class="st">{stat_cards(cur, "los 14 Grandes" if T["conf"] == "14 Grandes" else "la Conferencia Nacional")}</div>'
+        body += f'<p class="gm-meta">Temporada regular · FBA Stats (Uriel González). Si está entre los primeros lugares, se indica en cada categoría.</p><div class="st">{stat_cards(cur, "los 14 Grandes" if T["conf"] == "14 Grandes" else "la Conferencia Nacional")}</div>'
     if p.get('star'):
         body += f'<div class="card" style="margin-top:8px"><b>Jugador a seguir de {e(T["n"])}:</b> {e(p["star"])}</div>'
     # Cover Cero solo para lo que FBA Stats no trae
     fcats = set(cur['cats']) if cur else set()
     tapado = {'passing': 'QB' in fcats, 'rushing': 'RB' in fcats, 'receiving': 'WR' in fcats, 'defense': bool(fcats & {'TK', 'IN', 'SK'})}
     # columnas que ya muestra FBA Stats; de Cover Cero solo se enseña lo demás (juegos jugados, intentos, promedios...)
-    hide = {'passing': {'YDS', 'TD'} if 'QB' in fcats else set(), 'rushing': {'YDS', 'TD'} if 'RB' in fcats else set(),
-            'receiving': {'YDS', 'REC', 'TD'} if 'WR' in fcats else set(),
+    # también se ocultan los promedios calculados con las yardas de Cover Cero, para no mezclar dos cifras de yardas
+    hide = {'passing': {'YDS', 'TD', 'Y/I', 'RTG', 'Y/J'} if 'QB' in fcats else set(), 'rushing': {'YDS', 'TD', 'PROM', 'Y/J'} if 'RB' in fcats else set(),
+            'receiving': {'YDS', 'REC', 'TD', 'PROM', 'Y/J'} if 'WR' in fcats else set(),
             'defense': {c for f, c in (('TK', 'TACK'), ('SK', 'SACK'), ('IN', 'INT')) if f in fcats}}
     ccall = p.get('cc') or {}
     ccx = {k: v for k, v in ccall.items() if not tapado[k]}
@@ -393,7 +427,7 @@ def player_page(p, P):
         ttl = f'Más estadísticas {YEAR}' if fcats else f'Estadísticas {YEAR}'
         body += f'<h3 style="font-size:20px;margin:18px 0 0">{ttl}</h3><p class="gm-meta">Temporada regular. JJ = juegos jugados.</p><div class="st">{cc_tables(ccall, hide)}</div>'
     if not (cur and cur['cats']) and not p.get('star') and not ccall:
-        body += '<p class="gm-meta">Todavía no aparece entre los líderes estadísticos. Las estadísticas por jugador se publican para los primeros lugares de cada categoría.</p>'
+        body += f'<p class="gm-meta">Sin estadísticas individuales publicadas en {YEAR}.</p>'
     hist = sorted(p['seasons'].items(), reverse=True)
     if ccx and str(YEAR) not in p['seasons']:
         hist = [(str(YEAR), {'liga': p['liga'], 'team': p['team'], 'cats': {}})] + hist

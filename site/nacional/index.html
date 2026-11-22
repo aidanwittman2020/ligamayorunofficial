@@ -649,7 +649,7 @@ function nacInicio(){
   const RR={};GAMES.forEach(x=>{if(!/^\d+$/.test(x.r)||!gFin(x))return;[[x.a,x.as,x.hs],[x.h,x.hs,x.as]].forEach(([k,m,o])=>{const s=RR[k]=RR[k]||{w:0,l:0,pf:0,pa:0};s.pf+=m;s.pa+=o;m>o?s.w++:s.l++})});
   const tk2=k=>{const t=tk(k),s=RR[k];return s?Object.assign({},t,s):t};
   const g=nacHero();let h='<h2 class="vh">Conferencia Nacional ONEFA 2026</h2>';
-  if(g){const fin=gFin(g),lv=gLive(g),A=tk2(g.a),H=tk2(g.h),aw=fin&&g.as>g.hs,hw=fin&&g.hs>g.as;
+  if(g){const fin=gFin(g),lv=gLive(g),A=tk(g.a),H=tk(g.h),aw=fin&&g.as>g.hs,hw=fin&&g.hs>g.as;
     const champ=fin&&g.r==='F'?(aw?A:H):null,runner=champ?(aw?H:A):null;
     if(champ)h+=`<section class="champ2"><span>Campeón Conferencia Nacional 2026</span><div>${nb(champ.k)}<b>${esc(champ.n)}</b></div><p>Vencieron ${Math.max(g.as,g.hs)}-${Math.min(g.as,g.hs)} a ${esc(runner.n)} en la final${g.d?' del '+esc(g.d):''}.</p></section>`;
     const side=(t,home,r,lose)=>`<div class="ht${r?' r':''}${lose?' lose':''}" data-team="${t.k}">${nb(t.k)}<div><small>${home?'Local':'Visitante'}</small><b>${esc(t.n)}</b><small>${t.w}-${t.l} temp. regular · grupo ${esc(t.g)}</small></div></div>`;
