@@ -59,9 +59,7 @@ NTEAMS = {t['k']: t for t in json.loads(re.search(r'let TEAMS=(\[.*?\]),CUT', NA
 NSLUG = {'PAC': 'pumas-acatlan', 'PSA': 'potros-salvajes', 'FRA': 'frailes-ut', 'HAL': 'halcones-uv', 'BUH': 'buhos-guinda', 'TSA': 'toros-salvajes',
          'PAN': 'panteras-siglo-21', 'LQR': 'leones-queretaro', 'TEC': 'tecos-uag', 'ULM': 'lobos-ulm', 'UIW': 'cardinals-uiw', 'ASU': 'red-wolves-asu',
          'UAT': 'correcaminos-uat', 'UCH': 'aguilas-uach', 'ITS': 'potros-itson', 'UAC': 'lobos-uadec', 'UCJ': 'indios-uacj', 'UBC': 'cimarrones-uabc'}
-NNAME = {'PAC': 'Pumas Acatlán', 'PSA': 'Potros Salvajes', 'FRA': 'Frailes UT', 'HAL': 'Halcones UV', 'BUH': 'Búhos Guinda', 'TSA': 'Toros Salvajes',
-         'PAN': 'Panteras Siglo 21', 'LQR': 'Leones Querétaro', 'TEC': 'Tecos UAG', 'ULM': 'Lobos ULM', 'UIW': 'Cardinals UIW', 'ASU': 'Red Wolves ASU',
-         'UAT': 'Correcaminos UAT', 'UCH': 'Águilas UACH', 'ITS': 'Potros ITSON', 'UAC': 'Lobos UAdeC', 'UCJ': 'Indios UACJ', 'UBC': 'Cimarrones UABC'}
+NNAME = G.NFULL
 ROSTERS = json.loads(re.search(r'const ROSTERS=(\{.*?\});', G.MAIN).group(1))
 
 
@@ -302,11 +300,26 @@ def attach_mb(P, mb):
             v.update(MB_FIX.get((p['team'], p['n'], r['cat']), {}))
             p['mb'][r['cat']] = v
             hit += 1
+    # FBA repite el mismo TD en acarreo y recepción cuando el jugador sale en las dos tablas: es el total, sin desglose
+    for p in P:
+        m = p['mb']
+        if 'rushing' in m and 'receiving' in m and m['rushing'].get('TD') is not None and m['rushing'].get('TD') == m['receiving'].get('TD'):
+            m['tdt'] = {'TD': m['rushing']['TD']}
+            m['rushing']['TD'] = None
+            m['receiving']['TD'] = None
     return hit
 
 
-def mb_tables(mb):
+CC_MERGE = {'passing': ('passing', [8]), 'rushing': ('rushing', [5]), 'receiving': ('receiving', [5]), 'tackles': ('defense', [5, 7])}
+
+
+def mb_tables(mb, cc=None):
+    """Tablas de FBA; las columnas que FBA no trae se completan con Cover Cero (marcadas con *)."""
     out = ''
+    used_cc = False
+    if mb.get('tdt'):
+        out += (f'<div class="c"><div class="ct">Touchdowns</div><div class="tbl-box"><table class="cc"><thead><tr><th>TD totales</th></tr></thead><tbody><tr><td>{int(mb["tdt"]["TD"])}</td></tr></tbody></table></div>'
+                '<p class="gm-meta" style="margin:4px 0 0">FBA no separa cuántos fueron por tierra y cuántos por recepción.</p></div>')
     for cat, (lbl, cols) in MB_SHOW.items():
         if cat not in mb:
             continue
@@ -318,8 +331,18 @@ def mb_tables(mb):
             if k == 'PCT':
                 return f'{x * 100:.1f}'
             return f'{x:.1f}' if k in ('PROM', 'YDS/J') else f'{int(x):,}'
-        out += (f'<div class="c"><div class="ct">{lbl}</div><div class="tbl-box"><table class="cc"><thead><tr>' + ''.join(f'<th>{t}</th>' for k, t in cols) +
-                '</tr></thead><tbody><tr>' + ''.join(f'<td>{f(k)}</td>' for k, t in cols) + '</tr></tbody></table></div></div>')
+        ex = []
+        ccat, idx = CC_MERGE.get(cat, (None, []))
+        if cc and ccat in cc:
+            if cat == 'tackles' and 'ints' not in mb:
+                idx = [6] + idx
+            dec = {'%', 'Y/I', 'RTG', 'Y/J', 'PROM'}
+            ex = [(CC_COLS[ccat][1][i] + '*', fmtv(cc[ccat][i], CC_COLS[ccat][1][i] in dec)) for i in idx if i < len(cc[ccat])]
+            used_cc = used_cc or bool(ex)
+        out += (f'<div class="c"><div class="ct">{lbl}</div><div class="tbl-box"><table class="cc"><thead><tr>' + ''.join(f'<th>{t}</th>' for k, t in cols) + ''.join(f'<th>{t}</th>' for t, _ in ex) +
+                '</tr></thead><tbody><tr>' + ''.join(f'<td>{f(k)}</td>' for k, t in cols) + ''.join(f'<td>{v}</td>' for _, v in ex) + '</tr></tbody></table></div></div>')
+    if used_cc:
+        out += '<p class="gm-meta" style="grid-column:1/-1;margin:0">* Dato de Cover Cero (FBA no lo publica).</p>'
     return out
 
 
@@ -436,13 +459,13 @@ def ft(h):
     return f"{int(inch // 12)}'{round(inch % 12)}\""
 
 
-def stat_cards(season, conf):
+def stat_cards(season, conf, tdt=False):
     out = []
     for c, r in sorted(season['cats'].items(), key=lambda x: list(CAT).index(x[0]) if x[0] in CAT else 99):
         if c not in CAT:
             continue
         lbl, cols = CAT[c]
-        vals = ''.join(f'<div><b>{int(float(r[k])):,}</b><span>{t}</span></div>'.replace(',', ',') for k, t in cols if re.match(r'^\d+(\.\d+)?$', r.get(k) or ''))
+        vals = ''.join(f'<div><b>{int(float(r[k])):,}</b><span>{"TD totales" if tdt and k == "TD" and c in ("RB", "WR") else t}</span></div>' for k, t in cols if re.match(r'^\d+(\.\d+)?$', r.get(k) or ''))
         lugar = r.get('Lugar', '')
         rk = f'<div class="rnk">{lugar}º lugar en {lbl.lower()} de {conf}</div>' if lugar.isdigit() else ''
         out.append(f'<div class="c"><div class="ct">{e(lbl)}</div><div class="v">{vals}</div>{rk}</div>')
@@ -486,12 +509,12 @@ def player_page(p, P):
     cur = p['seasons'].get(str(YEAR))
     body += f'<h2 style="font-size:26px;margin-top:22px">Temporada {YEAR}</h2>'
     if cur and cur['cats']:
-        body += f'<p class="gm-meta">Temporada regular · FBA Stats (Uriel González). Si está entre los primeros lugares, se indica en cada categoría.</p><div class="st">{stat_cards(cur, "los 14 Grandes" if T["conf"] == "14 Grandes" else "la Conferencia Nacional")}</div>'
+        body += f'<p class="gm-meta">Temporada regular · FBA Stats (Uriel González). Si está entre los primeros lugares, se indica en cada categoría.</p><div class="st">{stat_cards(cur, "los 14 Grandes" if T["conf"] == "14 Grandes" else "la Conferencia Nacional", bool((p.get("mb") or {}).get("tdt")))}</div>'
     if p.get('star'):
         body += f'<div class="card" style="margin-top:8px"><b>Líder de {e(T["n"])}:</b> {e(p["star"])}</div>'
     mb = p.get('mb') or {}
     if mb:
-        body += f'<h3 style="font-size:20px;margin:18px 0 0">Estadísticas completas {YEAR}</h3><p class="gm-meta">Temporada regular · FBA Stats. JJ = juegos jugados.</p><div class="st">{mb_tables(mb)}</div>'
+        body += f'<h3 style="font-size:20px;margin:18px 0 0">Estadísticas completas {YEAR}</h3><p class="gm-meta">Temporada regular · FBA Stats. JJ = juegos jugados.</p><div class="st">{mb_tables(mb, p.get("cc"))}</div>'
     # Cover Cero solo para lo que FBA Stats no trae
     fcats = set(cur['cats']) if cur else set()
     tapado = {'passing': 'QB' in fcats or 'passing' in mb, 'rushing': 'RB' in fcats or 'rushing' in mb, 'receiving': 'WR' in fcats or 'receiving' in mb,
@@ -500,11 +523,15 @@ def player_page(p, P):
     hide = {'passing': {'YDS', 'TD', 'Y/I', 'RTG', 'Y/J'} if 'QB' in fcats else set(), 'rushing': {'YDS', 'TD', 'PROM', 'Y/J'} if 'RB' in fcats else set(),
             'receiving': {'YDS', 'REC', 'TD', 'PROM', 'Y/J'} if 'WR' in fcats else set(),
             'defense': {c for f, c in (('TK', 'TACK'), ('SK', 'SACK'), ('IN', 'INT')) if f in fcats}}
+    if mb:
+        # juegos jugados: solo los de FBA, para no mostrar dos cifras distintas
+        for k in hide:
+            hide[k] = set(hide[k]) | {'JJ'}
     if 'tackles' in mb:
         hide['defense'] |= {'TACK', 'SACK', 'JJ'}
     if 'ints' in mb:
         hide['defense'] |= {'INT', 'JJ'}
-    ccall = {k: v for k, v in (p.get('cc') or {}).items() if not (k in ('passing', 'rushing', 'receiving') and k in mb)}
+    ccall = {k: v for k, v in (p.get('cc') or {}).items() if not (k in ('passing', 'rushing', 'receiving') and k in mb) and not (k == 'defense' and 'tackles' in mb)}
     if 'defense' in ccall and not [i for i in CC_SHOW['defense'] if CC_COLS['defense'][1][i] not in hide['defense'] and CC_COLS['defense'][1][i] != 'JJ']:
         ccall.pop('defense')
     ccx = {k: v for k, v in ccall.items() if not tapado[k]}
@@ -666,7 +693,7 @@ def main():
     teams.sort(key=lambda T: (T['conf'] != '14 Grandes', slug(T['n'])))
     path, h = index_page(P, teams)
     out.append((path, G.write(path, h)))
-    out += EX.pages(P, sys.modules[__name__])
+    out += EX.pages(P, sys.modules[__name__], local)
     # limpiar perfiles que ya no existen
     keep = {u for u, _ in out}
     root = os.path.join(SITE, 'jugadores')
@@ -694,7 +721,7 @@ def main():
     if not os.path.exists(jp) or open(jp, encoding='utf-8').read() != js:
         open(jp, 'w', encoding='utf-8').write(js)
     nt = patch_team_pages(P)
-    print('líderes por equipo (FBA):', sum(len(v) for v in L.values()), '· portada:', EX.patch_home(L, LES), '· fichas:', EX.patch_team_stars(L), '· lesiones:', len(LES))
+    print('líderes por equipo (FBA):', sum(len(v) for v in L.values()), '· portada:', EX.patch_home(L, LES), '· fichas:', EX.patch_team_stars(L), '· partidos:', EX.patch_game_pages(L), '· lesiones:', len(LES))
     # sitemap
     sp = os.path.join(SITE, 'sitemap.xml')
     sm = open(sp, encoding='utf-8').read()

@@ -20,6 +20,11 @@ e = html.escape
 
 # ---------------------------------------------------------------- datos base del sitio
 MAIN = open(os.path.join(SITE, 'index.html'), encoding='utf-8').read()
+# Nombres completos de la Nacional (para no confundir Potros ITSON / Potros Salvajes, Lobos ULM / Lobos UAdeC, etc.)
+NFULL = {'PAC': 'Pumas Acatlán', 'PSA': 'Potros Salvajes UAEMéx', 'FRA': 'Frailes Tepeyac', 'HAL': 'Halcones UV', 'BUH': 'Búhos Guinda IPN',
+         'TSA': 'Toros Salvajes Chapingo', 'PAN': 'Panteras Siglo 21', 'LQR': 'Leones Anáhuac Querétaro', 'TEC': 'Tecos UAG', 'ULM': 'Lobos ULM',
+         'UIW': 'Cardinals UIW', 'ASU': 'Red Wolves ASU', 'UAT': 'Correcaminos UAT', 'UCH': 'Águilas UACH', 'ITS': 'Potros ITSON', 'UAC': 'Lobos UAdeC',
+         'UCJ': 'Indios UACJ', 'UBC': 'Cimarrones UABC'}
 TEAMS = {k: {'n': n, 'f': f, 'g': g} for k, n, f, g in re.findall(r"(\w{3}):\{n:'([^']*)',f:'([^']*)',g:'([^']*)'\}", MAIN)}
 SHORT = dict(re.findall(r"(\w{3}):'([^']*)'", re.search(r'const SHORT=\{(.*?)\};', MAIN).group(1)))
 SLUG = json.loads(re.search(r'const SLUG=(\{.*?\});', MAIN).group(1))
@@ -243,7 +248,7 @@ def load(local):
             pts = 6 if k.startswith('td') else 3 if k == 'fg' else 2 if k == 'safety' else 0
             pts += (1 if x == 'pat bueno' else 2 if x == '2 pts bueno' else 0) if k.startswith('td') else 0
             key = (av(r, 'semana').upper(), av(r, 'visitante').upper(), av(r, 'local').upper())
-            PL.setdefault(key, []).append({'q': q, 't': t, 'k': k, 'j': av(r, 'jugador'), 'p': av(r, 'pase de'), 'y': av(r, 'yardas'), 'x': x, 'pts': pts})
+            PL.setdefault(key, []).append({'q': q, 't': t, 'k': k, 'j': ' '.join(av(r, 'jugador').split()) or 'Sin nombre en la crónica', 'p': ' '.join(av(r, 'pase de').split()), 'y': av(r, 'yardas'), 'x': x, 'pts': pts})
     except Exception:
         pass
     return G, PL
@@ -330,6 +335,24 @@ if(st==="en vivo"||st==="final"){el.innerHTML=a+'<span class="d">-</span>'+h;s.t
 go();setInterval(go,60000)})();</script>'''
 
 
+POLL_JS = """<style>.poll{display:grid;gap:8px}.poll-q{font-weight:800;font-size:12px;letter-spacing:.06em;text-transform:uppercase;color:var(--muted)}
+.poll-b{display:grid;grid-template-columns:1fr 1fr;gap:8px}.poll-b button{font:inherit;font-weight:700;font-size:14px;border:1px solid var(--line);background:var(--bg);color:var(--ink);border-radius:2px;min-height:44px;cursor:pointer}
+.poll-r{display:flex;justify-content:space-between;font-size:14px}.poll-bar{display:flex;height:8px;border-radius:2px;overflow:hidden;background:var(--line)}.poll-bar i:first-child{background:#3DBE73}.poll-bar i:last-child{background:#8A939B}.poll-n{font-size:13px;color:var(--muted)}</style>
+<script>(function(){const POST='https://docs.google.com/forms/d/1kA7h-L9z0Lgt-Fkn5NOM3oef0m5Hq4NjxcTR78WUbmk/formResponse',E=['entry.276666447','entry.1627804977'],
+CSV='https://docs.google.com/spreadsheets/d/e/2PACX-1vQNVclYf7g5WHDSejO-E_1xVXBF-KC__RWAbeSLafpfFK-5fxjCE2JegKDDBVnqalEEV97cBnF1PMzU/pub?gid=931332467&single=true&output=csv';
+let V={},MY={};try{MY=JSON.parse(localStorage.getItem('lmu-votes')||'{}')}catch(e){}
+const esc=x=>String(x??'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+function draw(){document.querySelectorAll('[data-poll]').forEach(el=>{const id=el.dataset.poll,a=el.dataset.a,h=el.dataset.h,na=el.dataset.na,nh=el.dataset.nh,v=V[id]||{},my=MY[id];
+ if(!my){el.innerHTML=`<span class="poll-q">¿Quién crees que gana?</span><div class="poll-b"><button type="button" data-vote="${a}">${esc(na)}</button><button type="button" data-vote="${h}">${esc(nh)}</button></div><span class="poll-n">Vota para ver qué piensa la afición</span>`;return}
+ const x=v[a]||0,y=v[h]||0,T=x+y||1,pa=Math.round(x/T*100);
+ el.innerHTML=`<span class="poll-q">Así va la afición</span><div class="poll-r"><span>${esc(na)} <b>${pa}%</b></span><span><b>${100-pa}%</b> ${esc(nh)}</span></div><div class="poll-bar"><i style="width:${pa}%"></i><i style="width:${100-pa}%"></i></div><span class="poll-n">Tu voto: ${esc(my===a?na:nh)}</span>`})}
+document.addEventListener('click',e=>{const b=e.target.closest('[data-vote]');if(!b)return;const p=b.closest('[data-poll]'),id=p.dataset.poll,k=b.dataset.vote;if(MY[id])return;MY[id]=k;
+ try{localStorage.setItem('lmu-votes',JSON.stringify(MY))}catch(_){}(V[id]=V[id]||{})[k]=(V[id][k]||0)+1;draw();
+ try{fetch(POST,{method:'POST',mode:'no-cors',body:new URLSearchParams({[E[0]]:id,[E[1]]:k})})}catch(_){}});
+fetch(CSV+'&t='+Date.now(),{cache:'no-store'}).then(r=>r.ok?r.text():'').then(t=>{t.split(/\\r?\\n/).slice(1).forEach(l=>{const c=l.split(',');const id=(c[0]||'').trim(),k=(c[1]||'').trim();if(id&&k)(V[id]=V[id]||{})[k]=+c[2]||0});
+ Object.keys(MY).forEach(id=>{const k=MY[id];if(k&&!(V[id]&&V[id][k]))(V[id]=V[id]||{})[k]=1});draw()}).catch(()=>{});draw()})();</script>"""
+
+
 def cal_links(g, A, H, stadium, city, ld_date):
     """Botones para guardar el partido en el calendario (Google y archivo .ics para iPhone/Outlook)."""
     if not ld_date or not g['t']:
@@ -349,9 +372,13 @@ def cal_links(g, A, H, stadium, city, ld_date):
     ics = '\r\n'.join(['BEGIN:VCALENDAR', 'VERSION:2.0', 'PRODID:-//ligamayorunofficial.com//ES', 'BEGIN:VEVENT',
                         f'UID:{g["w"]}-{g["a"]}-{g["h"]}-{YEAR}@ligamayorunofficial.com', f'DTSTAMP:{f(st)}', f'DTSTART:{f(st)}', f'DTEND:{f(en)}',
                         'SUMMARY:' + esc(ttl), 'LOCATION:' + esc(loc), 'DESCRIPTION:' + esc(det), 'URL:' + url, 'END:VEVENT', 'END:VCALENDAR'])
-    fn = f"{SLUG[g['a']]}-vs-{SLUG[g['h']]}.ics"
+    # archivo .ics real (Safari de iPhone no abre bien los enlaces data:)
+    fp = os.path.join(SITE, game_path(g).strip('/'), 'partido.ics')
+    os.makedirs(os.path.dirname(fp), exist_ok=True)
+    if not os.path.exists(fp) or open(fp, encoding='utf-8', newline='').read() != ics + '\r\n':
+        open(fp, 'w', encoding='utf-8', newline='').write(ics + '\r\n')
     return (f'<div class="calb"><span>Agregar al calendario:</span><a href="{e(gc)}" target="_blank" rel="noopener">Google Calendar</a>'
-            f'<a href="data:text/calendar;charset=utf-8,{quote(ics)}" download="{fn}">iPhone / Outlook (.ics)</a></div>')
+            f'<a href="{game_path(g)}partido.ics">iPhone / Outlook (.ics)</a></div>')
 
 
 def preview_html(g, G, S, A, H):
@@ -444,6 +471,11 @@ def game_page(g, G, PL, S):
         facts += f'<div><dt>Estadio</dt><dd>{e(stadium)}</dd></div><div><dt>Sede</dt><dd>{e(city)}</dd></div>'
     body += f'<h2 style="font-size:26px;margin-top:22px">El partido</h2><div class="card"><dl class="facts">{facts}</dl>{cal_links(g, A, H, stadium, city, ld_date) if not g["fin"] and not g["live"] else ""}</div>'
     body += preview_html(g, G, S, A, H)
+    if not g['fin']:
+        # jugadores clave (los llena jugadores.py con FBA y la pestaña Lesiones) y la votación de la afición
+        body += f'<!--KP:{g["a"]}:{g["h"]}--><!--/KP-->'
+        body += (f'<h2 style="font-size:26px;margin-top:22px">¿Quién gana?</h2><div class="card"><div class="poll" data-poll="G-{g["w"]}-{g["a"]}-{g["h"]}" data-a="{g["a"]}" data-h="{g["h"]}" data-open="1"'
+                 f' data-na="{e(A["n"])}" data-nh="{e(H["n"])}"></div></div>' + POLL_JS)
     body += detail_html(g, PL.get((g['w'], g['a'], g['h']), []))
     if g['fin'] and g.get('ya') is not None and g.get('yh') is not None:
         body += (f'<h2 style="font-size:26px;margin-top:22px">Yardas totales</h2><div class="card"><dl class="facts"><div><dt>{e(A["n"])}</dt><dd>{g["ya"]} yardas</dd></div>'
@@ -539,7 +571,7 @@ PRE_A, PRE_B = '<!--PRE-->', '<!--/PRE-->'
 
 
 def tie_sort(rows, games, key_w='w', key_pa='pa'):
-    """Ordena por victorias; empate de dos = juego directo; si no, menos puntos en contra."""
+    """Ordena por victorias; empate de dos = juego directo; con tres o más, menos puntos en contra."""
     rows = sorted(rows, key=lambda r: (-r[key_w], r[key_pa]))
     out, i = [], 0
     while i < len(rows):
@@ -555,7 +587,8 @@ def tie_sort(rows, games, key_w='w', key_pa='pa'):
                     my, ot = (sa, sh) if k == a else (sh, sa)
                     n += 1 if my > ot else -1
             return n
-        out += sorted(tie, key=lambda r: (-h2h(r['k']), r[key_pa]))
+        # igual que la portada: con 2 empatados manda el juego directo; con 3 o más, menos puntos en contra
+        out += sorted(tie, key=lambda r: (-h2h(r['k']), r[key_pa])) if len(tie) == 2 else sorted(tie, key=lambda r: r[key_pa])
         i = j
     return out
 
@@ -614,6 +647,17 @@ def _fnum(x):
         return float(x) if '.' in x else int(x)
     except ValueError:
         return None
+
+
+def refresh_raw(G):
+    """Copia de los partidos (incluye playoffs) dentro de la portada, para dibujarla al instante sin esperar a la hoja."""
+    fp = os.path.join(SITE, 'index.html')
+    M = open(fp, encoding='utf-8').read()
+    cl = lambda x: str(x if x is not None else '').replace("'", "").replace('|', ' ').replace('\\', '')
+    raw = ','.join("'" + '|'.join(cl(x) for x in (g['w'], g['d'], g['t'], g['a'], g['as'] if g['fin'] else '', g['hs'] if g['fin'] else '', g['h'])) + "'" for g in G)
+    M2 = re.sub(r"const RAW=\[.*?\];", lambda _: f"const RAW=[\n{raw}];", M, count=1, flags=re.S)
+    if M2 != M:
+        open(fp, 'w', encoding='utf-8').write(M2)
 
 
 def refresh_embedded(local):
@@ -684,13 +728,37 @@ def refresh_embedded(local):
                 continue
             if not g('clave'):
                 continue
-            out.append({'g': g('grupo'), 'k': g('clave').upper(), 'n': g('equipo'), 's': g('escuela'), 'w': _fnum(g('g')) or 0, 'l': _fnum(g('p')) or 0, 'pf': _fnum(g('pf')) or 0, 'pa': _fnum(g('pc')) or 0})
+            out.append({'g': g('grupo'), 'k': g('clave').upper(), 'n': NFULL.get(g('clave').upper(), g('equipo')), 's': g('escuela'), 'w': _fnum(g('g')) or 0, 'l': _fnum(g('p')) or 0, 'pf': _fnum(g('pf')) or 0, 'pa': _fnum(g('pc')) or 0})
         if len(out) >= 15 and cut:
             N2 = re.sub(r"let TEAMS=\[.*?\],CUT='[^']*'", lambda m: f"let TEAMS={json.dumps(out, ensure_ascii=False)},CUT='{cut}'", N, count=1, flags=re.S)
             if N2 != N:
                 open(np_, 'w', encoding='utf-8').write(N2)
     except Exception as ex:
         print('aviso nacional:', ex)
+
+
+def po_status(k, G):
+    """Estatus de playoffs para la página de equipo (cuando ya hay llave)."""
+    po = [g for g in G if g['w'] in ('CF', 'SF', 'F')]
+    if not po:
+        return ''
+    mine = [g for g in po if k in (g['a'], g['h'])]
+    if not mine:
+        return 'No clasificó a playoffs en 2026. <a href="/#playoffs">Ver la llave →</a>'
+    lbl = {'CF': 'cuartos de final', 'SF': 'semifinales', 'F': 'la final'}
+    for g in sorted(mine, key=lambda x: ['CF', 'SF', 'F'].index(x['w'])):
+        if not g['fin']:
+            o = g['h'] if g['a'] == k else g['a']
+            return f'Juega {lbl[g["w"]]} contra {e(TEAMS[o]["n"])}. <a href="{game_path(g)}">Ver la previa del partido →</a>'
+        won = (g['as'] > g['hs']) == (g['a'] == k)
+        if not won:
+            res = 'Finalista 2026' if g['w'] == 'F' else f'Eliminado en {lbl[g["w"]]}'
+            o = g['h'] if g['a'] == k else g['a']
+            my, ot = (g['as'], g['hs']) if g['a'] == k else (g['hs'], g['as'])
+            return f'<b>{res}</b>: perdió {my}-{ot} contra {e(TEAMS[o]["n"])}. <a href="/#playoffs">Ver la llave →</a>'
+        if g['w'] == 'F':
+            return '<b>Campeón 2026 de los 14 Grandes.</b> <a href="/#playoffs">Ver la llave →</a>'
+    return ''
 
 
 def patch_team_facts(G):
@@ -714,6 +782,9 @@ def patch_team_facts(G):
         new = re.sub(r'(<b id="f-pos">)[^<]*', lambda m: m.group(1) + f"{i + 1}°", new)
         new = re.sub(r'(<b id="f-pf">)[^<]*', lambda m: m.group(1) + str(r['pf']), new)
         new = re.sub(r'(<b id="f-pa">)[^<]*', lambda m: m.group(1) + str(r['pa']), new)
+        st = po_status(r['k'], G)
+        if st:
+            new = re.sub(r'<p class="sub" style="margin-top:8px"(?: id="po-st")?>.*?</p>', lambda m: f'<p class="sub" style="margin-top:8px" id="po-st">{st}</p>', new, count=1, flags=re.S)
         if new != h:
             open(fp, 'w', encoding='utf-8').write(new)
             n += 1
@@ -767,7 +838,7 @@ def pre_nac(local):
         if not k:
             continue
         n = lambda x: int(re.sub(r'[^0-9-]', '', x) or 0)
-        T.append({'k': k, 'g': v(r, tc, 'grupo'), 'n': v(r, tc, 'equipo') or k, 's': v(r, tc, 'escuela'),
+        T.append({'k': k, 'g': v(r, tc, 'grupo'), 'n': NFULL.get(k, v(r, tc, 'equipo') or k), 's': v(r, tc, 'escuela'),
                   'w': n(v(r, tc, 'g')), 'l': n(v(r, tc, 'p')), 'pf': n(v(r, tc, 'pf')), 'pa': n(v(r, tc, 'pc'))})
     if len(T) < 15:
         return None
@@ -782,6 +853,8 @@ def pre_nac(local):
             games.append((a, hh, A, H))
         elif rd in ('CF', 'SF', 'F') and a in name and hh in name:
             po.append((rd, a, hh, A if fin else None, H if fin else None, v(r, jc, 'fecha'), v(r, jc, 'hora')))
+    if any(x[0] == 'F' and x[3] is not None for x in po):
+        cut = 'Tabla final de temporada regular'
     h = [f'<div class="pre"><h2>Tabla de posiciones</h2><p class="sub">Conferencia Nacional · Liga Mayor ONEFA {YEAR}{" · " + e(cut.lower()) if cut else ""}</p>']
     for grp in [x for x in dict.fromkeys(t['g'] for t in T) if x]:
         rows = tie_sort([t for t in T if t['g'] == grp], games)
@@ -821,7 +894,7 @@ def main():
     sitemap(out)
     try:
         print('equipos (récord en HTML):', patch_team_facts(G), '· calendarios:', patch_team_calendars(G))
-        refresh_embedded(local)
+        refresh_raw(G); refresh_embedded(local)
         changed = inject('index.html', pre_main(G))
         nh = pre_nac(local)
         if nh:

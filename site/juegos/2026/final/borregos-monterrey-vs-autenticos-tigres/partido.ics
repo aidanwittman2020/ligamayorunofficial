@@ -1,0 +1,14 @@
+BEGIN:VCALENDAR
+VERSION:2.0
+PRODID:-//ligamayorunofficial.com//ES
+BEGIN:VEVENT
+UID:F-MTY-TIG-2026@ligamayorunofficial.com
+DTSTAMP:20261128T000000Z
+DTSTART:20261128T000000Z
+DTEND:20261128T030000Z
+SUMMARY:Borregos Monterrey vs Auténticos Tigres · Final Liga Mayor
+LOCATION:Estadio Gaspar Mass\, San Nicolás de los Garza\, NL
+DESCRIPTION:https://ligamayorunofficial.com/juegos/2026/final/borregos-monterrey-vs-autenticos-tigres/\nTransmisión: Canal 53 UANL y YouTube UANL
+URL:https://ligamayorunofficial.com/juegos/2026/final/borregos-monterrey-vs-autenticos-tigres/
+END:VEVENT
+END:VCALENDAR

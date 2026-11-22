@@ -55,12 +55,13 @@ def line(p, role):
     if role == 'pase':
         v = m['passing']
         return f"{n0(v.get('YDS'))} yds de pase · {n0(v.get('TD'))} TD"
+    tdt = f" · {n0(m['tdt']['TD'])} TD totales" if m.get('tdt') else ''
     if role == 'tierra':
         v = m['rushing']
-        return f"{n0(v.get('YDS'))} yds por tierra · {n0(v.get('TD'))} TD"
+        return f"{n0(v.get('YDS'))} yds por tierra" + (f" · {n0(v.get('TD'))} TD" if v.get('TD') is not None else tdt)
     if role == 'aire':
         v = m['receiving']
-        return (f"{n0(v.get('REC'))} recepciones · " if v.get('REC') else '') + f"{n0(v.get('YDS'))} yds · {n0(v.get('TD'))} TD"
+        return (f"{n0(v.get('REC'))} recepciones · " if v.get('REC') else '') + f"{n0(v.get('YDS'))} yds" + (f" · {n0(v.get('TD'))} TD" if v.get('TD') is not None else tdt)
     v = m.get('tackles') or {}
     s = f"{n0(v.get('TAC'))} tackles" if v.get('TAC') else ''
     if v.get('SACKS'):
@@ -137,6 +138,33 @@ def patch_home(L, LES):
         open(fp, 'w', encoding='utf-8').write(M2)
         return 1
     return 0
+
+
+def patch_game_pages(L):
+    """Jugadores clave (líderes FBA + estatus de lesión) en la página de los partidos por jugarse."""
+    n = 0
+    root = os.path.join(SITE, 'juegos', str(YEAR))
+    for d, _, files in os.walk(root):
+        if 'index.html' not in files:
+            continue
+        fp = os.path.join(d, 'index.html')
+        h = open(fp, encoding='utf-8').read()
+        m = re.search(r'<!--KP:([A-Z]+):([A-Z]+)-->', h)
+        if not m:
+            continue
+        a, hm = m.group(1), m.group(2)
+        by = lambda k, r: next((x for x in L.get(k, []) if x['role'] == r), None)
+        cell = lambda x: (f'<a href="{x["p"]["url"]}">{e(x["p"]["name"])}</a>{badge(x["p"].get("les"))}<small>#{x["p"]["n"]} · {e(x["line"])}</small>' if x else '<small>—</small>')
+        rows = ''.join(f'<div class="kpg-r"><div>{cell(by(a, r))}</div><span>{LBL[r]}</span><div>{cell(by(hm, r))}</div></div>' for r in ('pase', 'tierra', 'aire', 'defensa'))
+        les = [x['p'] for k in (a, hm) for x in L.get(k, []) if x['p'].get('les')]
+        note = ''.join(f'<p class="sub" style="margin:8px 0 0"><span class="inj">{e(p["les"][0])}</span> {e(p["name"])}: {e(p["les"][1])}</p>' for p in les)
+        blk = (f'<h2 style="font-size:26px;margin-top:22px">Jugadores clave</h2><div class="card kpg"><div class="kpg-r kpg-h"><b>{e(G.TEAMS[a]["n"])}</b><span></span><b>{e(G.TEAMS[hm]["n"])}</b></div>{rows}{note}</div>'
+               '<p class="note">Líderes de cada equipo en temporada regular según FBA Stats.</p>')
+        h2 = re.sub(r'<!--KP:[A-Z]+:[A-Z]+-->.*?<!--/KP-->', lambda _: m.group(0) + blk + '<!--/KP-->', h, count=1, flags=re.S)
+        if h2 != h:
+            open(fp, 'w', encoding='utf-8').write(h2)
+            n += 1
+    return n
 
 
 STAR_RX = re.compile(r'(<div class="stars" id="stars" data-k="([A-Z]+)">)(?:<div class="star">.*?</div></div></div>)*', re.S)
@@ -376,7 +404,7 @@ def y2027_page(J):
 
 
 SKEYS = {'passing': ['JJ', 'COMP', 'INT', 'PCT', 'YDS', 'TD', 'INTC'], 'rushing': ['JJ', 'ACA', 'YDS', 'PROM', 'TD'], 'receiving': ['JJ', 'REC', 'YDS', 'PROM', 'TD'],
-         'tackles': ['JJ', 'TAC', 'SACKS', 'FR'], 'ints': ['INT', 'YDS'], 'kickers': ['PAT', 'PTS', 'FG']}
+         'tackles': ['JJ', 'TAC', 'SACKS', 'FR'], 'ints': ['INT', 'YDS'], 'kickers': ['PAT', 'PTS', 'FG'], 'tdt': ['TD']}
 
 
 def stats_json(P, J):
@@ -400,6 +428,7 @@ const ROWS=[['Físico',[['Edad',p=>p[5],0],['Estatura (m)',p=>p[6],0],['Peso (kg
 ['Tierra',[['Yardas','rushing',2],['Acarreos','rushing',1],['Promedio','rushing',3,v=>v.toFixed(1)],['TD','rushing',4]]],
 ['Recepción',[['Yardas','receiving',2],['Recepciones','receiving',1],['Promedio','receiving',3,v=>v.toFixed(1)],['TD','receiving',4]]],
 ['Defensa',[['Tackles','tackles',1],['Sacks','tackles',2],['Balones recuperados','tackles',3],['Intercepciones','ints',0]]],
+['Touchdowns',[['TD totales (tierra + recepción)','tdt',0]]],
 ['Pateo',[['Puntos','kickers',1],['PAT','kickers',0],['Goles de campo','kickers',2]]]];
 let D=null;const sel=[null,null];
 function get(p,r){if(!p)return null;if(typeof r[1]==='function')return r[1](p);const c=p[9][r[1]];return c?c[r[2]]:null}
@@ -421,25 +450,119 @@ box(0);box(1);
 </script>'''
 
 
-def compare_page(J):
+def surname(n):
+    t = n.split()
+    return t[-2] if len(t) >= 3 else t[-1]
+
+
+def suggestions(P, local):
+    """Comparaciones de un clic: líderes de los dos equipos del próximo partido importante (o los dos mejores de la liga)."""
+    try:
+        Gm, _ = G.load(local)
+    except Exception:
+        Gm = []
+    nxt = next((g for w in ('F', 'SF', 'CF') for g in Gm if g['w'] == w and not g['fin']), None)
+    L = team_leaders(P)
+    pairs = []
+    for r, lbl in (('pase', 'QB'), ('tierra', 'Corredores'), ('aire', 'Receptores'), ('defensa', 'Defensa')):
+        if nxt:
+            a = next((x['p'] for x in L.get(nxt['a'], []) if x['role'] == r), None)
+            b = next((x['p'] for x in L.get(nxt['h'], []) if x['role'] == r), None)
+        else:
+            a = b = None
+        if a and b:
+            pairs.append((lbl, a, b))
+    if not pairs:
+        return ''
+    ttl = 'Rumbo a la final' if nxt and nxt['w'] == 'F' else 'Para el próximo partido'
+    return ('<div class="sugg"><span>' + ttl + ':</span>' + ''.join(
+        f'<a href="?a={a["url"]}&amp;b={b["url"]}">{e(surname(a["name"]))} vs {e(surname(b["name"]))} <small>{lbl}</small></a>' for lbl, a, b in pairs) + '</div>')
+
+
+def compare_page(J, P=None, local=None):
     path = '/jugadores/comparar/'
     nav, ld_b = G.crumbs([('Inicio', '/'), ('Jugadores', '/jugadores/'), ('Comparar', None)])
     body = nav + f'<h1 class="gm-h1">Compara a dos jugadores</h1><p class="gm-meta">Escribe dos nombres de los 14 Grandes o de la Conferencia Nacional y ve sus números {YEAR} lado a lado. De la Nacional solo hay números de los líderes de cada categoría.</p>'
     body += ('<div class="cmpp"><div><input id="q0" class="srch" type="search" placeholder="Jugador 1" aria-label="Jugador 1" autocomplete="off"><div id="r0" class="cres"></div></div>'
-             '<div><input id="q1" class="srch" type="search" placeholder="Jugador 2" aria-label="Jugador 2" autocomplete="off"><div id="r1" class="cres"></div></div></div><div id="cmp"></div>')
+             '<div><input id="q1" class="srch" type="search" placeholder="Jugador 2" aria-label="Jugador 2" autocomplete="off"><div id="r1" class="cres"></div></div></div>' + suggestions(P or [], local) + '<div id="cmp"></div>')
     body += '<p class="note">Estadísticas: Uriel González (FBA Stats). Edad, estatura y peso: rosters publicados por los equipos.</p>' + COMPARE_JS
     return path, G.page(f'Compara jugadores de la Liga Mayor ONEFA {YEAR} | Liga Mayor Unofficial',
                         f'Compara lado a lado las estadísticas y el físico de dos jugadores de los 14 Grandes y la Conferencia Nacional {YEAR}.', path, J.CSS + body, [ld_b])
 
 
-def pages(P, J):
+def _pre(fp):
+    h = open(os.path.join(SITE, fp), encoding='utf-8').read()
+    a, b = h.find('<!--PRE-->'), h.find('<!--/PRE-->')
+    return h[a + 10:b] if a >= 0 and b > a else ''
+
+
+def hub_pages(P, J):
+    """Páginas reales para lo que la gente escribe a mano (/tabla/, /lideres/, /equipos/) y un 404 propio."""
+    out = []
+    # /tabla/
+    pre = _pre('index.html')
+    tbl = re.search(r'<div class="tbl-box">.*?</table></div>', pre, re.S)
+    npre = _pre('nacional/index.html')
+    ntbl = re.findall(r'<h4 class="br-round">[^<]*</h4><div class="tbl-box">.*?</table></div>', npre, re.S)
+    sub = re.search(r'<p class="sub">([^<]*)</p>', pre)
+    nav, ld = G.crumbs([('Inicio', '/'), ('Tabla', None)])
+    body = nav + f'<h1 class="gm-h1">Tabla de posiciones Liga Mayor ONEFA {YEAR}</h1>'
+    body += f'<p class="gm-meta">{sub.group(1) if sub else ""}. <a href="/#tabla">Ver la tabla interactiva con racha y playoffs →</a></p>'
+    body += '<h2 style="font-size:26px;margin-top:14px">14 Grandes</h2>' + (tbl.group(0) if tbl else '')
+    if ntbl:
+        body += '<h2 style="font-size:26px;margin-top:22px">Conferencia Nacional</h2>' + ''.join(ntbl) + '<p class="sub"><a href="/nacional/#tabla">Tabla interactiva de la Nacional →</a></p>'
+    out.append(('/tabla/', G.page(f'Tabla de posiciones Liga Mayor ONEFA {YEAR}: 14 Grandes y Conferencia Nacional | Liga Mayor Unofficial',
+                                  f'Tabla de posiciones {YEAR} de la Liga Mayor ONEFA: 14 Grandes y Conferencia Nacional, con récord, puntos a favor y en contra.', '/tabla/', J.CSS + body, [ld])))
+    # /lideres/
+    M = open(os.path.join(SITE, 'index.html'), encoding='utf-8').read()
+    m = re.search(r'let STATS=(\[.*?\]);\n', M, re.S)
+    cut = re.search(r"let STATS_CUTOFF='([^']*)'", M)
+    st = json.loads(m.group(1)) if m else []
+    url = {(p['team'], p['n']): p['url'] for p in P if p['liga'] == '14G'}
+    nav, ld = G.crumbs([('Inicio', '/'), ('Líderes', None)])
+    body = nav + f'<h1 class="gm-h1">Líderes estadísticos Liga Mayor ONEFA {YEAR}</h1><p class="gm-meta">14 Grandes · temporada regular{" · " + e(cut.group(1)) if cut else ""} · FBA Stats. <a href="/#stats">Ver todos los líderes →</a></p><div class="xig2">'
+    for c in st:
+        rows = ''.join(f'<tr><td class="pos num">{i + 1}</td><td class="team">' + (f'<a href="{url[(r[1], r[2])]}">{e(r[0])}</a>' if (r[1], r[2]) in url else e(r[0])) +
+                       f'<small style="display:block;color:var(--muted)">{e(G.TEAMS.get(r[1], {"n": r[1]})["n"])}</small></td>' + ''.join(f'<td class="num">{int(v):,}</td>' for v in r[3:]) + '</tr>' for i, r in enumerate(c['rows'][:5]))
+        body += f'<div><h2 style="font-size:20px;margin:10px 0 6px">{e(c["t"])}</h2><div class="tbl-box"><table class="qs"><thead><tr><th>#</th><th>Jugador</th>' + ''.join(f'<th>{e(x)}</th>' for x in c['cols']) + f'</tr></thead><tbody>{rows}</tbody></table></div></div>'
+    body += '</div><p class="sub" style="margin-top:12px"><a href="/nacional/#stats">Líderes de la Conferencia Nacional →</a> · <a href="/equipo-ideal-' + str(YEAR) + '/">Equipo ideal →</a></p>'
+    out.append(('/lideres/', G.page(f'Líderes estadísticos Liga Mayor ONEFA {YEAR}: pase, tierra, recepción y defensa | Liga Mayor Unofficial',
+                                    f'Los líderes de la Liga Mayor ONEFA {YEAR} en yardas de pase, por tierra, recepción, tackles, sacks e intercepciones.', '/lideres/', J.CSS + body, [ld])))
+    # /equipos/
+    nav, ld = G.crumbs([('Inicio', '/'), ('Equipos', None)])
+    t14 = sorted(G.TEAMS.items(), key=lambda x: x[1]['n'])
+    body = nav + f'<h1 class="gm-h1">Equipos de la Liga Mayor ONEFA {YEAR}</h1><h2 style="font-size:26px;margin-top:14px">14 Grandes</h2><div class="tg">'
+    body += ''.join(f'<a href="/equipos/{G.SLUG[k]}/"><img src="/img/{k}.png" alt="" width="30" height="30">{e(v["n"])}</a>' for k, v in t14) + '</div>'
+    body += '<h2 style="font-size:26px;margin-top:18px">Conferencia Nacional</h2><div class="tg">' + ''.join(
+        f'<a href="/nacional/#equipos"><img src="/img/N_{k}.png" alt="" width="30" height="30">{e(n)}</a>' for k, n in sorted(G.NFULL.items(), key=lambda x: x[1])) + '</div>'
+    out.append(('/equipos/', G.page(f'Equipos de la Liga Mayor ONEFA {YEAR}: 14 Grandes y Conferencia Nacional | Liga Mayor Unofficial',
+                                    f'Todos los equipos de la Liga Mayor ONEFA {YEAR}: calendario, roster y estadísticas de los 14 Grandes y la Conferencia Nacional.', '/equipos/', J.CSS + body, [ld])))
+    # alias que la gente escribe
+    for a, u in ((f'juegos/{YEAR}/semifinal', f'/juegos/{YEAR}/semifinales/'), (f'juegos/{YEAR}/cuartos', f'/juegos/{YEAR}/cuartos-de-final/'),
+                 ('lideres-2026', '/lideres/'), ('playoffs', '/#playoffs'), ('nacional/tabla', '/nacional/#tabla')):
+        fp = os.path.join(SITE, a, 'index.html')
+        os.makedirs(os.path.dirname(fp), exist_ok=True)
+        open(fp, 'w', encoding='utf-8').write(REDIRECT.format(u=u))
+    # 404 propio
+    body = ('<h1 class="gm-h1">No encontramos esa página</h1><p class="gm-meta">Puede que el enlace esté mal escrito o que la página ya no exista.</p>'
+            '<form action="/jugadores/" method="get" style="margin:12px 0"><input class="srch" name="q" type="search" placeholder="Busca un jugador, equipo o sección" aria-label="Buscar"></form>'
+            '<div class="more"><a href="/">Inicio →</a><a href="/tabla/">Tabla de posiciones →</a><a href="/juegos/' + str(YEAR) + '/">Juegos y resultados →</a>'
+            '<a href="/lideres/">Líderes →</a><a href="/equipos/">Equipos →</a><a href="/nacional/">Conferencia Nacional →</a><a href="/jugadores/">Jugadores →</a></div>')
+    h404 = G.page('Página no encontrada | Liga Mayor Unofficial', 'Página no encontrada.', '/404.html', J.CSS + body, []).replace('<head>', '<head><meta name="robots" content="noindex">', 1)
+    open(os.path.join(SITE, '404.html'), 'w', encoding='utf-8').write(h404)
+    return out
+
+
+def pages(P, J, local=None):
     build_xs(P)
     D = load_draft(P)
     out = []
     fp = os.path.join(SITE, 'prospectos-' + str(YEAR), 'nacional', 'index.html')
     os.makedirs(os.path.dirname(fp), exist_ok=True)
     open(fp, 'w', encoding='utf-8').write(REDIRECT.format(u=f'/prospectos-{YEAR}/'))
-    for path, h in (ideal_page(P, J), ideal_page(P, J, 'NAC'), prospects_page(P, J, D), y2027_page(J), compare_page(J)):
+    for path, h in (ideal_page(P, J), ideal_page(P, J, 'NAC'), prospects_page(P, J, D), y2027_page(J), compare_page(J, P, local)):
+        out.append((path, G.write(path, h)))
+    for path, h in hub_pages(P, J):
         out.append((path, G.write(path, h)))
     stats_json(P, J)
     return out

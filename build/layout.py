@@ -8,7 +8,7 @@ import os
 import re
 
 SITE = os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', 'site')
-CSS_V = '10'
+CSS_V = '11'
 LINK = f'<link rel="stylesheet" href="/layout.css?v={CSS_V}" id="lay">'
 
 MENU_14 = [('Inicio', '/#inicio'), ('Tabla', '/#tabla'), ('Juegos', '/#juegos'), ('Playoffs', '/#playoffs'), ('Equipos', '/#equipos'),
@@ -28,6 +28,22 @@ function sync(){const t=typeof tab!=='undefined'?tab:'';document.querySelectorAl
 addEventListener('hashchange',()=>{const h=location.hash.slice(1);if(ok.includes(h)){tab=h;autoTab=false;document.getElementById('sheet')&&(document.getElementById('sheet').hidden=true);render();scrollTo(0,0)}sync()});
 try{const r0=render;render=function(){r0.apply(this,arguments);sync()}}catch(e){}
 sync()})();</script>'''
+
+
+ICONS = {'inicio': '<path d="M4 11l8-7 8 7v9h-5v-6H9v6H4z"/>', 'tabla': '<path d="M4 6h16M4 12h16M4 18h16"/>',
+         'juegos': '<rect x="4" y="5" width="16" height="15" rx="2"/><path d="M4 10h16M9 3v4M15 3v4"/>',
+         'equipos': '<path d="M12 3l7 3v5c0 4.5-3 8-7 10-4-2-7-5.5-7-10V6z"/>', 'stats': '<path d="M5 20V11M12 20V5M19 20v-6"/>',
+         'mas': '<circle cx="5" cy="12" r="1.3"/><circle cx="12" cy="12" r="1.3"/><circle cx="19" cy="12" r="1.3"/>'}
+
+
+def bottom(path):
+    """Barra inferior del celular (la misma de la portada) para las páginas interiores."""
+    nac = path.startswith('nacional/') or '/nacional/' in path
+    base = '/nacional/' if nac else '/'
+    on = 'juegos' if path.startswith('juegos/') else 'equipos' if path.startswith('equipos/') else 'mas'
+    items = [('inicio', 'Inicio'), ('tabla', 'Tabla'), ('juegos', 'Juegos'), ('equipos', 'Equipos'), ('stats', 'Líderes'), ('mas', 'Más')]
+    return ('<nav class="btm" aria-label="Secciones">' + ''.join(
+        f'<a href="{base}#{k}"{" aria-current=\"page\"" if k == on else ""}><svg viewBox="0 0 24 24" aria-hidden="true">{ICONS[k]}</svg>{t}</a>' for k, t in items) + '</nav>')
 
 
 def header(path):
@@ -70,6 +86,9 @@ def main():
                 new = re.sub(r'<header class="top".*?</header>', lambda m: header(rel), new, count=1, flags=re.S)
             new = re.sub(r'<script id="fit-nav">.*?</script>', '', new, flags=re.S)
             new = new.replace('</body>', FIT_JS + '</body>', 1)
+            new = re.sub(r'<nav class="btm".*?</nav>', '', new, flags=re.S)
+            if rel not in ('index.html', 'nacional/index.html') and '</body>' in new:
+                new = new.replace('</body>', bottom(rel) + '</body>', 1)
             if rel == 'nacional/index.html':
                 new = re.sub(r'<script id="lay-nac">.*?</script>', '', new, flags=re.S)
                 new = new.replace('</body>', NAC_JS + '</body>', 1)
