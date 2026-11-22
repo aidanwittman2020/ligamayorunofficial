@@ -204,7 +204,7 @@ def prospects_page(P, J):
     rows = []
     for p, role, rk, cat, col in top.values():
         age, h, w = J.phys(p)
-        if not age or int(age) < 22:
+        if not age or int(age) < 23:
             continue
         lbl = {('passing', 'YDS'): 'en yardas de pase', ('rushing', 'YDS'): 'en yardas por tierra', ('receiving', 'YDS'): 'en yardas por recepción',
                ('tackles', 'TAC'): 'en tackles', ('tackles', 'SACKS'): 'en sacks', ('ints', 'INT'): 'en intercepciones'}[(cat, col)]
@@ -215,15 +215,15 @@ def prospects_page(P, J):
                  f'<td>{e(rk_)}<small style="display:block;color:var(--muted)">{e(ln)}</small></td></tr>' for _, p, age, h, w, rk_, ln in rows)
     path = f'/prospectos-{YEAR}/'
     nav, ld_b = G.crumbs([('Inicio', '/'), (f'Prospectos {YEAR}', None)])
-    body = nav + f'<h1 class="gm-h1">Prospectos {YEAR}: veteranos con números de élite</h1>'
-    body += ('<p class="gm-meta">Jugadores de 22 años o más que están entre los líderes de los 14 Grandes en alguna categoría de FBA Stats. '
-             'Son candidatos naturales a dar el salto al fútbol profesional.</p>')
+    body = nav + f'<h1 class="gm-h1">Prospectos {YEAR} rumbo al draft: veteranos con números de élite</h1>'
+    body += ('<p class="gm-meta">Jugadores de 23 a 25 años (la edad en que la mayoría termina la carrera o la maestría) que están entre los líderes de los 14 Grandes en alguna categoría de FBA Stats. '
+             'Son los candidatos naturales para el draft y el fútbol profesional.</p>')
     body += ('<div class="card" style="margin:8px 0 12px"><b>Ojo:</b> no es una lista oficial ni sabemos en qué año de elegibilidad va cada jugador. '
              'La edad sale de los rosters publicados por los equipos y sirve solo como aproximación.</div>')
     body += f'<div class="tbl-box"><table class="roster"><thead><tr><th>Jugador</th><th>Pos.</th><th>Edad</th><th>Est.</th><th>Peso</th><th>Por qué</th></tr></thead><tbody>{tr}</tbody></table></div>'
     body += '<p class="note">Estadísticas: Uriel González (FBA Stats). Edad, estatura (m) y peso (kg): rosters publicados por los equipos.</p>'
     return path, G.page(f'Prospectos {YEAR} de la Liga Mayor ONEFA: veteranos líderes en estadísticas | Liga Mayor Unofficial',
-                        f'Jugadores de 22 años o más entre los líderes estadísticos de los 14 Grandes {YEAR}: edad, estatura, peso y números.', path, J.CSS + body, [ld_b])
+                        f'Jugadores de 23 a 25 años entre los líderes estadísticos de los 14 Grandes {YEAR}: edad, estatura, peso y números.', path, J.CSS + body, [ld_b])
 
 
 def y2027_page(J):

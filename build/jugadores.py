@@ -566,17 +566,28 @@ def index_page(P, teams):
     idx = [[p['name'], p['T']['n'], p['pos'], p['n'] if p['n'] is not None else '', p['url']] for p in P]
     g = lambda conf: '<div class="tg">' + ''.join(f'<a href="/jugadores/{T["slug"]}/"><img src="{T["img"]}" alt="" width="30" height="30">{e(T["n"])}</a>' for T in teams if T['conf'] == conf) + '</div>'
     body = nav + f'<h1 class="gm-h1">Jugadores de la Liga Mayor {YEAR}</h1><p class="gm-meta">Perfil de {len(P)} jugadores de los 14 Grandes y la Conferencia Nacional: número, posición, edad, estatura, peso y estadísticas.</p>'
-    body += '<p class="gm-meta" style="margin:-4px 0 8px"><a href="/jugadores/comparar/">Compara a dos jugadores →</a></p><input id="q" class="srch" type="search" placeholder="Busca un jugador por nombre, número o posición" aria-label="Buscar jugador"><div id="res" class="pl2"></div>'
+    body += '<p class="gm-meta" style="margin:-4px 0 8px"><a href="/jugadores/comparar/">Compara a dos jugadores →</a></p><input id="q" class="srch" type="search" placeholder="Busca un jugador, equipo o sección (ej. equipo ideal)" aria-label="Buscar jugador"><div id="res" class="pl2"></div>'
     body += '<h2 style="font-size:26px;margin-top:18px">14 Grandes</h2>' + g('14 Grandes')
     body += '<h2 style="font-size:26px;margin-top:18px">Conferencia Nacional</h2>' + g('Conferencia Nacional')
     body += '<p class="note">De la Conferencia Nacional solo hay perfil de los líderes estadísticos y de Águilas UACH, porque los demás equipos no publican roster.</p>'
-    body += ('<script>const J=' + json.dumps(idx, ensure_ascii=False) + ''';
+    PAGES = [['Equipo ideal 2026', 'Los mejores de cada posición', 'equipo ideal mejores all star once titular seleccion todos estrellas', f'/equipo-ideal-{YEAR}/'],
+             ['Prospectos 2026', 'Veteranos rumbo al draft', 'prospectos draft profesional veteranos', f'/prospectos-{YEAR}/'],
+             ['Comparar jugadores', 'Dos jugadores lado a lado', 'comparar comparador versus vs comparacion', '/jugadores/comparar/'],
+             ['Qué cambia en 2027', 'Quién sube y quién baja', '2027 ascenso descenso sube baja proxima temporada', '/2027/'],
+             ['Líderes', 'Líderes estadísticos', 'lideres estadisticas stats yardas touchdowns tackles', '/#stats'],
+             ['Tabla de posiciones', '14 Grandes', 'tabla posiciones standings clasificacion', '/#tabla'],
+             ['Playoffs', 'Llave y simulador', 'playoffs llave final semifinal cuartos postemporada', '/#playoffs'],
+             ['Historia', 'Campeones desde 1978', 'historia campeones finales titulos', '/historia/'],
+             ['Conferencia Nacional', 'Tabla y juegos', 'nacional conferencia nacional ascenso', '/nacional/']]
+    PAGES += [[T['n'], f"Equipo · {T['conf']}", 'equipo roster calendario ' + T['n'], T['url'] if T['conf'] == '14 Grandes' else f"/jugadores/{T['slug']}/"] for T in teams]
+    body += ('<script>const J=' + json.dumps(idx, ensure_ascii=False) + ';const PG=' + json.dumps(PAGES, ensure_ascii=False) + ''';
 const nz=s=>String(s).normalize('NFD').replace(/[\\u0300-\\u036f]/g,'').toLowerCase();
 const q=document.getElementById('q'),res=document.getElementById('res');
 const Q0=new URLSearchParams(location.search);if(Q0.has('q')){q.value=Q0.get('q');setTimeout(()=>q.dispatchEvent(new Event('input')))}if(Q0.has('q')||Q0.has('buscar')){q.focus();q.scrollIntoView({block:'center'})}
 q.addEventListener('input',()=>{const t=nz(q.value.trim());if(t.length<2){res.innerHTML='';return}
 const ws=t.split(/\\s+/);const m=J.filter(j=>{const s=nz(j[0]+' '+j[1]+' '+j[2]+' #'+j[3]);return ws.every(w=>s.includes(w))}).slice(0,30);
-res.innerHTML=m.map(j=>`<a href="${j[4]}"><span class="n">${j[3]}</span><span>${j[0].replace(/</g,'&lt;')}<small>${j[1]}</small></span><small>${j[2]}</small></a>`).join('')||'<p class="gm-meta">Sin resultados.</p>'});</script>''')
+const pg=PG.filter(x=>{const s=nz(x[0]+' '+x[1]+' '+x[2]);return ws.every(w=>s.includes(w))}).slice(0,6);
+res.innerHTML=pg.map(x=>`<a href="${x[3]}" class="pgr"><span class="n">→</span><span>${x[0]}<small>${x[1]}</small></span><small>Sección</small></a>`).join('')+m.map(j=>`<a href="${j[4]}"><span class="n">${j[3]}</span><span>${j[0].replace(/</g,'&lt;')}<small>${j[1]}</small></span><small>${j[2]}</small></a>`).join('')||'<p class="gm-meta">Sin resultados.</p>'});</script>''')
     return '/jugadores/', G.page(f'Jugadores de la Liga Mayor ONEFA {YEAR}: perfiles, estatura, peso y estadísticas | Liga Mayor Unofficial',
                                  f'Busca a cualquier jugador de los 14 Grandes y la Conferencia Nacional {YEAR}: número, posición, edad, estatura, peso y estadísticas.', '/jugadores/', CSS + body, [ld_b])
 

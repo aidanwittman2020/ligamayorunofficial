@@ -8,17 +8,19 @@ import os
 import re
 
 SITE = os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', 'site')
-CSS_V = '7'
+CSS_V = '8'
 LINK = f'<link rel="stylesheet" href="/layout.css?v={CSS_V}" id="lay">'
 
 MENU_14 = [('Inicio', '/#inicio'), ('Tabla', '/#tabla'), ('Juegos', '/#juegos'), ('Playoffs', '/#playoffs'), ('Equipos', '/#equipos'),
-           ('Líderes', '/#stats'), ('Jugadores', '/jugadores/'), ('Historia', '/historia/')]
+           ('Líderes', '/#stats'), ('Jugadores', '/jugadores/'), ('Historia', '/historia/'), ('Más', '/#mas')]
 MENU_NAC = [('Inicio', '/nacional/#inicio'), ('Tabla', '/nacional/#tabla'), ('Juegos', '/nacional/#juegos'), ('Playoffs', '/nacional/#playoffs'), ('Equipos', '/nacional/#equipos'),
-            ('Líderes', '/nacional/#stats'), ('Jugadores', '/jugadores/'), ('Historia', '/historia/')]
+            ('Líderes', '/nacional/#stats'), ('Jugadores', '/jugadores/'), ('Historia', '/historia/'), ('Más', '/nacional/#mas')]
 
 FIT_JS = '''<script id="fit-nav">(function(){const n=document.getElementById('topnav');if(!n)return;
-function fit(){if(innerWidth<769){n.style.gap='';return}n.style.gap='';let g=parseFloat(getComputedStyle(n).columnGap)||28;
-while(n.scrollWidth>n.clientWidth+1&&g>8){g-=2;n.style.gap=g+'px'}}
+const hi=n.querySelector('a[href="/historia/"]');
+function fit(){n.style.gap='';if(hi)hi.style.display='';if(innerWidth<769)return;let g=parseFloat(getComputedStyle(n).columnGap)||28;
+while(n.scrollWidth>n.clientWidth+1&&g>12){g-=2;n.style.gap=g+'px'}
+if(n.scrollWidth>n.clientWidth+1&&hi){hi.style.display='none';n.style.gap='';g=parseFloat(getComputedStyle(n).columnGap)||28;while(n.scrollWidth>n.clientWidth+1&&g>12){g-=2;n.style.gap=g+'px'}}}
 fit();addEventListener('resize',fit);document.fonts&&document.fonts.ready.then(fit)})();</script>'''
 
 NAC_JS = '''<script id="lay-nac">(function(){const ok=['inicio','mas','tabla','juegos','equipos','stats','playoffs','info'];

@@ -608,12 +608,12 @@ nav.tabs .in{grid-template-columns:repeat(6,1fr)}
   .ml-c{grid-template-columns:1fr}
   .home{padding-top:8px}
 }
-</style><link rel="stylesheet" href="/layout.css?v=7" id="lay"></head>
+</style><link rel="stylesheet" href="/layout.css?v=8" id="lay"></head>
 <body>
 
 <header class="top"><div class="in">
-  <h1 class="brand" style="margin:0">Liga Mayor <span>Unofficial</span><span style="position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap"> · Liga Mayor ONEFA 2026, tabla de los 14 Grandes</span></h1><div class="tag" id="upd">Temporada 2026</div>
-  <nav class="topnav" id="topnav" aria-label="Secciones"><a href="/#inicio">Inicio</a><a href="/#tabla">Tabla</a><a href="/#juegos">Juegos</a><a href="/#playoffs">Playoffs</a><a href="/#equipos">Equipos</a><a href="/#stats">Líderes</a><a href="/jugadores/">Jugadores</a><a href="/historia/">Historia</a></nav><div class="confs"><a class="hsrch" href="/jugadores/?buscar" aria-label="Buscar jugador" title="Buscar jugador"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" aria-hidden="true"><circle cx="10.5" cy="10.5" r="6.5"/><path d="M15.5 15.5L21 21"/></svg></a><a class="on" href="/" aria-current="page">14 Grandes</a><a href="/nacional/">Nacional</a></div>
+  <h1 class="brand" style="margin:0"><a href="/#inicio" data-go="inicio" aria-label="Liga Mayor Unofficial: inicio">Liga Mayor <span>Unofficial</span></a><span style="position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap"> · Liga Mayor ONEFA 2026, tabla de los 14 Grandes</span></h1><div class="tag" id="upd">Temporada 2026</div>
+  <nav class="topnav" id="topnav" aria-label="Secciones"><a href="/#inicio">Inicio</a><a href="/#tabla">Tabla</a><a href="/#juegos">Juegos</a><a href="/#playoffs">Playoffs</a><a href="/#equipos">Equipos</a><a href="/#stats">Líderes</a><a href="/jugadores/">Jugadores</a><a href="/historia/">Historia</a><a href="/#mas">Más</a></nav><div class="confs"><a class="hsrch" href="/jugadores/?buscar" aria-label="Buscar jugador" title="Buscar jugador"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" aria-hidden="true"><circle cx="10.5" cy="10.5" r="6.5"/><path d="M15.5 15.5L21 21"/></svg></a><a class="on" href="/" aria-current="page">14 Grandes</a><a href="/nacional/">Nacional</a></div>
 </div></header>
 
 <div class="ticker" aria-label="Marcadores de la semana"><div class="in" id="ticker"></div></div>
@@ -1545,7 +1545,9 @@ loadVotes();setInterval(loadVotes,60000);
 </script>
 <script>if("serviceWorker" in navigator)addEventListener("load",()=>navigator.serviceWorker.register("/sw.js").catch(()=>{}));</script>
 <script id="fit-nav">(function(){const n=document.getElementById('topnav');if(!n)return;
-function fit(){if(innerWidth<769){n.style.gap='';return}n.style.gap='';let g=parseFloat(getComputedStyle(n).columnGap)||28;
-while(n.scrollWidth>n.clientWidth+1&&g>8){g-=2;n.style.gap=g+'px'}}
+const hi=n.querySelector('a[href="/historia/"]');
+function fit(){n.style.gap='';if(hi)hi.style.display='';if(innerWidth<769)return;let g=parseFloat(getComputedStyle(n).columnGap)||28;
+while(n.scrollWidth>n.clientWidth+1&&g>12){g-=2;n.style.gap=g+'px'}
+if(n.scrollWidth>n.clientWidth+1&&hi){hi.style.display='none';n.style.gap='';g=parseFloat(getComputedStyle(n).columnGap)||28;while(n.scrollWidth>n.clientWidth+1&&g>12){g-=2;n.style.gap=g+'px'}}}
 fit();addEventListener('resize',fit);document.fonts&&document.fonts.ready.then(fit)})();</script></body>
 </html>
