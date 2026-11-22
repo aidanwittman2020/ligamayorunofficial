@@ -178,7 +178,7 @@ def crumbs(items):
     return nav, ld
 
 
-def page(title, desc, path, body, ld_list, og_type='website'):
+def page(title, desc, path, body, ld_list, og_type='website', og_img=None):
     lds = ''.join(f'<script type="application/ld+json">{json.dumps(x, ensure_ascii=False)}</script>\n' for x in ld_list)
     return f'''{HEAD_COMMON}<title>{e(title)}</title>
 <meta name="description" content="{e(desc)}">
@@ -189,8 +189,8 @@ def page(title, desc, path, body, ld_list, og_type='website'):
 <link rel="icon" type="image/png" sizes="48x48" href="/icons/favicon-48.png">
 <link rel="apple-touch-icon" href="/icons/apple-touch-icon.png">
 <meta property="og:type" content="{og_type}"><meta property="og:locale" content="es_MX"><meta property="og:site_name" content="Liga Mayor Unofficial">
-<meta property="og:title" content="{e(title)}"><meta property="og:description" content="{e(desc)}"><meta property="og:url" content="{URL}{path}"><meta property="og:image" content="{URL}/og.png">
-<meta name="twitter:card" content="summary_large_image"><meta name="twitter:image" content="{URL}/og.png">
+<meta property="og:title" content="{e(title)}"><meta property="og:description" content="{e(desc)}"><meta property="og:url" content="{URL}{path}"><meta property="og:image" content="{URL}{og_img or '/og.png'}">
+<meta name="twitter:card" content="summary_large_image"><meta name="twitter:image" content="{URL}{og_img or '/og.png'}">
 {lds}{FONTS}{STYLE}
 {EXTRA_CSS}
 <style>@view-transition{{navigation:auto}}::view-transition-old(root),::view-transition-new(root){{animation-duration:.14s}}header.top{{view-transition-name:top}}</style><script type="speculationrules">{{"prerender":[{{"where":{{"and":[{{"href_matches":"/*"}},{{"not":{{"href_matches":"/*.json"}}}}]}},"eagerness":"moderate"}}]}}</script>
@@ -353,6 +353,58 @@ fetch(CSV+'&t='+Date.now(),{cache:'no-store'}).then(r=>r.ok?r.text():'').then(t=
  Object.keys(MY).forEach(id=>{const k=MY[id];if(k&&!(V[id]&&V[id][k]))(V[id]=V[id]||{})[k]=1});draw()}).catch(()=>{});draw()})();</script>"""
 
 
+def og_image(g, A, H, tv):
+    """Imagen para compartir del partido (1200x630): escudos, ronda, fecha y canal o marcador final."""
+    try:
+        from PIL import Image, ImageDraw, ImageFont
+    except Exception:
+        rel = game_path(g) + 'og.png'
+        return rel if os.path.exists(os.path.join(SITE, rel.strip('/'))) else None
+    fp_font = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'fonts', 'Roboto.ttf')
+    def F(sz, wt=800, wd=75):
+        f = ImageFont.truetype(fp_font, sz)
+        try:
+            f.set_variation_by_axes([wt, wd])
+        except Exception:
+            pass
+        return f
+    W, Hh = 1200, 630
+    im = Image.new('RGB', (W, Hh), '#0E1511')
+    d = ImageDraw.Draw(im)
+    d.rectangle([0, Hh - 14, W, Hh], fill='#3DBE73')
+    d.text((60, 46), 'LIGA MAYOR UNOFFICIAL', font=F(30, 800, 100), fill='#3DBE73')
+    lbl = {'CF': 'CUARTOS DE FINAL', 'SF': 'SEMIFINAL', 'F': 'LA FINAL'}.get(g['w'], wk_label(g['w']).upper())
+    d.text((W - 60, 46), f'{lbl} · {YEAR}', font=F(30, 800, 100), fill='#F1F3F2', anchor='ra')
+    for i, k in enumerate((g['a'], g['h'])):
+        x = 230 if i == 0 else W - 230
+        try:
+            b = Image.open(os.path.join(SITE, 'img', f'{k}.png')).convert('RGBA').resize((216, 216), Image.NEAREST)
+            im.paste(b, (x - 108, 140), b)
+        except Exception:
+            pass
+        nm = SHORT.get(k, TEAMS[k]['n']).upper()
+        d.text((x, 384), nm, font=F(46 if len(nm) < 14 else 38), fill='#F1F3F2', anchor='ma')
+    if g['fin']:
+        d.text((W // 2, 200), f"{g['as']}  -  {g['hs']}", font=F(120), fill='#F1F3F2', anchor='ma')
+        win = TEAMS[g['a'] if g['as'] > g['hs'] else g['h']]['n']
+        sub = (f'{win.upper()} CAMPEÓN {YEAR}' if g['w'] == 'F' else 'FINAL') + (f" · {g['det'].upper()}" if g.get('det') else '')
+        d.text((W // 2, 350), sub, font=F(34), fill='#3DBE73', anchor='ma')
+    else:
+        d.text((W // 2, 210), 'VS', font=F(110), fill='#F1F3F2', anchor='ma')
+        d.text((W // 2, 470), (long_date(g['d']) + (f" · {g['t']} h" if g['t'] else '')).upper(), font=F(40), fill='#F1F3F2', anchor='ma')
+        if tv:
+            d.text((W // 2, 528), f'TV: {tv}'.upper(), font=F(32, 600), fill='#9FB3A7', anchor='ma')
+    rel = game_path(g) + 'og.png'
+    out = os.path.join(SITE, rel.strip('/'))
+    import io as _io
+    buf = _io.BytesIO()
+    im.save(buf, 'PNG', optimize=True)
+    data = buf.getvalue()
+    if not os.path.exists(out) or open(out, 'rb').read() != data:
+        open(out, 'wb').write(data)
+    return rel
+
+
 def cal_links(g, A, H, stadium, city, ld_date):
     """Botones para guardar el partido en el calendario (Google y archivo .ics para iPhone/Outlook)."""
     if not ld_date or not g['t']:
@@ -448,6 +500,9 @@ def game_page(g, G, PL, S):
         win = A['n'] if g['as'] > g['hs'] else H['n']
         desc = f"Resultado final: {A['n']} {g['as']}, {H['n']} {g['hs']}. Ganó {win}. {wl} de la Liga Mayor ONEFA {YEAR} (14 Grandes), {long_date(g['d']).lower()} en {stadium or 'casa de ' + H['n']}."
         status = 'Final'
+        if g['w'] == 'F':
+            title = f"{win} campeón {YEAR}: {A['n']} {g['as']}-{g['hs']} {H['n']} · Final Liga Mayor ONEFA"
+            desc = f"{win} es campeón de la Liga Mayor ONEFA {YEAR}. Final: {A['n']} {g['as']}, {H['n']} {g['hs']}" + (f" ({g['det']})" if g.get('det') else '') + '.'
     else:
         title = f"{A['n']} vs {H['n']}: horario y dónde ver · {wl} Liga Mayor ONEFA {YEAR}"
         desc = f"{A['n']} visita a {H['n']} el {long_date(g['d']).lower()}{' a las ' + g['t'] + ' h' if g['t'] else ''}{' en ' + stadium if stadium else ''}. {('Transmisión: ' + tv + '. ') if tv else ''}{wl} de la Liga Mayor ONEFA {YEAR}, 14 Grandes."
@@ -460,6 +515,9 @@ def game_page(g, G, PL, S):
         sc = '<div class="gm-sc" id="gm-sc"><span class="d">VS</span></div>'
     nav, bld = crumbs([('Inicio', '/'), ('14 Grandes', '/#tabla'), (crumb_wl(g['w']), f'/juegos/{YEAR}/{wk_slug(g["w"])}/'), (f"{SHORT.get(g['a'])} vs {SHORT.get(g['h'])}", path)])
     body = nav
+    if g['w'] == 'F' and g['fin']:
+        wk = g['a'] if g['as'] > g['hs'] else g['h']
+        body += f'<div class="champb"><span>Campeón {YEAR} · Liga Mayor ONEFA</span><b>{e(TEAMS[wk]["n"])}</b></div>'
     body += f'<h1 class="gm-h1">{e(A["n"])} vs {e(H["n"])}</h1>'
     body += f'<p class="gm-meta">Liga Mayor ONEFA {YEAR} · 14 Grandes · {e(wl)}{(" · " + e(g["det"])) if g["det"] and not g["live"] else ""}</p>'
     body += f'<div class="gm-top">{team(g["a"], A, aL, "Visitante")}{sc}{team(g["h"], H, hL, "Local")}<div class="gm-st{" live" if g["live"] else ""}" id="gm-st">{e(status)}</div></div>'
@@ -496,7 +554,10 @@ def game_page(g, G, PL, S):
         ev['startDate'] = ld_date
     if stadium:
         ev['location'] = {'@type': 'Place', 'name': stadium, 'address': {'@type': 'PostalAddress', 'addressLocality': city, 'addressCountry': 'MX'}}
-    return path, page(title, desc, path, body, [ev, bld], 'article')
+    og = og_image(g, A, H, tv) if g['w'] in ('CF', 'SF', 'F') else None
+    if og:
+        ev['image'] = [URL + og]
+    return path, page(title, desc, path, body, [ev, bld], 'article', og)
 
 
 def week_card(g, S):

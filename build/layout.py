@@ -21,7 +21,8 @@ const hi=n.querySelector('a[href="/historia/"]');
 function fit(){n.style.gap='';if(hi)hi.style.display='';if(innerWidth<769)return;let g=parseFloat(getComputedStyle(n).columnGap)||28;
 while(n.scrollWidth>n.clientWidth+1&&g>12){g-=2;n.style.gap=g+'px'}
 if(n.scrollWidth>n.clientWidth+1&&hi){hi.style.display='none';n.style.gap='';g=parseFloat(getComputedStyle(n).columnGap)||28;while(n.scrollWidth>n.clientWidth+1&&g>12){g-=2;n.style.gap=g+'px'}}}
-fit();addEventListener('resize',fit);document.fonts&&document.fonts.ready.then(fit)})();</script>'''
+fit();addEventListener('resize',fit);document.fonts&&document.fonts.ready.then(fit)})();
+['pageswap','pagereveal'].forEach(t=>addEventListener(t,e=>{const v=e.viewTransition;if(v){v.ready.catch(()=>{});v.finished.catch(()=>{});v.updateCallbackDone&&v.updateCallbackDone.catch(()=>{})}}));</script>'''
 
 NAC_JS = '''<script id="lay-nac">(function(){const ok=['inicio','mas','tabla','juegos','equipos','stats','playoffs','info'];
 function sync(){const t=typeof tab!=='undefined'?tab:'';document.querySelectorAll('#topnav a').forEach(a=>{const h=a.getAttribute('href');a.classList.toggle('on',h==='/nacional/#'+t)})}
@@ -81,6 +82,12 @@ def main():
             rel = os.path.relpath(fp, SITE).replace(os.sep, '/')
             h = open(fp, encoding='utf-8').read()
             new = re.sub(r'<link rel="stylesheet" href="/layout\.css[^"]*" id="lay">', '', h)
+            # rendimiento: fuentes sin cursivas que no se usan, preconnect a fonts.gstatic.com y Analytics después de cargar
+            new = new.replace('family=Barlow+Condensed:ital,wght@0,500;0,600;0,700;0,800;1,700;1,800', 'family=Barlow+Condensed:wght@500;600;700;800')
+            if 'fonts.googleapis.com' in new and 'href="https://fonts.gstatic.com"' not in new:
+                new = new.replace('<link rel="preconnect" href="https://fonts.googleapis.com">', '<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>', 1)
+            new = new.replace('<script async src="https://www.googletagmanager.com/gtag/js?id=G-VFD5Y2D5PC"></script>',
+                              '<script>addEventListener(\'load\',()=>setTimeout(()=>{const s=document.createElement(\'script\');s.async=true;s.src=\'https://www.googletagmanager.com/gtag/js?id=G-VFD5Y2D5PC\';document.head.appendChild(s)},1200))</script>')
             new = new.replace('</head>', LINK + '</head>', 1)
             if rel != 'index.html':
                 new = re.sub(r'<header class="top".*?</header>', lambda m: header(rel), new, count=1, flags=re.S)

@@ -383,7 +383,7 @@ REDIRECT = '<!doctype html><meta charset="utf-8"><meta name="robots" content="no
 def y2027_page(J):
     path = '/2027/'
     nav, ld_b = G.crumbs([('Inicio', '/'), ('Qué cambia en 2027', None)])
-    t14 = sorted([v['n'] for k, v in G.TEAMS.items() if k != 'CET'] + ['Leones Anáhuac Querétaro'])
+    t14 = sorted([v['n'] for k, v in G.TEAMS.items() if k != 'CET'] + ['Leones Anáhuac Querétaro'], key=lambda x: G.norm(x))
     body = nav + '<h1 class="gm-h1">Qué cambia en la Liga Mayor 2027</h1>'
     body += '<p class="gm-meta">Ascenso y descenso entre los 14 Grandes y la Conferencia Nacional al cerrar la temporada 2026.</p>'
     body += ('<div class="xig2"><div class="card"><span class="xp">Sube</span><h3 style="margin:4px 0">Leones Anáhuac Querétaro</h3>'
@@ -411,7 +411,29 @@ def stats_json(P, J):
     out = []
     for p in P:
         age, h, w = J.phys(p)
-        mb = {c: [p['xs'][c].get(k) for k in ks] for c, ks in SKEYS.items() if c in (p.get('xs') or {})}
+        mb = {c: [p['xs'][c].get(k) for k in ks] for c, ks in SKEYS.items() if c in (p.get('xs') or {}) and c != 'tdt'}
+        # lo que FBA no trae se completa con Cover Cero (mismas columnas)
+        cc = p.get('cc') or {}
+        pick_ = lambda v, idx: [None if i is None or i >= len(v) else v[i] for i in idx]
+        if 'passing' in cc and 'passing' not in mb:
+            v = pick_(cc['passing'], [0, 1, 2, 3, 4, 6, 7])
+            v[3] = v[3] / 100 if v[3] is not None else None
+            mb['passing'] = v
+        for c in ('rushing', 'receiving'):
+            if c in cc and c not in mb:
+                mb[c] = pick_(cc[c], [0, 1, 2, 3, 4])
+        if 'defense' in cc:
+            if 'tackles' not in mb:
+                mb['tackles'] = pick_(cc['defense'], [0, 1, 4, None])
+            if 'ints' not in mb and cc['defense'][6]:
+                mb['ints'] = [cc['defense'][6], None]
+        # TD anotados (tierra + recepción); si FBA solo da el total, se usa ese
+        xt = (p.get('xs') or {}).get('tdt')
+        tr = (mb.get('rushing') or [None] * 5)[4]
+        tc = (mb.get('receiving') or [None] * 5)[4]
+        tot = xt['TD'] if xt else ((tr or 0) + (tc or 0) if (tr is not None or tc is not None) else None)
+        if tot is not None:
+            mb['tdt'] = [tot]
         if not (mb or age or h or w):
             continue
         out.append([p['name'], p['team'], p['T']['n'], p['pos'], p['n'] if p['n'] is not None else '', int(age) if age else None, float(h) if h else None, int(w) if w else None, p['url'], mb, p['liga']])
@@ -423,22 +445,23 @@ def stats_json(P, J):
 
 COMPARE_JS = r'''<script>
 const nz=s=>String(s).normalize('NFD').replace(/[̀-ͯ]/g,'').toLowerCase();const E=x=>String(x??'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
-const ROWS=[['Físico',[['Edad',p=>p[5],0],['Estatura (m)',p=>p[6],0],['Peso (kg)',p=>p[7],0]]],
+const ROWS=[['Físico',[['Edad',p=>p[5],0],['Estatura (m)',p=>p[6]==null?null:Number(p[6]).toFixed(2),0],['Peso (kg)',p=>p[7],0]]],
 ['Pase',[['Yardas','passing',4],['TD','passing',5],['Completos','passing',1],['Intentos','passing',2],['% completos','passing',3,v=>(v*100).toFixed(1)],['Intercepciones','passing',6,null,1]]],
 ['Tierra',[['Yardas','rushing',2],['Acarreos','rushing',1],['Promedio','rushing',3,v=>v.toFixed(1)],['TD','rushing',4]]],
 ['Recepción',[['Yardas','receiving',2],['Recepciones','receiving',1],['Promedio','receiving',3,v=>v.toFixed(1)],['TD','receiving',4]]],
 ['Defensa',[['Tackles','tackles',1],['Sacks','tackles',2],['Balones recuperados','tackles',3],['Intercepciones','ints',0]]],
-['Touchdowns',[['TD totales (tierra + recepción)','tdt',0]]],
+['Touchdowns',[['TD anotados (tierra + recepción)','tdt',0]]],
 ['Pateo',[['Puntos','kickers',1],['PAT','kickers',0],['Goles de campo','kickers',2]]]];
 let D=null;const sel=[null,null];
 function get(p,r){if(!p)return null;if(typeof r[1]==='function')return r[1](p);const c=p[9][r[1]];return c?c[r[2]]:null}
 function draw(){const A=sel[0],B=sel[1],o=document.getElementById('cmp');if(!A&&!B){o.innerHTML='';return}
  let h=`<table class="cmpx"><thead><tr><th>${A?`<a href="${A[8]}">${E(A[0])}</a><small>${E(A[2])} · ${E(A[3])} #${A[4]}</small>`:''}</th><th></th><th>${B?`<a href="${B[8]}">${E(B[0])}</a><small>${E(B[2])} · ${E(B[3])} #${B[4]}</small>`:''}</th></tr></thead><tbody>`;
- for(const[g,rs]of ROWS){const lines=rs.map(r=>{const a=get(A,r),b=get(B,r);if(a==null&&b==null)return'';const f=v=>v==null?'—':r[3]?r[3](v):(typeof r[1]==='function'?v:Math.round(v).toLocaleString('es-MX'));
+ for(const[g,rs]of ROWS){const lines=rs.map(r=>{const a=get(A,r),b=get(B,r);if(a==null&&b==null)return'';
+  const merged=p=>p&&p[9].tdt&&p[9][r[1]]&&p[9][r[1]][4]==null;if((r[1]==='rushing'||r[1]==='receiving')&&r[2]===4&&(merged(A)||merged(B)))return'';const f=v=>v==null?'—':r[3]?r[3](v):(typeof r[1]==='function'?v:Math.round(v).toLocaleString('es-MX'));
   const lowGood=r[4],win=a!=null&&b!=null&&a!==b&&r[1]!=='function'&&typeof r[1]!=='function'?((a>b)!==!!lowGood?0:1):-1;
   return`<tr><td class="${win===0?'w':''}">${f(a)}</td><th>${r[0]}</th><td class="${win===1?'w':''}">${f(b)}</td></tr>`}).join('');
   if(lines)h+=`<tr class="g"><td colspan="3">${g}</td></tr>`+lines}
- o.innerHTML=h+'</tbody></table><p class="note">Temporada regular · FBA Stats. En verde, el mejor número de los dos.</p>';
+ o.innerHTML=h+'</tbody></table><p class="note">Temporada regular · FBA Stats; lo que FBA no publica viene de Cover Cero. En verde, el mejor número de los dos. Si FBA no separa los TD por tierra y por recepción, solo aparece el total.</p>';
  try{history.replaceState(null,'','?a='+encodeURIComponent(A?A[8]:'')+'&b='+encodeURIComponent(B?B[8]:''))}catch(e){}}
 function box(i){const q=document.getElementById('q'+i),r=document.getElementById('r'+i);
  q.addEventListener('input',()=>{const t=nz(q.value.trim());if(t.length<2||!D){r.innerHTML='';return}const ws=t.split(/\s+/);
@@ -530,11 +553,11 @@ def hub_pages(P, J):
                                     f'Los líderes de la Liga Mayor ONEFA {YEAR} en yardas de pase, por tierra, recepción, tackles, sacks e intercepciones.', '/lideres/', J.CSS + body, [ld])))
     # /equipos/
     nav, ld = G.crumbs([('Inicio', '/'), ('Equipos', None)])
-    t14 = sorted(G.TEAMS.items(), key=lambda x: x[1]['n'])
+    t14 = sorted(G.TEAMS.items(), key=lambda x: G.norm(x[1]['n']))
     body = nav + f'<h1 class="gm-h1">Equipos de la Liga Mayor ONEFA {YEAR}</h1><h2 style="font-size:26px;margin-top:14px">14 Grandes</h2><div class="tg">'
     body += ''.join(f'<a href="/equipos/{G.SLUG[k]}/"><img src="/img/{k}.png" alt="" width="30" height="30">{e(v["n"])}</a>' for k, v in t14) + '</div>'
     body += '<h2 style="font-size:26px;margin-top:18px">Conferencia Nacional</h2><div class="tg">' + ''.join(
-        f'<a href="/nacional/#equipos"><img src="/img/N_{k}.png" alt="" width="30" height="30">{e(n)}</a>' for k, n in sorted(G.NFULL.items(), key=lambda x: x[1])) + '</div>'
+        f'<a href="/nacional/#equipos"><img src="/img/N_{k}.png" alt="" width="30" height="30">{e(n)}</a>' for k, n in sorted(G.NFULL.items(), key=lambda x: G.norm(x[1]))) + '</div>'
     out.append(('/equipos/', G.page(f'Equipos de la Liga Mayor ONEFA {YEAR}: 14 Grandes y Conferencia Nacional | Liga Mayor Unofficial',
                                     f'Todos los equipos de la Liga Mayor ONEFA {YEAR}: calendario, roster y estadísticas de los 14 Grandes y la Conferencia Nacional.', '/equipos/', J.CSS + body, [ld])))
     # alias que la gente escribe

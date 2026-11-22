@@ -310,7 +310,7 @@ def attach_mb(P, mb):
     return hit
 
 
-CC_MERGE = {'passing': ('passing', [8]), 'rushing': ('rushing', [5]), 'receiving': ('receiving', [5]), 'tackles': ('defense', [5, 7])}
+CC_MERGE = {'passing': ('passing', [8]), 'tackles': ('defense', [5, 7])}
 
 
 def mb_tables(mb, cc=None):
@@ -332,13 +332,15 @@ def mb_tables(mb, cc=None):
                 return f'{x * 100:.1f}'
             return f'{x:.1f}' if k in ('PROM', 'YDS/J') else f'{int(x):,}'
         ex = []
+        if cat in ('rushing', 'receiving') and v.get('JJ') and v.get('YDS') is not None:
+            ex.append(('Y/J', f"{v['YDS'] / v['JJ'] + 1e-9:.1f}"))   # yardas por juego con los totales de FBA
         ccat, idx = CC_MERGE.get(cat, (None, []))
         if cc and ccat in cc:
             if cat == 'tackles' and 'ints' not in mb:
                 idx = [6] + idx
             dec = {'%', 'Y/I', 'RTG', 'Y/J', 'PROM'}
-            ex = [(CC_COLS[ccat][1][i] + '*', fmtv(cc[ccat][i], CC_COLS[ccat][1][i] in dec)) for i in idx if i < len(cc[ccat])]
-            used_cc = used_cc or bool(ex)
+            ex += [(CC_COLS[ccat][1][i] + '*', fmtv(cc[ccat][i], CC_COLS[ccat][1][i] in dec)) for i in idx if i < len(cc[ccat])]
+            used_cc = used_cc or any(t.endswith('*') for t, _ in ex)
         out += (f'<div class="c"><div class="ct">{lbl}</div><div class="tbl-box"><table class="cc"><thead><tr>' + ''.join(f'<th>{t}</th>' for k, t in cols) + ''.join(f'<th>{t}</th>' for t, _ in ex) +
                 '</tr></thead><tbody><tr>' + ''.join(f'<td>{f(k)}</td>' for k, t in cols) + ''.join(f'<td>{v}</td>' for _, v in ex) + '</tr></tbody></table></div></div>')
     if used_cc:
@@ -526,7 +528,7 @@ def player_page(p, P):
     if mb:
         # juegos jugados: solo los de FBA, para no mostrar dos cifras distintas
         for k in hide:
-            hide[k] = set(hide[k]) | {'JJ'}
+            hide[k] = set(hide[k]) | {'JJ', 'Y/J'}   # Y/J de Cover Cero usa otros juegos jugados
     if 'tackles' in mb:
         hide['defense'] |= {'TACK', 'SACK', 'JJ'}
     if 'ints' in mb:
@@ -562,7 +564,7 @@ def player_page(p, P):
     if p['seasons'] or p.get('mb'):
         src.append('estadísticas: Uriel González (FBA Stats), publicadas también por <a href="https://www.modoblitz.com/estadisticas-onefa" rel="noopener">Modo Blitz</a>')
     txt = "; ".join(src)
-    body += f'<p class="note">{txt[:1].upper() + txt[1:]}. ¿Ves un dato equivocado? <a href="/#info">Avísanos</a>.</p>'
+    body += f'<p class="note">{txt[:1].upper() + txt[1:]}. ¿Ves un dato equivocado? <a href="/#contacto">Avísanos</a>.</p>'
     title = f"{p['name']} · {pos} de {T['n']} | Liga Mayor Unofficial" if pos else f"{p['name']} · {T['n']} | Liga Mayor Unofficial"
     bits = [x for x in [pos and f'{pos} de {T["n"]}', p['n'] is not None and f'#{p["n"]}', age and f'{age} años', h and f'{h} m', w and f'{w} kg'] if x]
     desc = f"{p['name']}: " + ', '.join(bits) + f". Perfil, estadísticas y temporadas en la Liga Mayor ONEFA {YEAR}."

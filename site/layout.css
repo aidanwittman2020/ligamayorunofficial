@@ -303,3 +303,6 @@ nav.btm{display:none}
 .kpg-h b{font:800 14px "Barlow Condensed",sans-serif;text-transform:uppercase;letter-spacing:.04em}
 @media (max-width:480px){.kpg-r{grid-template-columns:1fr 56px 1fr;font-size:13px}}
 .tag-q.out{background:#E6E8EA;color:#5B636B;font-family:"Barlow Condensed",sans-serif;font-weight:700;font-size:11px;letter-spacing:.06em;text-transform:uppercase;border-radius:2px;padding:2px 5px}
+.champb{display:grid;gap:2px;margin:10px 0 4px;padding:14px 18px;background:#0E1511;color:#F1F3F2;border-left:6px solid #F2C230;border-radius:2px}
+.champb span{font:800 13px "Barlow Condensed",sans-serif;letter-spacing:.08em;text-transform:uppercase;color:#F2C230}.champb b{font:800 30px "Barlow Condensed",sans-serif;text-transform:uppercase}
+.h-champ{font:800 22px "Barlow Condensed",sans-serif;text-transform:uppercase;text-align:center;margin-bottom:6px}.h-champ small{display:block;font-size:13px;letter-spacing:.1em;color:#B8860B}
