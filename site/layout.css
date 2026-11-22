@@ -276,3 +276,6 @@ nav.tabs .in{grid-template-columns:repeat(6,1fr)!important}
 
 header.top h1.brand a{color:inherit;text-decoration:none}
 @media (max-width:768px){header.top .brand a>span:first-of-type{display:block}}
+.cswitch{display:inline-flex;border:1px solid var(--line);border-radius:2px;overflow:hidden;margin:4px 0 10px}
+.cswitch a{display:inline-flex;align-items:center;min-height:40px;padding:0 16px;text-decoration:none;color:var(--ink);font:700 14px "Roboto",system-ui,sans-serif;background:var(--surface)}
+.cswitch a.on{background:#3DBE73;color:#06130B}

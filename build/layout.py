@@ -8,7 +8,7 @@ import os
 import re
 
 SITE = os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', 'site')
-CSS_V = '8'
+CSS_V = '9'
 LINK = f'<link rel="stylesheet" href="/layout.css?v={CSS_V}" id="lay">'
 
 MENU_14 = [('Inicio', '/#inicio'), ('Tabla', '/#tabla'), ('Juegos', '/#juegos'), ('Playoffs', '/#playoffs'), ('Equipos', '/#equipos'),
@@ -31,7 +31,7 @@ sync()})();</script>'''
 
 
 def header(path):
-    nac = path.startswith('nacional/')
+    nac = path.startswith('nacional/') or '/nacional/' in path
     menu = MENU_NAC if nac else MENU_14
     if path.startswith('jugadores/'):
         on = '/jugadores/'

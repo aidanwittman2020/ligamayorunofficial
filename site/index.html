@@ -608,7 +608,7 @@ nav.tabs .in{grid-template-columns:repeat(6,1fr)}
   .ml-c{grid-template-columns:1fr}
   .home{padding-top:8px}
 }
-</style><link rel="stylesheet" href="/layout.css?v=8" id="lay"></head>
+</style><link rel="stylesheet" href="/layout.css?v=9" id="lay"></head>
 <body>
 
 <header class="top"><div class="in">
@@ -1373,7 +1373,7 @@ function viewInicio(){
 }
 function viewMas(){
   const L=[['playoffs','Playoffs','Llave, simulador y qué necesita cada equipo']],L2=[['info','Acerca de','Fuentes de los datos y créditos']];
-  const E=[['/jugadores/','Jugadores','Perfiles con estatura, peso y estadísticas'],['/jugadores/comparar/','Comparar jugadores','Dos jugadores lado a lado'],['/equipo-ideal-2026/','Equipo ideal 2026','Los mejores por posición según FBA Stats'],['/prospectos-2026/','Prospectos 2026','Veteranos con números de élite'],['/2027/','Qué cambia en 2027','Quién sube y quién baja'],['/historia/','Historia','Campeones desde 1978']];
+  const E=[['/jugadores/','Jugadores','Perfiles con estatura, peso y estadísticas'],['/jugadores/comparar/','Comparar jugadores','Dos jugadores lado a lado'],['/equipo-ideal-2026/','Equipo ideal 2026','Los mejores por posición según FBA Stats'],['/prospectos-2026/','Prospectos 2026','Veteranos rumbo al draft'],['/2027/','Qué cambia en 2027','Quién sube y quién baja'],['/historia/','Historia','Campeones desde 1978']];
   return`<h2>Más</h2><div class="mas">${L.map(([t,n,d])=>`<a href="/#${t}" data-go="${t}"><b>${n}</b><span>${d}</span></a>`).join('')}${E.map(([u,n,d])=>`<a href="${u}"><b>${n}</b><span>${d}</span></a>`).join('')}${L2.map(([t,n,d])=>`<a href="/#${t}" data-go="${t}"><b>${n}</b><span>${d}</span></a>`).join('')}</div>`;
 }
 document.addEventListener('click',e=>{const a=e.target.closest('[data-go]');if(!a)return;e.preventDefault();e.stopPropagation();autoTab=false;tab=a.dataset.go;try{history.replaceState(null,'','#'+tab)}catch(_){}window.scrollTo(0,0);if(tab==='playoffs'&&!simSC)recalc();else render()},true);

@@ -572,6 +572,8 @@ def index_page(P, teams):
     body += '<p class="note">De la Conferencia Nacional solo hay perfil de los líderes estadísticos y de Águilas UACH, porque los demás equipos no publican roster.</p>'
     PAGES = [['Equipo ideal 2026', 'Los mejores de cada posición', 'equipo ideal mejores all star once titular seleccion todos estrellas', f'/equipo-ideal-{YEAR}/'],
              ['Prospectos 2026', 'Veteranos rumbo al draft', 'prospectos draft profesional veteranos', f'/prospectos-{YEAR}/'],
+             ['Equipo ideal 2026 · Nacional', 'Los mejores de la Conferencia Nacional', 'equipo ideal mejores all star once nacional', f'/equipo-ideal-{YEAR}/nacional/'],
+             ['Prospectos 2026 · Nacional', 'Veteranos de la Nacional rumbo al draft', 'prospectos draft profesional veteranos nacional', f'/prospectos-{YEAR}/nacional/'],
              ['Comparar jugadores', 'Dos jugadores lado a lado', 'comparar comparador versus vs comparacion', '/jugadores/comparar/'],
              ['Qué cambia en 2027', 'Quién sube y quién baja', '2027 ascenso descenso sube baja proxima temporada', '/2027/'],
              ['Líderes', 'Líderes estadísticos', 'lideres estadisticas stats yardas touchdowns tackles', '/#stats'],
@@ -641,6 +643,7 @@ def main():
     assign_urls(P)
     LES = EX.load_les(local)
     EX.apply_les(P, LES)
+    EX.build_xs(P)
     L = EX.team_leaders(P)
     # "jugador a seguir" = líder del equipo en FBA Stats (ya no se escribe a mano en la pestaña Jugadores)
     for p in P:

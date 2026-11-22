@@ -19,8 +19,39 @@ def n0(x):
     return f'{int(x or 0):,}'
 
 
+def fnum(x):
+    try:
+        return float(str(x).replace(',', '')) if str(x).strip() not in ('', 'None') else None
+    except ValueError:
+        return None
+
+
+def build_xs(P):
+    """Estadísticas en un solo formato: 14 Grandes = tablas completas de FBA (p['mb']); Nacional = categorías de líderes FBA."""
+    for p in P:
+        if p['liga'] == '14G':
+            p['xs'] = p.get('mb') or {}
+            continue
+        cats = (p.get('seasons', {}).get(str(YEAR)) or {}).get('cats', {})
+        x = {}
+        g = lambda c, k: fnum(cats[c].get(k)) if c in cats else None
+        if 'QB' in cats:
+            x['passing'] = {'YDS': g('QB', 'YDS'), 'TD': g('QB', 'TD')}
+        if 'RB' in cats:
+            x['rushing'] = {'YDS': g('RB', 'YDS'), 'TD': g('RB', 'TD')}
+        if 'WR' in cats:
+            x['receiving'] = {'YDS': g('WR', 'YDS'), 'REC': g('WR', 'REC'), 'TD': g('WR', 'TD')}
+        if 'TK' in cats or 'SK' in cats:
+            x['tackles'] = {'TAC': g('TK', 'TACK') or g('SK', 'TACK'), 'SACKS': g('SK', 'SACK') or g('TK', 'SACK')}
+        if 'IN' in cats:
+            x['ints'] = {'INT': g('IN', 'INT')}
+        if 'PT' in cats or 'FG' in cats:
+            x['kickers'] = {'PTS': g('PT', 'PTS') or g('FG', 'PTS'), 'FG': g('FG', 'FG') or g('PT', 'FG')}
+        p['xs'] = {k: v for k, v in x.items() if any(y is not None for y in v.values())}
+
+
 def line(p, role):
-    m = p['mb']
+    m = p['xs']
     if role == 'pase':
         v = m['passing']
         return f"{n0(v.get('YDS'))} yds de pase · {n0(v.get('TD'))} TD"
@@ -29,13 +60,13 @@ def line(p, role):
         return f"{n0(v.get('YDS'))} yds por tierra · {n0(v.get('TD'))} TD"
     if role == 'aire':
         v = m['receiving']
-        return f"{n0(v.get('REC'))} recepciones · {n0(v.get('YDS'))} yds · {n0(v.get('TD'))} TD"
-    v = m['tackles']
-    s = f"{n0(v.get('TAC'))} tackles"
+        return (f"{n0(v.get('REC'))} recepciones · " if v.get('REC') else '') + f"{n0(v.get('YDS'))} yds · {n0(v.get('TD'))} TD"
+    v = m.get('tackles') or {}
+    s = f"{n0(v.get('TAC'))} tackles" if v.get('TAC') else ''
     if v.get('SACKS'):
-        s += f" · {n0(v['SACKS'])} sack" + ("" if v['SACKS'] == 1 else "s")
+        s += (' · ' if s else '') + f"{n0(v['SACKS'])} sack" + ("" if v['SACKS'] == 1 else "s")
     if m.get('ints', {}).get('INT'):
-        s += f" · {n0(m['ints']['INT'])} INT"
+        s += (' · ' if s else '') + f"{n0(m['ints']['INT'])} INT"
     return s
 
 
@@ -43,13 +74,13 @@ def team_leaders(P):
     """Mejor pasador, corredor, receptor y tackleador de cada equipo según FBA Stats (temporada regular)."""
     L = {}
     for k in G.TEAMS:
-        ps = [p for p in P if p['liga'] == '14G' and p['team'] == k and p.get('mb')]
+        ps = [p for p in P if p['liga'] == '14G' and p['team'] == k and p.get('xs')]
         out = []
         for role, cat, col in ROLES:
-            c = [p for p in ps if cat in p['mb'] and (p['mb'][cat].get(col) or 0) > 0]
+            c = [p for p in ps if cat in p['xs'] and (p['xs'][cat].get(col) or 0) > 0]
             if not c:
                 continue
-            b = max(c, key=lambda p: p['mb'][cat].get(col) or 0)
+            b = max(c, key=lambda p: p['xs'][cat].get(col) or 0)
             out.append({'p': b, 'role': role, 'line': line(b, role)})
         L[k] = out
     return L
@@ -79,7 +110,7 @@ def load_les(local):
 def apply_les(P, LES):
     for p in P:
         p['les'] = None
-        x = LES.get((p['team'], p['n'])) if p['liga'] == '14G' else None
+        x = LES.get((p['team'], p['n']))
         if x and (not x[2] or G.norm(x[2]).split()[0] == G.norm(p['name']).split()[0]):
             p['les'] = x[:2]
 
@@ -145,85 +176,112 @@ def avatar(p, J, size=84):
 
 
 def val(p, cat, col):
-    return (p.get('mb', {}).get(cat) or {}).get(col) or 0
+    return (p.get('xs', {}).get(cat) or {}).get(col) or 0
 
 
 def pick(P, pos, n, key, used):
-    c = [p for p in P if p['liga'] == '14G' and p['pos'] in pos and p.get('mb') and key(p)[0] > 0 and id(p) not in used]
+    c = [p for p in P if p['pos'] in pos and p.get('xs') and key(p)[0] > 0 and id(p) not in used]
     c.sort(key=key, reverse=True)
     r = c[:n]
     used.update(id(p) for p in r)
     return r
 
 
-def ideal_page(P, J):
+CONF = {'14G': ('14 Grandes', 'los 14 Grandes', ''), 'NAC': ('Conferencia Nacional', 'la Conferencia Nacional', 'nacional/')}
+
+
+def conf_switch(base, liga):
+    on = lambda l: ' class="on"' if l == liga else ''
+    return (f'<div class="cswitch" role="tablist"><a href="{base}"{on("14G")}>14 Grandes</a><a href="{base}nacional/"{on("NAC")}>Nacional</a></div>')
+
+
+def ideal_page(P, J, liga='14G'):
     used = set()
+    P = [p for p in P if p['liga'] == liga]
     OFF = [('QB', pick(P, {'QB'}, 1, lambda p: (val(p, 'passing', 'YDS'), val(p, 'passing', 'TD')), used), lambda p: line(p, 'pase')),
            ('RB', pick(P, {'RB', 'FB', 'HB'}, 2, lambda p: (val(p, 'rushing', 'YDS'), val(p, 'rushing', 'TD')), used), lambda p: line(p, 'tierra')),
            ('WR', pick(P, {'WR'}, 3, lambda p: (val(p, 'receiving', 'YDS'), val(p, 'receiving', 'TD')), used), lambda p: line(p, 'aire')),
            ('TE', pick(P, {'TE', 'PB', 'HB'}, 1, lambda p: (val(p, 'receiving', 'YDS'), val(p, 'receiving', 'TD')), used), lambda p: line(p, 'aire'))]
-    dl = lambda p: f"{n0(val(p, 'tackles', 'SACKS'))} sacks · {n0(val(p, 'tackles', 'TAC'))} tackles"
+    dl = lambda p: f"{n0(val(p, 'tackles', 'SACKS'))} sacks" + (f" · {n0(val(p, 'tackles', 'TAC'))} tackles" if val(p, 'tackles', 'TAC') else '')
     db = lambda p: f"{n0(val(p, 'ints', 'INT'))} INT" + (f" · {n0(val(p, 'tackles', 'TAC'))} tackles" if val(p, 'tackles', 'TAC') else '')
     DEF = [('DL', pick(P, {'DL', 'DE', 'DT', 'NT'}, 4, lambda p: (val(p, 'tackles', 'SACKS'), val(p, 'tackles', 'TAC')), used), dl),
            ('LB', pick(P, {'LB'}, 3, lambda p: (val(p, 'tackles', 'TAC'), val(p, 'tackles', 'SACKS')), used), lambda p: line(p, 'defensa')),
            ('DB', pick(P, {'CB', 'S', 'DB', 'FS', 'SS'}, 4, lambda p: (val(p, 'ints', 'INT'), val(p, 'tackles', 'TAC')), used), db)]
-    ST = [('K', pick(P, {'K', 'P'}, 1, lambda p: (val(p, 'kickers', 'PTS'), 0), used), lambda p: f"{n0(val(p, 'kickers', 'PTS'))} puntos · {n0(val(p, 'kickers', 'PAT'))} PAT")]
+    kl = lambda p: ' · '.join(x for x in [val(p, 'kickers', 'PTS') and f"{n0(val(p, 'kickers', 'PTS'))} puntos", val(p, 'kickers', 'PAT') and f"{n0(val(p, 'kickers', 'PAT'))} PAT",
+                                           val(p, 'kickers', 'FG') and f"{n0(val(p, 'kickers', 'FG'))} goles de campo"] if x)
+    ST = [('K', pick(P, {'K', 'P'}, 1, lambda p: (val(p, 'kickers', 'PTS') or val(p, 'kickers', 'FG'), val(p, 'kickers', 'FG')), used), kl)]
 
     def grid(title, groups):
         cards = ''
         for pos, ps, fn in groups:
             for p in ps:
+                num = f' · #{p["n"]}' if p['n'] is not None else ''
                 cards += (f'<a class="xi" href="{p["url"]}"><div class="xa">{avatar(p, J)}</div><div><span class="xp">{pos}</span><b>{e(p["name"])}</b>{badge(p.get("les"))}'
-                          f'<small>{e(p["T"]["n"])} · #{p["n"]}</small><em>{e(fn(p))}</em></div></a>')
-        return f'<h2 style="font-size:26px;margin-top:22px">{title}</h2><div class="xig">{cards}</div>'
+                          f'<small>{e(p["T"]["n"])}{num}</small><em>{e(fn(p))}</em></div></a>')
+        return f'<h2 style="font-size:26px;margin-top:22px">{title}</h2><div class="xig">{cards}</div>' if cards else ''
 
-    path = f'/equipo-ideal-{YEAR}/'
-    nav, ld_b = G.crumbs([('Inicio', '/'), (f'Equipo ideal {YEAR}', None)])
-    body = nav + f'<h1 class="gm-h1">Equipo ideal {YEAR} de los 14 Grandes</h1>'
+    name, of, sub = CONF[liga]
+    path = f'/equipo-ideal-{YEAR}/{sub}'
+    nav, ld_b = G.crumbs([('Inicio', '/' if liga == '14G' else '/nacional/'), (f'Equipo ideal {YEAR}' + ('' if liga == '14G' else ' · Nacional'), None)])
+    body = nav + f'<h1 class="gm-h1">Equipo ideal {YEAR} de {of}</h1>' + conf_switch(f'/equipo-ideal-{YEAR}/', liga)
     body += ('<p class="gm-meta">Selección automática con los números de la temporada regular (FBA Stats). No es un premio oficial de la ONEFA: '
-             'se escoge al líder de cada posición según la posición del roster.</p>')
+             'se escoge al líder de cada posición.</p>')
     body += grid('Ofensiva', OFF) + grid('Defensiva', DEF) + grid('Equipos especiales', ST)
+    extra = ('<li>En la Nacional solo se publican los primeros lugares de cada categoría, así que algunas posiciones pueden quedar vacías. '
+             'Los uniformes de los muñequitos de la Nacional son provisionales.</li>') if liga == 'NAC' else ''
     body += ('<div class="card" style="margin-top:14px"><b>¿Cómo se escoge?</b><ul class="pv"><li>QB, RB, WR y TE: más yardas en su categoría (desempate por TD).</li>'
              '<li>Línea defensiva: más sacks (desempate por tackles). Linebackers: más tackles. Secundaria: más intercepciones (desempate por tackles).</li>'
-             '<li>Pateador: más puntos.</li><li>No hay línea ofensiva porque no existen estadísticas públicas de linieros ofensivos.</li></ul></div>')
-    body += '<p class="note">Estadísticas: Uriel González (FBA Stats), publicadas también por <a href="https://www.modoblitz.com/estadisticas-onefa" rel="noopener">Modo Blitz</a>. Posiciones: Guía ONEFA 2026 de Lucio Trucíos.</p>'
-    return path, G.page(f'Equipo ideal {YEAR} de la Liga Mayor ONEFA (14 Grandes) | Liga Mayor Unofficial',
-                        f'El equipo ideal de los 14 Grandes {YEAR} según las estadísticas de la temporada regular: QB, corredores, receptores, línea defensiva, linebackers y secundaria.',
+             f'<li>Pateador: más puntos.</li><li>No hay línea ofensiva porque no existen estadísticas públicas de linieros ofensivos.</li>{extra}</ul></div>')
+    body += '<p class="note">Estadísticas: Uriel González (FBA Stats), publicadas también por <a href="https://www.modoblitz.com/estadisticas-onefa" rel="noopener">Modo Blitz</a>.' + (' Posiciones: Guía ONEFA 2026 de Lucio Trucíos.' if liga == '14G' else '') + '</p>'
+    return path, G.page(f'Equipo ideal {YEAR} de la Liga Mayor ONEFA ({name}) | Liga Mayor Unofficial',
+                        f'El equipo ideal de {of} {YEAR} según las estadísticas de la temporada regular: QB, corredores, receptores, línea defensiva, linebackers y secundaria.',
                         path, J.CSS + body, [ld_b])
 
 
-def prospects_page(P, J):
+AGE_MIN, AGE_MAX = 24, 25
+
+
+def prospects_page(P, J, liga='14G'):
     CATS = [('passing', 'YDS', 'pase', 10), ('rushing', 'YDS', 'tierra', 15), ('receiving', 'YDS', 'aire', 15), ('tackles', 'TAC', 'defensa', 20),
             ('tackles', 'SACKS', 'defensa', 10), ('ints', 'INT', 'defensa', 10)]
     top = {}
-    ps14 = [p for p in P if p['liga'] == '14G' and p.get('mb')]
+    ps = [p for p in P if p['liga'] == liga and p.get('xs')]
     for cat, col, role, n in CATS:
-        r = sorted([p for p in ps14 if val(p, cat, col) > 0], key=lambda p: val(p, cat, col), reverse=True)[:n]
+        r = sorted([p for p in ps if val(p, cat, col) > 0], key=lambda p: val(p, cat, col), reverse=True)[:n]
         for i, p in enumerate(r):
             top.setdefault(id(p), (p, role, i + 1, cat, col))
-    rows = []
+    rows, noage = [], []
     for p, role, rk, cat, col in top.values():
         age, h, w = J.phys(p)
-        if not age or int(age) < 23:
-            continue
         lbl = {('passing', 'YDS'): 'en yardas de pase', ('rushing', 'YDS'): 'en yardas por tierra', ('receiving', 'YDS'): 'en yardas por recepción',
                ('tackles', 'TAC'): 'en tackles', ('tackles', 'SACKS'): 'en sacks', ('ints', 'INT'): 'en intercepciones'}[(cat, col)]
-        rows.append((rk, p, age, h, w, f'{rk}.º de la liga {lbl}', line(p, role) if role != 'defensa' or col == 'TAC' else (f"{n0(val(p, cat, col))} " + ('sacks' if col == 'SACKS' else 'INT'))))
+        ln = line(p, role) if role != 'defensa' or col == 'TAC' else (f"{n0(val(p, cat, col))} " + ('sacks' if col == 'SACKS' else 'INT'))
+        item = (rk, p, age, h, w, f'{rk}.º de la conferencia {lbl}', ln)
+        if age and AGE_MIN <= int(age) <= AGE_MAX:
+            rows.append(item)
+        elif not age:
+            noage.append(item)
     rows.sort(key=lambda x: (x[0], -int(x[2])))
-    tr = ''.join(f'<tr><td class="team"><a href="{p["url"]}">{e(p["name"])}</a>{badge(p.get("les"))}<small style="display:block;color:var(--muted)">{e(p["T"]["n"])} · #{p["n"]}</small></td>'
-                 f'<td><span class="abbr">{e(p["pos"])}</span></td><td class="num">{age}</td><td class="num">{h or ""}</td><td class="num">{w or ""}</td>'
-                 f'<td>{e(rk_)}<small style="display:block;color:var(--muted)">{e(ln)}</small></td></tr>' for _, p, age, h, w, rk_, ln in rows)
-    path = f'/prospectos-{YEAR}/'
-    nav, ld_b = G.crumbs([('Inicio', '/'), (f'Prospectos {YEAR}', None)])
-    body = nav + f'<h1 class="gm-h1">Prospectos {YEAR} rumbo al draft: veteranos con números de élite</h1>'
-    body += ('<p class="gm-meta">Jugadores de 23 a 25 años (la edad en que la mayoría termina la carrera o la maestría) que están entre los líderes de los 14 Grandes en alguna categoría de FBA Stats. '
-             'Son los candidatos naturales para el draft y el fútbol profesional.</p>')
+    noage.sort(key=lambda x: x[0])
+    tr = lambda L: ''.join(f'<tr><td class="team"><a href="{p["url"]}">{e(p["name"])}</a>{badge(p.get("les"))}<small style="display:block;color:var(--muted)">{e(p["T"]["n"])}{" · #" + str(p["n"]) if p["n"] is not None else ""}</small></td>'
+                           f'<td><span class="abbr">{e(p["pos"])}</span></td><td class="num">{age or "—"}</td><td class="num">{h or ""}</td><td class="num">{w or ""}</td>'
+                           f'<td>{e(rk_)}<small style="display:block;color:var(--muted)">{e(ln)}</small></td></tr>' for _, p, age, h, w, rk_, ln in L)
+    head = '<div class="tbl-box"><table class="roster"><thead><tr><th>Jugador</th><th>Pos.</th><th>Edad</th><th>Est.</th><th>Peso</th><th>Por qué</th></tr></thead><tbody>'
+    name, of, sub = CONF[liga]
+    path = f'/prospectos-{YEAR}/{sub}'
+    nav, ld_b = G.crumbs([('Inicio', '/' if liga == '14G' else '/nacional/'), (f'Prospectos {YEAR}' + ('' if liga == '14G' else ' · Nacional'), None)])
+    body = nav + f'<h1 class="gm-h1">Prospectos {YEAR} rumbo al draft: {of}</h1>' + conf_switch(f'/prospectos-{YEAR}/', liga)
+    body += (f'<p class="gm-meta">Jugadores de {AGE_MIN} y {AGE_MAX} años que están entre los líderes de {of} en alguna categoría de FBA Stats. '
+             'A esa edad la mayoría ya agotó su elegibilidad o terminó la maestría: son los candidatos naturales para el draft.</p>')
     body += ('<div class="card" style="margin:8px 0 12px"><b>Ojo:</b> no es una lista oficial ni sabemos en qué año de elegibilidad va cada jugador. '
              'La edad sale de los rosters publicados por los equipos y sirve solo como aproximación.</div>')
-    body += f'<div class="tbl-box"><table class="roster"><thead><tr><th>Jugador</th><th>Pos.</th><th>Edad</th><th>Est.</th><th>Peso</th><th>Por qué</th></tr></thead><tbody>{tr}</tbody></table></div>'
+    body += (head + tr(rows) + '</tbody></table></div>') if rows else f'<p class="gm-meta">Todavía no hay jugadores de {AGE_MIN} o {AGE_MAX} años con edad publicada entre los líderes.</p>'
+    if liga == 'NAC' and noage:
+        body += ('<h2 style="font-size:24px;margin-top:22px">Líderes sin edad publicada</h2><p class="gm-meta">La mayoría de los equipos de la Nacional no publica edades. '
+                 'Estos líderes podrían entrar en la lista cuando se conozca su edad.</p>' + head + tr(noage) + '</tbody></table></div>')
     body += '<p class="note">Estadísticas: Uriel González (FBA Stats). Edad, estatura (m) y peso (kg): rosters publicados por los equipos.</p>'
-    return path, G.page(f'Prospectos {YEAR} de la Liga Mayor ONEFA: veteranos líderes en estadísticas | Liga Mayor Unofficial',
-                        f'Jugadores de 23 a 25 años entre los líderes estadísticos de los 14 Grandes {YEAR}: edad, estatura, peso y números.', path, J.CSS + body, [ld_b])
+    return path, G.page(f'Prospectos {YEAR} al draft de la Liga Mayor ONEFA ({name}) | Liga Mayor Unofficial',
+                        f'Jugadores de {AGE_MIN} y {AGE_MAX} años entre los líderes estadísticos de {of} {YEAR}: edad, estatura, peso y números.', path, J.CSS + body, [ld_b])
 
 
 def y2027_page(J):
@@ -250,19 +308,17 @@ def y2027_page(J):
 
 
 SKEYS = {'passing': ['JJ', 'COMP', 'INT', 'PCT', 'YDS', 'TD', 'INTC'], 'rushing': ['JJ', 'ACA', 'YDS', 'PROM', 'TD'], 'receiving': ['JJ', 'REC', 'YDS', 'PROM', 'TD'],
-         'tackles': ['JJ', 'TAC', 'SACKS', 'FR'], 'ints': ['INT', 'YDS'], 'kickers': ['PAT', 'PTS']}
+         'tackles': ['JJ', 'TAC', 'SACKS', 'FR'], 'ints': ['INT', 'YDS'], 'kickers': ['PAT', 'PTS', 'FG']}
 
 
 def stats_json(P, J):
     out = []
     for p in P:
-        if p['liga'] != '14G':
-            continue
         age, h, w = J.phys(p)
-        mb = {c: [p['mb'][c].get(k) for k in ks] for c, ks in SKEYS.items() if c in (p.get('mb') or {})}
+        mb = {c: [p['xs'][c].get(k) for k in ks] for c, ks in SKEYS.items() if c in (p.get('xs') or {})}
         if not (mb or age or h or w):
             continue
-        out.append([p['name'], p['team'], p['T']['n'], p['pos'], p['n'], int(age) if age else None, float(h) if h else None, int(w) if w else None, p['url'], mb])
+        out.append([p['name'], p['team'], p['T']['n'], p['pos'], p['n'] if p['n'] is not None else '', int(age) if age else None, float(h) if h else None, int(w) if w else None, p['url'], mb, p['liga']])
     js = json.dumps({'keys': SKEYS, 'p': out}, ensure_ascii=False, separators=(',', ':'))
     fp = os.path.join(SITE, 'jugadores', 'stats.json')
     if not os.path.exists(fp) or open(fp, encoding='utf-8').read() != js:
@@ -276,7 +332,7 @@ const ROWS=[['Físico',[['Edad',p=>p[5],0],['Estatura (m)',p=>p[6],0],['Peso (kg
 ['Tierra',[['Yardas','rushing',2],['Acarreos','rushing',1],['Promedio','rushing',3,v=>v.toFixed(1)],['TD','rushing',4]]],
 ['Recepción',[['Yardas','receiving',2],['Recepciones','receiving',1],['Promedio','receiving',3,v=>v.toFixed(1)],['TD','receiving',4]]],
 ['Defensa',[['Tackles','tackles',1],['Sacks','tackles',2],['Balones recuperados','tackles',3],['Intercepciones','ints',0]]],
-['Pateo',[['Puntos','kickers',1],['PAT','kickers',0]]]];
+['Pateo',[['Puntos','kickers',1],['PAT','kickers',0],['Goles de campo','kickers',2]]]];
 let D=null;const sel=[null,null];
 function get(p,r){if(!p)return null;if(typeof r[1]==='function')return r[1](p);const c=p[9][r[1]];return c?c[r[2]]:null}
 function draw(){const A=sel[0],B=sel[1],o=document.getElementById('cmp');if(!A&&!B){o.innerHTML='';return}
@@ -289,8 +345,8 @@ function draw(){const A=sel[0],B=sel[1],o=document.getElementById('cmp');if(!A&&
  try{history.replaceState(null,'','?a='+encodeURIComponent(A?A[8]:'')+'&b='+encodeURIComponent(B?B[8]:''))}catch(e){}}
 function box(i){const q=document.getElementById('q'+i),r=document.getElementById('r'+i);
  q.addEventListener('input',()=>{const t=nz(q.value.trim());if(t.length<2||!D){r.innerHTML='';return}const ws=t.split(/\s+/);
-  const m=D.filter(p=>{const s=nz(p[0]+' '+p[2]+' '+p[3]+' #'+p[4]);return ws.every(w=>s.includes(w))}).slice(0,8);
-  r.innerHTML=m.map((p,j)=>`<button type="button" data-j="${D.indexOf(p)}"><b>${E(p[0])}</b><small>${E(p[2])} · ${E(p[3])} #${p[4]}</small></button>`).join('')||'<p class="gm-meta">Sin resultados.</p>'});
+  const m=D.filter(p=>{const s=nz(p[0]+' '+p[2]+' '+p[3]+' #'+p[4]+(p[10]==='NAC'?' nacional':' 14 grandes'));return ws.every(w=>s.includes(w))}).slice(0,8);
+  r.innerHTML=m.map((p,j)=>`<button type="button" data-j="${D.indexOf(p)}"><b>${E(p[0])}</b><small>${E(p[2])}${p[10]==='NAC'?' (Nacional)':''} · ${E(p[3])} #${p[4]}</small></button>`).join('')||'<p class="gm-meta">Sin resultados.</p>'});
  r.addEventListener('click',ev=>{const b=ev.target.closest('button');if(!b)return;sel[i]=D[+b.dataset.j];q.value=sel[i][0];r.innerHTML='';draw()})}
 fetch('/jugadores/stats.json').then(r=>r.json()).then(j=>{D=j.p;const u=new URLSearchParams(location.search);[u.get('a'),u.get('b')].forEach((x,i)=>{const p=x&&D.find(p=>p[8]===x);if(p){sel[i]=p;document.getElementById('q'+i).value=p[0]}});draw()});
 box(0);box(1);
@@ -300,17 +356,18 @@ box(0);box(1);
 def compare_page(J):
     path = '/jugadores/comparar/'
     nav, ld_b = G.crumbs([('Inicio', '/'), ('Jugadores', '/jugadores/'), ('Comparar', None)])
-    body = nav + f'<h1 class="gm-h1">Compara a dos jugadores</h1><p class="gm-meta">Escribe dos nombres de los 14 Grandes y ve sus números {YEAR} lado a lado.</p>'
+    body = nav + f'<h1 class="gm-h1">Compara a dos jugadores</h1><p class="gm-meta">Escribe dos nombres de los 14 Grandes o de la Conferencia Nacional y ve sus números {YEAR} lado a lado. De la Nacional solo hay números de los líderes de cada categoría.</p>'
     body += ('<div class="cmpp"><div><input id="q0" class="srch" type="search" placeholder="Jugador 1" aria-label="Jugador 1" autocomplete="off"><div id="r0" class="cres"></div></div>'
              '<div><input id="q1" class="srch" type="search" placeholder="Jugador 2" aria-label="Jugador 2" autocomplete="off"><div id="r1" class="cres"></div></div></div><div id="cmp"></div>')
     body += '<p class="note">Estadísticas: Uriel González (FBA Stats). Edad, estatura y peso: rosters publicados por los equipos.</p>' + COMPARE_JS
     return path, G.page(f'Compara jugadores de la Liga Mayor ONEFA {YEAR} | Liga Mayor Unofficial',
-                        f'Compara lado a lado las estadísticas y el físico de dos jugadores de los 14 Grandes {YEAR}.', path, J.CSS + body, [ld_b])
+                        f'Compara lado a lado las estadísticas y el físico de dos jugadores de los 14 Grandes y la Conferencia Nacional {YEAR}.', path, J.CSS + body, [ld_b])
 
 
 def pages(P, J):
+    build_xs(P)
     out = []
-    for path, h in (ideal_page(P, J), prospects_page(P, J), y2027_page(J), compare_page(J)):
+    for path, h in (ideal_page(P, J), ideal_page(P, J, 'NAC'), prospects_page(P, J), prospects_page(P, J, 'NAC'), y2027_page(J), compare_page(J)):
         out.append((path, G.write(path, h)))
     stats_json(P, J)
     return out
