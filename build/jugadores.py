@@ -468,7 +468,10 @@ def player_page(p, P):
              'RB': ('tuck', 'ball_r', 'ball_l', 'two_hands'), 'FB': ('tuck', 'two_hands'), 'PB': ('tuck', 'ball_r'), 'HB': ('tuck', 'ball_r')}
     ops = POSES.get(p['pos'])
     pose = ops[zlib.crc32(p['name'].encode('utf-8')) % len(ops)] if ops else None
-    av = AV.svg(p['n'], AV.uniform(p['liga'], p['team']), 112, seed=p['name'], pose=pose, skin=AV.SKIN_DARK if (p['team'], p['n']) in SKIN_FIX else None, title=f'Muñequito con el uniforme de {e(T["n"])}' + (f' y el número {p["n"]}' if p['n'] is not None else ''))
+    BIG = {'OL', 'DL', 'OT', 'OG', 'C', 'DT', 'DE', 'NT', 'G', 'T'}
+    SKILL = {'QB', 'WR', 'CB', 'S', 'DB', 'FS', 'SS', 'K', 'P', 'LS', 'KR'}
+    build = 'big' if p['pos'] in BIG else 'skill' if p['pos'] in SKILL else 'mid'
+    av = AV.svg(p['n'], AV.uniform(p['liga'], p['team']), 112, seed=p['name'], pose=pose, build=build, skin=AV.SKIN_DARK if (p['team'], p['n']) in SKIN_FIX else None, title=f'Muñequito con el uniforme de {e(T["n"])}' + (f' y el número {p["n"]}' if p['n'] is not None else ''))
     head = (f'<div class="ph"><div class="av">{av}</div><div>{num}'
             f'<h1>{e(p["name"])}</h1><div class="sub2"><a class="tl" href="{T["url"]}"><img src="{T["img"]}" alt="" width="24" height="24">{e(T["n"])}</a><span>{e(pos) if pos else "Jugador"} · {T["conf"]}</span></div></div></div>')
     tiles = [(age or '—', 'Edad', 'años' if age else ''), (h or '—', 'Estatura', ft(h) if h else ''), (w or '—', 'Peso', f'{round(int(w) * 2.2046)} lb' if w else ''), (e(p['pos'] or '—'), 'Posición', '')]

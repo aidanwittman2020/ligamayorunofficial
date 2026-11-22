@@ -986,7 +986,7 @@ async function loadAnot(){try{
   if([ix.w,ix.a,ix.h,ix.q,ix.t,ix.k].some(i=>i<0))return;
   const m={},v=(r,i)=>i>=0?(r[i]||'').trim():'';
   rows.forEach(r=>{const t=v(r,ix.t).toUpperCase(),k=norm(v(r,ix.k));if(!TEAMS[t]||!k)return;
-    const qs=v(r,ix.q).toUpperCase(),q=qs==='TE'||qs==='OT'?5:parseInt(qs,10);if(!(q>=1&&q<=5))return;
+    const qs=v(r,ix.q).toUpperCase(),q=qs===''||qs==='?'?9:qs==='TE'||qs==='OT'?5:parseInt(qs,10);if(!((q>=1&&q<=5)||q===9))return;
     const x=norm(v(r,ix.x));
     let pts=k.startsWith('td')?6:k==='fg'?3:k==='safety'?2:0;
     const xp=k.startsWith('td')?(x==='pat bueno'?1:x==='2 pts bueno'?2:0):0;
@@ -1008,22 +1008,23 @@ function playText(p){
   else if(p.k==='td regreso'){title='Touchdown · regreso';txt=`${J||'TD'}${yd?`, regreso de ${yd}`:''}`}
   else if(p.k==='fg'){title='Gol de campo';txt=`${J||'FG'}${yd?`, ${yd}`:''}`}
   else if(p.k==='safety'){title='Safety';txt=J||'Safety'}
+  else if(p.k==='td'){title='Touchdown';txt=J||'TD'}
   else{title=escH(p.k);txt=J}
   const ex={'pat bueno':'Punto extra bueno','pat fallado':'Punto extra fallado','2 pts bueno':'Conversión de 2 buena','2 pts fallado':'Conversión de 2 fallada'}[p.x];
   return{title,txt:txt+(ex?` <small>· ${ex}</small>`:'')};
 }
-const qName=q=>q===5?'Tiempo extra':['','1er cuarto','2º cuarto','3er cuarto','4º cuarto'][q];
+const qName=q=>q===9?'Cuarto sin confirmar':q===5?'Tiempo extra':['','1er cuarto','2º cuarto','3er cuarto','4º cuarto'][q];
 function gameDetail(g){
   const P=playsOf(g),lv=!!g.live,fin=isPlayed(g);
   if(!P.length)return`<div class="card"><p class="sub" style="margin:0">${lv?'El detalle de anotaciones se irá llenando durante el partido.':'Todavía no hay detalle de anotaciones para este partido.'}</p></div>`;
-  const nQ=Math.max(4,...P.map(p=>p.q));const Q={[g.a]:Array(nQ+1).fill(0),[g.h]:Array(nQ+1).fill(0)};
-  P.forEach(p=>{if(Q[p.t])Q[p.t][p.q]+=p.pts});
+  const nQ=Math.max(4,...P.filter(p=>p.q<=5).map(p=>p.q));const Q={[g.a]:Array(nQ+1).fill(0),[g.h]:Array(nQ+1).fill(0)};
+  P.forEach(p=>{if(Q[p.t]&&p.q<=5)Q[p.t][p.q]+=p.pts});
   const sum=k=>Q[k].reduce((a,b)=>a+b,0);
   const totA=fin?g.as:lv?g.las:sum(g.a),totH=fin?g.hs:lv?g.lhs:sum(g.h);
   const qsCols=[...Array(nQ)].map((_,i)=>i+1);
   const row=(k,tot)=>`<tr><td><span class="tk">${abbr(k)}${SHORT[k]||k}</span></td>${qsCols.map(q=>`<td>${Q[k][q]}</td>`).join('')}<td class="tot">${tot}</td></tr>`;
   let h=`<h3>Marcador por cuarto</h3><table class="qs"><thead><tr><th>Equipo</th>${qsCols.map(q=>`<th>${q===5?'TE':q+'º'}</th>`).join('')}<th>Total</th></tr></thead><tbody>${row(g.a,totA)}${row(g.h,totH)}</tbody></table>`;
-  if(fin&&(sum(g.a)!==g.as||sum(g.h)!==g.hs))h+=`<p class="sub" style="margin-top:6px">Faltan algunas anotaciones por capturar, así que los cuartos no suman el marcador final.</p>`;
+  if(fin&&(sum(g.a)!==g.as||sum(g.h)!==g.hs))h+=`<p class="sub" style="margin-top:6px">${P.some(p=>p.q===9)?'Algunas anotaciones no tienen cuarto confirmado en las crónicas, así que los cuartos no suman el marcador final.':'Faltan algunas anotaciones por capturar, así que los cuartos no suman el marcador final.'}</p>`;
   h+=`<h3>Anotaciones</h3><div class="plays">`;
   let ra=0,rh=0,lastQ=0;
   P.slice().sort((x,y)=>x.q-y.q).forEach(p=>{

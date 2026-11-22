@@ -62,7 +62,7 @@ def shade(c, f):
     return '#%02X%02X%02X' % (r, g, b)
 
 
-def svg(num, u, size=132, title='', seed='', pose=None, skin=None):
+def svg(num, u, size=132, title='', seed='', pose=None, skin=None, build='mid'):
     G = [[None] * W for _ in range(H)]
 
     def px(x, y, c):
@@ -78,35 +78,46 @@ def svg(num, u, size=132, title='', seed='', pose=None, skin=None):
     hair = HAIR[(hsh >> 4) % len(HAIR)]
     sk2 = shade(skin, .86)
 
-    # ---- medio cuerpo: torso, brazos con guantes y cintura (filas 15-35)
+    # ---- medio cuerpo según la complexión de la posición:
+    #   'skill' (QB, receptores, defensivos de backfield, pateadores): más delgado, hombreras chicas
+    #   'mid'   (corredores, linebackers, alas cerradas): complexión media
+    #   'big'   (linieros ofensivos y defensivos): torso y hombreras anchos, brazos gruesos, cuello grueso
+    sft = {'skill': 1, 'mid': 0, 'big': -1}.get(build, 0)
+    L = lambda x: x + sft              # columnas del lado izquierdo
+    R = lambda x: x - sft              # columnas del lado derecho
     j, sl = u['j'], u['s']
     pants, glove = u.get('p') or shade(j, .6), u.get('g') or '#1B1B1B'
     arm = u.get('arm') or skin
     for y in range(16, 33):                       # torso
-        a0, a1 = (9, 22) if y == 16 else (8, 23)
+        a0, a1 = (L(9), R(22)) if y == 16 else (L(8), R(23))
         row(y, a0, a1, j)
     for y in range(17, 33):                       # costados del torso un poco más oscuros
-        px(8, y, shade(j, .82)); px(23, y, shade(j, .82))
-    row(16, 7, 24, sl); row(17, 5, 26, sl); row(18, 4, 27, sl); row(19, 4, 27, sl)   # hombreras
-    for x in list(range(4, 8)) + list(range(24, 28)):                                   # mangas
+        px(L(8), y, shade(j, .82)); px(R(23), y, shade(j, .82))
+    ext = 1 if build == 'big' else 0              # hombreras más grandes en linieros
+    row(16, L(7), R(24), sl); row(17, L(5) - ext, R(26) + ext, sl); row(18, L(4) - ext, R(27) + ext, sl); row(19, L(4) - ext, R(27) + ext, sl)
+    if build == 'big':
+        row(20, L(4) - 1, L(7), sl); row(20, R(24), R(27) + 1, sl)
+    for x in list(range(L(4), L(8))) + list(range(R(27), R(23), -1)):   # mangas
         for y in (20, 21):
             px(x, y, sl)
     if u['ss'] and u['ss'] != sl:                 # franja de la manga
-        for x in list(range(4, 8)) + list(range(24, 28)):
+        for x in list(range(L(4), L(8))) + list(range(R(27), R(23), -1)):
             px(x, 21, u['ss'])
+    axl = [L(4), L(5), L(6)] + ([L(3)] if build == 'big' else [])
+    axr = [R(25), R(26), R(27)] + ([R(28)] if build == 'big' else [])
     for y in range(22, 30):                       # brazos
-        for x in (4, 5, 6, 25, 26, 27):
+        for x in axl + axr:
             px(x, y, arm)
-        px(6, y, shade(arm, .85)); px(25, y, shade(arm, .85))
+        px(L(6), y, shade(arm, .85)); px(R(25), y, shade(arm, .85))
     for y in range(30, 33):                       # guantes
-        row(y, 3, 6, glove); row(y, 25, 28, glove)
-    row(33, 8, 23, '#1B1B1B')                     # cinturón
+        row(y, L(3) - ext, L(6), glove); row(y, R(25), R(28) + ext, glove)
+    row(33, L(8), R(23), '#1B1B1B')               # cinturón
     px(15, 33, '#C9C9C9'); px(16, 33, '#C9C9C9')
     for y in range(34, H):                        # pantalón
-        row(y, 8, 23, pants)
+        row(y, L(8), R(23), pants)
         px(15, y, shade(pants, .8)); px(16, y, shade(pants, .8))
     row(16, 12, 19, shade(j, .7)); row(17, 13, 18, shade(j, .7))   # cuello del jersey
-    row(15, 13, 18, sk2)                          # cuello
+    row(15, 12 if build == 'big' else 13, 19 if build == 'big' else 18, sk2)   # cuello
 
     # ---- casco (filas 1-14)
     h = u['h']
@@ -144,12 +155,23 @@ def svg(num, u, size=132, title='', seed='', pose=None, skin=None):
     px(11, 15, sk2); px(20, 15, sk2)
     if u.get('visor'):
         row(9, 11, 20, '#1E1E1E'); row(10, 11, 20, '#2B2B2B')
-    m = u['hm']                                # careta (solo la parte de abajo)
+    m = u['hm']                                # careta: abierta (skill), con barra central (mid) o jaula (big)
     for y in range(10, 16):
         px(10, y, m); px(21, y, m)
-    row(12, 10, 21, m)
-    row(14, 10, 21, m)
-    px(15, 15, m); px(16, 15, m)
+    if build == 'big':
+        row(11, 10, 21, m); row(13, 10, 21, m); row(15, 10, 21, m)
+        for y in range(11, 16):
+            px(13, y, m); px(18, y, m)
+    elif build == 'skill':
+        row(12, 10, 21, m)
+        row(14, 10, 12, m); row(14, 19, 21, m)
+    else:
+        row(12, 10, 21, m)
+        row(14, 10, 21, m)
+        for y in range(12, 16):
+            px(15, y, m); px(16, y, m)
+    if build in ('skill', 'mid') and not u.get('visor'):   # pintura bajo los ojos
+        px(12, 10, '#1A1A1A'); px(13, 10, '#1A1A1A'); px(18, 10, '#1A1A1A'); px(19, 10, '#1A1A1A')
 
     # ---- número con contorno (2x)
     st = '' if num is None else str(num)[-2:]
@@ -192,48 +214,48 @@ def svg(num, u, size=132, title='', seed='', pose=None, skin=None):
                     px(x0 + xx, y0 + yy, '#F4F4F2')
 
     def clear_arm(side):                       # quita el brazo que cuelga (para doblarlo)
-        xs = range(24, 30) if side == 'r' else range(2, 8)
+        xs = range(R(24), R(30) + 1) if side == 'r' else range(L(1), L(8))
         for y in range(22, 33):
             for x in xs:
                 G[y][x] = None
 
     if pose in ('ball_r', 'ball_l'):           # balón en la mano, brazo abajo
-        ball(21 if pose == 'ball_r' else 2, 27)
-        for x in (range(25, 29) if pose == 'ball_r' else range(3, 7)):
+        ball(R(21) if pose == 'ball_r' else L(2), 27)
+        for x in (range(R(25), R(25) + 4) if pose == 'ball_r' else range(L(3), L(3) + 4)):
             for y in (30, 31, 32):
                 px(x, y, glove)
     elif pose == 'ball_up':                    # balón en alto junto al casco (brazo derecho doblado)
         clear_arm('r')
         for y in range(10, 22):                # antebrazo hacia arriba
-            for x in (26, 27, 28):
+            for x in (R(26), R(26) + 1, R(26) + 2):
                 px(x, y, arm)
-            px(26, y, shade(arm, .85))
+            px(R(26), y, shade(arm, .85))
         for y in range(16, 22):                # manga
-            for x in range(24, 29):
+            for x in range(R(24), R(24) + 5):
                 px(x, y, sl)
-        ball(25, 2, BALLV)
+        ball(R(25), 2, BALLV)
         for y in (8, 9, 10):
-            row(y, 25, 29, glove)
+            row(y, R(25), R(25) + 4, glove)
     elif pose == 'tuck':                       # balón pegado al pecho, bajo el brazo derecho
         clear_arm('r')
         for y in range(22, 27):                # brazo doblado sobre el pecho
-            for x in range(24, 28):
+            for x in range(R(24), R(24) + 4):
                 px(x, y, arm)
         for y in range(22, 26):
-            row(y, 22, 23, arm)
+            row(y, R(22), R(23), arm)
         ball(15, 23)
         for y in (25, 26, 27):
-            row(y, 21, 25, glove)
+            row(y, R(21), R(25), glove)
     elif pose == 'two_hands':                  # balón con las dos manos, a la altura de la cintura
         clear_arm('r'); clear_arm('l')
         for y in range(22, 28):
-            for x in (4, 5, 6, 25, 26, 27):
+            for x in (L(4), L(5), L(6), R(25), R(26), R(27)):
                 px(x, y, arm)
         for y in range(26, 30):
-            row(y, 7, 9, arm); row(y, 22, 24, arm)
+            row(y, L(7), L(9), arm); row(y, R(22), R(24), arm)
         ball(11, 27)
         for y in (28, 29, 30):
-            row(y, 8, 11, glove); row(y, 20, 23, glove)
+            row(y, L(8), 11, glove); row(y, 20, R(23), glove)
 
     # ---- contorno exterior
     outline = [(x, y) for y in range(H) for x in range(W) if G[y][x] is None and any(
