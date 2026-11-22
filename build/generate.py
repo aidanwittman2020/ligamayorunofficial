@@ -552,8 +552,10 @@ def game_page(g, G, PL, S):
           'image': [f"{URL}/og.png"]}
     if ld_date:
         ev['startDate'] = ld_date
-    if stadium:
-        ev['location'] = {'@type': 'Place', 'name': stadium, 'address': {'@type': 'PostalAddress', 'addressLocality': city, 'addressCountry': 'MX'}}
+        ev['endDate'] = (datetime.datetime.fromisoformat(ld_date) + datetime.timedelta(hours=3)).isoformat()
+    # Google pide siempre la sede: si no hay estadio registrado, se usa la casa del equipo local
+    ev['location'] = {'@type': 'Place', 'name': stadium or f"Casa de {H['n']}", 'address': {'@type': 'PostalAddress', 'addressLocality': city or H['n'], 'addressCountry': 'MX'}}
+    ev['performer'] = [{'@type': 'SportsTeam', 'name': A['n']}, {'@type': 'SportsTeam', 'name': H['n']}]
     og = og_image(g, A, H, tv) if g['w'] in ('CF', 'SF', 'F') else None
     if og:
         ev['image'] = [URL + og]
