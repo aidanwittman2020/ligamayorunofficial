@@ -58,8 +58,8 @@
      "jugador": "Alfredo Lira"
     },
     {
-     "liga": "",
-     "equipo": "Tepeyac",
+     "liga": "NAC",
+     "equipo": "FRA",
      "jugador": "Axel Carreño"
     },
     {
@@ -86,7 +86,8 @@
     {
      "liga": "14G",
      "equipo": "GDL",
-     "jugador": "David Hernández"
+     "jugador": "David Hernández",
+     "numero": 94
     },
     {
      "liga": "14G",

@@ -482,7 +482,7 @@ def player_page(p, P):
     if p.get('les'):
         body += f'<div class="card injc" style="margin-top:10px"><b>{e(p["les"][0])}</b>{(" · " + e(p["les"][1])) if p["les"][1] else ""}</div>'
     if p.get('draft'):
-        body += '<div class="card draftc" style="margin-top:10px"><b>Draft ' + str(EX.DRAFT_YEAR) + '</b><ul class="pv">' + ''.join(f'<li>{e(x)}</li>' for x in p['draft']) + f'</ul><p class="sub" style="margin:6px 0 0"><a href="/prospectos-{YEAR}/{"nacional/" if p["liga"] == "NAC" else ""}">Ver todos los prospectos →</a> Fuente: MEXFBA.</p></div>'
+        body += '<div class="card draftc" style="margin-top:10px"><b>Draft ' + str(EX.DRAFT_YEAR) + '</b><ul class="pv">' + ''.join(f'<li>{e(x)}</li>' for x in p['draft']) + f'</ul><p class="sub" style="margin:6px 0 0"><a href="/prospectos-{YEAR}/">Ver todos los prospectos →</a> Fuente: MEXFBA.</p></div>'
     cur = p['seasons'].get(str(YEAR))
     body += f'<h2 style="font-size:26px;margin-top:22px">Temporada {YEAR}</h2>'
     if cur and cur['cats']:
@@ -575,7 +575,6 @@ def index_page(P, teams):
     PAGES = [['Equipo ideal 2026', 'Los mejores de cada posición', 'equipo ideal mejores all star once titular seleccion todos estrellas', f'/equipo-ideal-{YEAR}/'],
              ['Prospectos 2026', 'Veteranos rumbo al draft', 'prospectos draft profesional veteranos', f'/prospectos-{YEAR}/'],
              ['Equipo ideal 2026 · Nacional', 'Los mejores de la Conferencia Nacional', 'equipo ideal mejores all star once nacional', f'/equipo-ideal-{YEAR}/nacional/'],
-             ['Prospectos 2026 · Nacional', 'Veteranos de la Nacional rumbo al draft', 'prospectos draft profesional veteranos nacional', f'/prospectos-{YEAR}/nacional/'],
              ['Comparar jugadores', 'Dos jugadores lado a lado', 'comparar comparador versus vs comparacion', '/jugadores/comparar/'],
              ['Qué cambia en 2027', 'Quién sube y quién baja', '2027 ascenso descenso sube baja proxima temporada', '/2027/'],
              ['Líderes', 'Líderes estadísticos', 'lideres estadisticas stats yardas touchdowns tackles', '/#stats'],
@@ -700,7 +699,7 @@ def main():
     sp = os.path.join(SITE, 'sitemap.xml')
     sm = open(sp, encoding='utf-8').read()
     mine = {URL + u for u, _ in out}
-    urls = [u for u in re.findall(r'<url>.*?</url>', sm, re.S) if '/jugadores/' not in u and re.search(r'<loc>([^<]+)</loc>', u).group(1) not in mine]
+    urls = [u for u in re.findall(r'<url>.*?</url>', sm, re.S) if '/jugadores/' not in u and re.search(r'<loc>([^<]+)</loc>', u).group(1) not in mine and '/prospectos-' + str(YEAR) + '/nacional/' not in u]
     old = {m.group(1): m.group(2) for m in re.finditer(r'<loc>([^<]+)</loc>\s*<lastmod>([^<]+)</lastmod>', sm)}
     today = datetime.date.today().isoformat()
     for u, ch in out:
