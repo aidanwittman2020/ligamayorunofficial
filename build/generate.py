@@ -490,6 +490,33 @@ def inject(path, html_):
     return False
 
 
+def patch_team_facts(G):
+    """Récord, lugar y puntos de temporada regular en el HTML de cada página de equipo (lo que ve Google)."""
+    S = {k: {'k': k, 'w': 0, 'l': 0, 'pf': 0, 'pa': 0} for k in TEAMS}
+    reg = []
+    for g in G:
+        if g['fin'] and g['w'] not in ('CF', 'SF', 'F'):
+            for k, my, ot in ((g['a'], g['as'], g['hs']), (g['h'], g['hs'], g['as'])):
+                S[k]['pf'] += my; S[k]['pa'] += ot
+                S[k]['w' if my > ot else 'l'] += 1
+            reg.append((g['a'], g['h'], g['as'], g['hs']))
+    rows = tie_sort(list(S.values()), reg)
+    n = 0
+    for i, r in enumerate(rows):
+        fp = os.path.join(SITE, 'equipos', SLUG[r['k']], 'index.html')
+        if not os.path.exists(fp):
+            continue
+        h = open(fp, encoding='utf-8').read()
+        new = re.sub(r'(<b id="f-rec">)[^<]*', lambda m: m.group(1) + f"{r['w']}-{r['l']}", h)
+        new = re.sub(r'(<b id="f-pos">)[^<]*', lambda m: m.group(1) + f"{i + 1}°", new)
+        new = re.sub(r'(<b id="f-pf">)[^<]*', lambda m: m.group(1) + str(r['pf']), new)
+        new = re.sub(r'(<b id="f-pa">)[^<]*', lambda m: m.group(1) + str(r['pa']), new)
+        if new != h:
+            open(fp, 'w', encoding='utf-8').write(new)
+            n += 1
+    return n
+
+
 def pre_main(G):
     S = {k: {'k': k, 'w': 0, 'l': 0, 'pf': 0, 'pa': 0} for k in TEAMS}
     reg = []
@@ -590,6 +617,7 @@ def main():
     out.append((p, write(p, html_)))
     sitemap(out)
     try:
+        print('equipos (récord en HTML):', patch_team_facts(G))
         changed = inject('index.html', pre_main(G))
         nh = pre_nac(local)
         if nh:

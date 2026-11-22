@@ -8,15 +8,15 @@ import os
 import re
 
 SITE = os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', 'site')
-CSS_V = '3'
+CSS_V = '4'
 LINK = f'<link rel="stylesheet" href="/layout.css?v={CSS_V}" id="lay">'
 
 MENU_14 = [('Inicio', '/#inicio'), ('Tabla', '/#tabla'), ('Juegos', '/#juegos'), ('Playoffs', '/#playoffs'), ('Equipos', '/#equipos'),
            ('Líderes', '/#stats'), ('Jugadores', '/jugadores/'), ('Historia', '/historia/')]
-MENU_NAC = [('Tabla', '/nacional/#tabla'), ('Juegos', '/nacional/#juegos'), ('Playoffs', '/nacional/#playoffs'), ('Equipos', '/nacional/#equipos'),
+MENU_NAC = [('Inicio', '/nacional/#inicio'), ('Tabla', '/nacional/#tabla'), ('Juegos', '/nacional/#juegos'), ('Playoffs', '/nacional/#playoffs'), ('Equipos', '/nacional/#equipos'),
             ('Líderes', '/nacional/#stats'), ('Jugadores', '/jugadores/'), ('Historia', '/historia/')]
 
-NAC_JS = '''<script id="lay-nac">(function(){const ok=['tabla','juegos','equipos','stats','playoffs','info'];
+NAC_JS = '''<script id="lay-nac">(function(){const ok=['inicio','tabla','juegos','equipos','stats','playoffs','info'];
 function sync(){const t=typeof tab!=='undefined'?tab:'';document.querySelectorAll('#topnav a').forEach(a=>{const h=a.getAttribute('href');a.classList.toggle('on',h==='/nacional/#'+t)})}
 addEventListener('hashchange',()=>{const h=location.hash.slice(1);if(ok.includes(h)){tab=h;autoTab=false;document.getElementById('sheet')&&(document.getElementById('sheet').hidden=true);render();scrollTo(0,0)}sync()});
 try{const r0=render;render=function(){r0.apply(this,arguments);sync()}}catch(e){}
@@ -35,7 +35,7 @@ def header(path):
     elif path.startswith('juegos/'):
         on = '/#juegos'
     elif nac:
-        on = '/nacional/#tabla'
+        on = '/nacional/#inicio'
     else:
         on = ''
     ON = ' class="on"'

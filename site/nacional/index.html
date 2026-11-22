@@ -486,9 +486,9 @@ tr.q3 td.pos{color:#B8901C;font-weight:800}
 </style>
 <script type="application/ld+json">{"@context": "https://schema.org", "@type": "BreadcrumbList", "itemListElement": [{"@type": "ListItem", "position": 1, "name": "Inicio", "item": "https://ligamayorunofficial.com/"}, {"@type": "ListItem", "position": 2, "name": "Conferencia Nacional", "item": "https://ligamayorunofficial.com/nacional/"}]}</script>
 <style>@view-transition{navigation:auto}::view-transition-old(root),::view-transition-new(root){animation-duration:.14s}header.top{view-transition-name:top}</style><script type="speculationrules">{"prerender":[{"where":{"and":[{"href_matches":"/*"},{"not":{"href_matches":"/*.json"}}]},"eagerness":"moderate"}]}</script>
-<link rel="stylesheet" href="/layout.css?v=3" id="lay"></head>
+<link rel="stylesheet" href="/layout.css?v=4" id="lay"></head>
 <body>
-<header class="top" data-app="1"><div class="in"><a class="brand" href="/">Liga Mayor <span>Unofficial</span></a><nav class="topnav" id="topnav" aria-label="Secciones"><a href="/nacional/#tabla" class="on">Tabla</a><a href="/nacional/#juegos">Juegos</a><a href="/nacional/#playoffs">Playoffs</a><a href="/nacional/#equipos">Equipos</a><a href="/nacional/#stats">Líderes</a><a href="/jugadores/">Jugadores</a><a href="/historia/">Historia</a></nav><div class="confs"><a href="/">14 Grandes</a><a href="/nacional/" class="on">Nacional</a></div></div></header>
+<header class="top" data-app="1"><div class="in"><a class="brand" href="/">Liga Mayor <span>Unofficial</span></a><nav class="topnav" id="topnav" aria-label="Secciones"><a href="/nacional/#inicio" class="on">Inicio</a><a href="/nacional/#tabla">Tabla</a><a href="/nacional/#juegos">Juegos</a><a href="/nacional/#playoffs">Playoffs</a><a href="/nacional/#equipos">Equipos</a><a href="/nacional/#stats">Líderes</a><a href="/jugadores/">Jugadores</a><a href="/historia/">Historia</a></nav><div class="confs"><a href="/">14 Grandes</a><a href="/nacional/" class="on">Nacional</a></div></div></header>
 <div class="ticker" aria-label="Marcadores de la Conferencia Nacional"><div class="in" id="ticker"></div></div>
 <main class="wrap">
 <h1 style="position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap">Conferencia Nacional ONEFA 2026: tabla, resultados y playoffs</h1>
@@ -497,12 +497,13 @@ tr.q3 td.pos{color:#B8901C;font-weight:800}
 <p class="sitefoot">Sitio no oficial hecho por aficionados. Tablas de posiciones: <a href="https://www.instagram.com/statistics_football_mx/" target="_blank" rel="noopener">@statistics_football_mx</a>. Estadísticas individuales de Uriel González (FBA Stats). <a href="/">Volver a los 14 Grandes</a></p>
 </main>
 <nav class="tabs" aria-label="Secciones"><div class="in">
+  <button data-tab="inicio"><svg viewBox="0 0 24 24"><path d="M4 11l8-7 8 7v9h-5v-6H9v6H4z"/></svg>Inicio</button>
   <button data-tab="tabla"><svg viewBox="0 0 24 24"><path d="M4 6h16M4 12h16M4 18h16"/></svg>Tabla</button>
   <button data-tab="juegos"><svg viewBox="0 0 24 24"><rect x="4" y="5" width="16" height="15" rx="2"/><path d="M4 10h16M9 3v4M15 3v4"/></svg>Juegos</button>
   <button data-tab="equipos"><svg viewBox="0 0 24 24"><path d="M12 3l7 3v5c0 4.5-3 8-7 10-4-2-7-5.5-7-10V6z"/></svg>Equipos</button>
   <button data-tab="stats"><svg viewBox="0 0 24 24"><path d="M5 20V11M12 20V5M19 20v-6"/></svg>Líderes</button>
   <button data-tab="playoffs"><svg viewBox="0 0 24 24"><path d="M4 5h5v6h6v8h5M4 19h5v-8"/></svg>Playoffs</button>
-  <button data-tab="info"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="8.5"/><path d="M12 11v6M12 7.5v.5"/></svg>Info</button>
+  
 </div></nav>
 <script>
 (function(){const of=window.fetch.bind(window),used={};window.fetch=function(u,o){try{const s=String(u);if(s.includes('docs.google.com')&&s.includes('output=csv')){const k='lmu-c:'+s.replace(/[?&]t=\d+/g,'');const p=of(u,o).then(r=>{if(r.ok)r.clone().text().then(t=>{try{localStorage.setItem(k,t)}catch(e){}});return r});if(!used[k]){used[k]=1;let c=null;try{c=localStorage.getItem(k)}catch(e){}if(c){p.catch(()=>{});return Promise.resolve(new Response(c,{status:200}))}}return p}}catch(e){}return of(u,o)}})();
@@ -525,8 +526,8 @@ function csv(t){const R=[];let r=[],f='',q=false;for(let i=0;i<t.length;i++){con
 const RN={CF:'Cuartos de final',SF:'Semifinales',F:'Final'};
 const STAFF={PAC:['Horacio García','FES Acatlán, Méx.'],PSA:['Ricardo Jiménez','Estadio J. J. Pichardo, Méx.'],BUH:['Guillermo Núñez','Estadio Wilfrido Massieu, CDMX'],FRA:['Alfredo Gutiérrez','Estadio Jaime Labastida, Méx.'],HAL:['José Luis Izquierdo','Campo de los Sueños, Ver.'],TSA:['Carlos Salgado','Estadio Palomo Ruiz Tapia, Méx.'],PAN:['César Pérez','La Fortaleza, Méx.'],LQR:['Miguel Estrada','El Olimpo Naranja, Qro.'],TEC:['Christian García','Campo 23 de Octubre, Jal.'],ULM:['Alejandro Alamilla','Campo Universitario ULM, Gto.'],UIW:['Edgar Cervantes','Campo el Nido, Gto.'],ASU:['Axel Amaya','The Red Cave, Qro.'],UAT:['Guillermo Fierro','Estadio Eugenio Alvizo, Tamps.'],UCH:['Federico Landeros','Estadio Olímpico UACH, Chih.'],ITS:['Jorge Aguilar','Campo Hundido, Son.'],UAC:['Daniel Carrete','Estadio Jorge Castro, Coah.'],UCJ:['Alfredo Martínez','Complejo Deportivo UACJ, Chih.'],UBC:['Ricardo Licona','Estadio Cimarrón, BC']};
 const TIT={UCH:[['Conferencia Nacional','2004, 2008, 2022, 2023'],['Conferencia del Norte','2010']],UAC:[['Conferencia Nacional','1998, 2001, 2014, 2021'],['Conferencia del Norte','2009'],['Conferencia Blanca','2018']],PAC:[['Conferencia Nacional','1999, 2003, 2013']],FRA:[['Conferencia Nacional','2002']],PSA:[['Conferencia Nacional','2012'],['Conferencia del Sur','2010'],['Conferencia Blanca','2017']],BUH:[['Conferencia Nacional','2022 (grupo Centro)']],TEC:[['Conferencia Roja','2015']],UAT:[['Conferencia Roja','2016, 2017, 2018']],ITS:[['Conferencia del Pacífico','2001'],['CONADEIP Libertad','2014, 2019']],UBC:[['CONADEIP Libertad','2012, 2016']]};
-let tab='tabla',autoTab=true;
-{const h0=(location.hash||'').slice(1);if(['tabla','juegos','equipos','stats','playoffs','info'].includes(h0)){tab=h0;autoTab=false}}
+let tab='inicio',autoTab=true;
+{const h0=(location.hash||'').slice(1);if(['inicio','tabla','juegos','equipos','stats','playoffs','info'].includes(h0)){tab=h0;autoTab=false}}
 let TSTATS={"ASU":{"J":8,"rush":788,"pass":785,"tot":1573,"ypg":196.6,"fd":70,"to":18,"rushA":955,"passA":1659,"totA":2614,"yapg":326.7},"PAN":{"J":9,"rush":573,"pass":735,"tot":1308,"ypg":145.3,"fd":66,"to":22,"rushA":1295,"passA":1751,"totA":3046,"yapg":338.4},"BUH":{"J":8,"rush":1112,"pass":1163,"tot":2275,"ypg":284.3,"fd":109,"to":8,"rushA":836,"passA":951,"totA":1787,"yapg":223.3},"ITS":{"J":7,"rush":713,"pass":1569,"tot":2282,"ypg":326.0,"fd":84,"to":12,"rushA":825,"passA":1077,"totA":1902,"yapg":271.7},"UBC":{"J":7,"rush":431,"pass":1111,"tot":1542,"ypg":220.2,"fd":69,"to":25,"rushA":1369,"passA":1525,"totA":2894,"yapg":413.4},"UAC":{"J":7,"rush":1627,"pass":642,"tot":2269,"ypg":324.1,"fd":95,"to":15,"rushA":475,"passA":1141,"totA":1616,"yapg":230.8},"UCH":{"J":7,"rush":1281,"pass":1551,"tot":2832,"ypg":404.5,"fd":114,"to":10,"rushA":413,"passA":955,"totA":1368,"yapg":195.4},"TSA":{"J":7,"rush":313,"pass":445,"tot":758,"ypg":108.2,"fd":45,"to":11,"rushA":900,"passA":1099,"totA":1999,"yapg":285.5},"UCJ":{"J":7,"rush":772,"pass":1193,"tot":1965,"ypg":280.7,"fd":79,"to":11,"rushA":827,"passA":909,"totA":1736,"yapg":248.0},"PSA":{"J":8,"rush":1492,"pass":1337,"tot":2829,"ypg":353.6,"fd":119,"to":11,"rushA":625,"passA":891,"totA":1516,"yapg":189.5},"TEC":{"J":8,"rush":735,"pass":1855,"tot":2590,"ypg":323.7,"fd":98,"to":10,"rushA":734,"passA":613,"totA":1347,"yapg":168.3},"LQR":{"J":8,"rush":1339,"pass":1790,"tot":3129,"ypg":391.1,"fd":100,"to":9,"rushA":322,"passA":661,"totA":983,"yapg":122.8},"UAT":{"J":8,"rush":509,"pass":588,"tot":1097,"ypg":137.1,"fd":54,"to":17,"rushA":1243,"passA":1324,"totA":2567,"yapg":320.8},"UIW":{"J":8,"rush":486,"pass":957,"tot":1443,"ypg":180.3,"fd":55,"to":11,"rushA":782,"passA":1304,"totA":2086,"yapg":260.7},"ULM":{"J":7,"rush":430,"pass":586,"tot":1016,"ypg":145.1,"fd":52,"to":7,"rushA":615,"passA":987,"totA":1602,"yapg":228.8},"PAC":{"J":8,"rush":1086,"pass":1625,"tot":2711,"ypg":338.8,"fd":122,"to":9,"rushA":557,"passA":1196,"totA":1753,"yapg":219.1},"FRA":{"J":8,"rush":800,"pass":732,"tot":1532,"ypg":191.5,"fd":73,"to":19,"rushA":753,"passA":1017,"totA":1770,"yapg":221.2},"HAL":{"J":8,"rush":253,"pass":1492,"tot":1745,"ypg":218.1,"fd":80,"to":10,"rushA":1185,"passA":1023,"totA":2208,"yapg":276.0}},TSTATS_CUT='Semana 9';
 const tRank=(k,f,asc)=>{const ks=Object.keys(TSTATS).sort((a,b)=>asc?TSTATS[a][f]-TSTATS[b][f]:TSTATS[b][f]-TSTATS[a][f]);return ks.indexOf(k)+1};
 const pRank=(k,f,asc)=>{const v=t=>t[f]/Math.max(1,t.w+t.l),ks=TEAMS.slice().sort((a,b)=>asc?v(a)-v(b):v(b)-v(a)).map(t=>t.k);return ks.indexOf(k)+1};
@@ -639,7 +640,30 @@ async function shareTabla(btn){if(btn){btn.disabled=true;btn.textContent='Genera
   x.fillStyle='#0E1A12';x.fillRect(0,H-74,W,74);x.textAlign='center';x.font=F.d(800,34);x.fillStyle='#3DBE73';x.fillText(SITE_TXT.toUpperCase()+'/NACIONAL',W/2,H-26);
   await shareCanvas(c,'tabla-conferencia-nacional.png',`Tabla de la Conferencia Nacional ONEFA 2026 · https://${SITE_TXT}/nacional/`)}catch(e){}
   if(btn){btn.disabled=false;btn.textContent='Compartir tabla'}}
-function render(){const Q=qualified(),done=GAMES.some(g=>RN[g.r]);
+
+// ===== Inicio de la Nacional: partido principal o campeón =====
+function nacHero(){
+  const po=GAMES.filter(g=>RN[g.r]),ord=['CF','SF','F'];
+  const pick=GAMES.find(gLive)||po.filter(g=>!gFin(g)).sort((x,y)=>ord.indexOf(x.r)-ord.indexOf(y.r))[0]||po.find(g=>g.r==='F'&&gFin(g))||po.slice().sort((x,y)=>ord.indexOf(y.r)-ord.indexOf(x.r))[0];
+  return pick||null}
+function nacInicio(){
+  const g=nacHero();let h='<h2 class="vh">Conferencia Nacional ONEFA 2026</h2>';
+  if(g){const fin=gFin(g),lv=gLive(g),A=tk(g.a),H=tk(g.h),aw=fin&&g.as>g.hs,hw=fin&&g.hs>g.as;
+    const champ=fin&&g.r==='F'?(aw?A:H):null,runner=champ?(aw?H:A):null;
+    if(champ)h+=`<section class="champ2"><span>Campeón Conferencia Nacional 2026</span><div>${nb(champ.k)}<b>${esc(champ.n)}</b></div><p>Vencieron ${Math.max(g.as,g.hs)}-${Math.min(g.as,g.hs)} a ${esc(runner.n)} en la final${g.d?' del '+esc(g.d):''}.</p></section>`;
+    const side=(t,home,r,lose)=>`<div class="ht${r?' r':''}${lose?' lose':''}" data-team="${t.k}">${nb(t.k)}<div><small>${home?'Local':'Visitante'}</small><b>${esc(t.n)}</b><small>${t.w}-${t.l} · grupo ${esc(t.g)}</small></div></div>`;
+    const mid=fin||lv?`<div class="cd"><span class="cd-l${lv?' lv':''}">${lv?'● EN VIVO':'FINAL'}</span><div class="cd-sc"><span>${g.as??0}</span><i>–</i><span>${g.hs??0}</span></div></div>`:`<div class="cd"><span class="cd-l">PRÓXIMO PARTIDO</span><div class="cd-sc" style="font-size:34px">${esc(g.d||'Por confirmar')}</div><span class="cd-note">${esc(g.t||'')}</span></div>`;
+    const path=k=>GAMES.filter(x=>x!==g&&RN[x.r]&&gFin(x)&&(x.a===k||x.h===k)).map(x=>{const me=x.a===k?x.as:x.hs,op=x.a===k?x.hs:x.as,o=x.a===k?x.h:x.a;return`${RN[x.r]}: ${me>op?'G':'P'} ${me}-${op} a ${esc(tk(o).n)}`});
+    h+=`<section class="hero"><div class="hero-h"><b>${RN[g.r]||'Semana '+g.r} · Conferencia Nacional 2026</b><span>${esc([g.d,g.t].filter(Boolean).join(' · '))}</span></div>
+    <div class="hero-m">${side(A,false,false,fin&&!aw)}<div class="hero-c">${mid}<button class="h-tv" data-game="${gId(g)}" style="border:0;cursor:pointer">Ver el partido</button></div>${side(H,true,true,fin&&!hw)}</div>
+    <div class="hero-b"><section><h4>Camino ${g.r==='F'?'a la final':'hasta aquí'}</h4><p class="road"><b>${esc(A.n)}:</b> ${path(g.a).join(' · ')||'—'}</p><p class="road"><b>${esc(H.n)}:</b> ${path(g.h).join(' · ')||'—'}</p></section>
+    <section><h4>Temporada regular</h4><div class="cmp">${[['Récord',t=>t.w+'-'+t.l],['Pts a favor',t=>t.pf],['Pts en contra',t=>t.pa]].map(([l,f])=>`<div class="cmp-r"><b>${f(A)}</b><span>${l}</span><b>${f(H)}</b></div>`).join('')}</div></section>
+    <section><h4>Más</h4><div class="mas" style="margin:0"><a href="#playoffs"><b>Llave de playoffs</b><span>Todos los resultados</span></a><a href="#tabla"><b>Tabla final</b><span>Grupos Centro, Bajío y Norte</span></a></div></section></div></section>`}
+  const po=GAMES.filter(x=>RN[x.r]&&gFin(x)&&x!==g);const lr=['SF','CF'].find(r=>po.some(x=>x.r===r));
+  if(lr)h+=`<div class="hb-h"><h3>${RN[lr]}</h3><a href="#playoffs">Ver llave →</a></div><div class="res-l res2">${po.filter(x=>x.r===lr).map(x=>{const wa=x.as>x.hs;return`<div class="res-g" data-game="${gId(x)}"><div class="${wa?'':'l'}"><span>${esc(tk(x.a).n)}</span><b>${x.as}</b></div><div class="${wa?'l':''}"><span>${esc(tk(x.h).n)}</span><b>${x.hs}</b></div></div>`}).join('')}</div>`;
+  h+='<p class="sub" style="margin-top:18px"><a href="#info">Acerca de estos datos y créditos →</a></p>';
+  return h}
+function render(){if(tab==='inicio'){document.getElementById('nac').innerHTML=nacInicio();renderTicker();document.querySelectorAll('nav.tabs button').forEach(b=>b.setAttribute('aria-current',b.dataset.tab===tab?'page':'false'));return}const Q=qualified(),done=GAMES.some(g=>RN[g.r]);
   const qrow=(t,lbl,i)=>`<div class="q">${nb(t.k)}<b>${esc(t.n)}<small>${lbl} · ${esc(t.s)}</small></b><span class="rc">${t.w}-${t.l}</span></div>`;
   let all=[...Q.lead.map(t=>[t,'1º grupo '+t.g]),...Q.sec.map(t=>[t,'2º grupo '+t.g]),...Q.thirds.map(t=>[t,'Mejor 3º · '+t.g])];
   if(done){const ks=new Set(GAMES.filter(g=>g.r==='CF').flatMap(g=>[g.a,g.h]));if(ks.size>=8){const have=new Set(all.map(([t])=>t.k));all=all.filter(([t])=>ks.has(t.k));ks.forEach(k=>{if(!have.has(k)){const t=tk(k);all.push([t,'Mejor 3º · '+t.g])}})}}
@@ -725,7 +749,7 @@ function loadNac(){return Promise.all([1541467341,910175980,1049818250,172049531
     R.forEach(r=>{const k=(r[0]||'').trim().toUpperCase();if(nm(k)==='corte'){cut=(r[1]||'').trim();return}if(!k||c('Juegos')<0)return;
       m[k]={J:n(r[c('Juegos')]),rush:n(r[c('Yds tierra')]),pass:n(r[c('Yds aire')]),tot:n(r[c('Yds totales')]),ypg:n(r[c('Yds por juego')]),fd:n(r[c('Primeros y diez')]),to:n(r[c('Perdidas de balon')]),rushA:n(r[c('Yds permitidas tierra')]),passA:n(r[c('Yds permitidas aire')]),totA:n(r[c('Yds permitidas')]),yapg:n(r[c('Yds permitidas por juego')])}});
     if(Object.keys(m).length>=15){TSTATS=m;if(cut)TSTATS_CUT=cut}}catch(_){}}
-  if(autoTab&&GAMES.some(g=>RN[g.r]))tab='playoffs';autoTab=false;LOADED=true;
+  autoTab=false;LOADED=true;
   const y=window.scrollY;render();window.scrollTo(0,y);
   const sh=document.getElementById('sheet');if(CURG&&!sh.hidden)openGame(CURG,true);
   if(!DEEP){DEEP=true;const m=(location.hash||'').match(/^#partido-(.+)$/);if(m)openGame(decodeURIComponent(m[1]))}})}
@@ -824,7 +848,7 @@ document.addEventListener('submit',e=>{const f=e.target.closest('[data-cform]');
 loadVotes();setInterval(loadVotes,60000);
 </script>
 <script>if("serviceWorker" in navigator)addEventListener("load",()=>navigator.serviceWorker.register("/sw.js").catch(()=>{}));</script>
-<script id="lay-nac">(function(){const ok=['tabla','juegos','equipos','stats','playoffs','info'];
+<script id="lay-nac">(function(){const ok=['inicio','tabla','juegos','equipos','stats','playoffs','info'];
 function sync(){const t=typeof tab!=='undefined'?tab:'';document.querySelectorAll('#topnav a').forEach(a=>{const h=a.getAttribute('href');a.classList.toggle('on',h==='/nacional/#'+t)})}
 addEventListener('hashchange',()=>{const h=location.hash.slice(1);if(ok.includes(h)){tab=h;autoTab=false;document.getElementById('sheet')&&(document.getElementById('sheet').hidden=true);render();scrollTo(0,0)}sync()});
 try{const r0=render;render=function(){r0.apply(this,arguments);sync()}}catch(e){}

@@ -379,7 +379,7 @@ header.top .in:has(.topnav){flex-wrap:wrap;row-gap:6px}
 .crumbs .cur{color:var(--ink)}
 </style>
 <style>@view-transition{navigation:auto}::view-transition-old(root),::view-transition-new(root){animation-duration:.14s}header.top{view-transition-name:top}</style><script type="speculationrules">{"prerender":[{"where":{"and":[{"href_matches":"/*"},{"not":{"href_matches":"/*.json"}}]},"eagerness":"moderate"}]}</script>
-<link rel="stylesheet" href="/layout.css?v=3" id="lay"></head>
+<link rel="stylesheet" href="/layout.css?v=4" id="lay"></head>
 <body>
 <header class="top"><div class="in"><a class="brand" href="/">Liga Mayor <span>Unofficial</span></a><nav class="topnav" id="topnav" aria-label="Secciones"><a href="/#inicio">Inicio</a><a href="/#tabla">Tabla</a><a href="/#juegos">Juegos</a><a href="/#playoffs">Playoffs</a><a href="/#equipos" class="on">Equipos</a><a href="/#stats">Líderes</a><a href="/jugadores/">Jugadores</a><a href="/historia/">Historia</a></nav><div class="confs"><a href="/" class="on">14 Grandes</a><a href="/nacional/">Nacional</a></div></div></header>
 <main class="wrap">
@@ -409,9 +409,9 @@ header.top .in:has(.topnav){flex-wrap:wrap;row-gap:6px}
 (function(){const K="LAC",CSV="https://docs.google.com/spreadsheets/d/e/2PACX-1vQNVclYf7g5WHDSejO-E_1xVXBF-KC__RWAbeSLafpfFK-5fxjCE2JegKDDBVnqalEEV97cBnF1PMzU/pub?gid=1243915347&single=true&output=csv";
 function parse(t){const rows=[];let r=[],f='',q=false;for(let i=0;i<t.length;i++){const c=t[i];if(q){if(c=='"'){if(t[i+1]=='"'){f+='"';i++}else q=false}else f+=c}else if(c=='"')q=true;else if(c==','){r.push(f);f=''}else if(c=='\n'||c=='\r'){if(c=='\r'&&t[i+1]=='\n')i++;r.push(f);rows.push(r);r=[];f=''}else f+=c}if(f!==''||r.length){r.push(f);rows.push(r)}return rows}
 fetch(CSV+'&t='+Date.now()).then(r=>r.ok?r.text():Promise.reject()).then(t=>{const rows=parse(t).filter(r=>r.some(x=>x.trim()));const H=rows.shift().map(x=>x.trim().toLowerCase());const ix=n=>H.indexOf(n);
-const A=ix('visitante'),AS=ix('pts visitante'),HS=ix('pts local'),HH=ix('local'),E=ix('estado');const S={};
+const SW=ix('semana'),A=ix('visitante'),AS=ix('pts visitante'),HS=ix('pts local'),HH=ix('local'),E=ix('estado');const S={};
 rows.forEach((r,id)=>{const a=r[A].trim(),h=r[HH].trim(),fin=r[E].trim().toLowerCase()==='final',as=+r[AS],hs=+r[HS];[a,h].forEach(x=>S[x]=S[x]||{w:0,l:0,pf:0,pa:0});
- if(!fin||r[AS]===''||r[HS]==='')return;S[a].pf+=as;S[a].pa+=hs;S[h].pf+=hs;S[h].pa+=as;(as>hs?S[a]:S[h]).w++;(as>hs?S[h]:S[a]).l++;
+ if(!fin||r[AS]===''||r[HS]==='')return;if(!['CF','SF','F'].includes((r[SW]||'').trim().toUpperCase())){S[a].pf+=as;S[a].pa+=hs;S[h].pf+=hs;S[h].pa+=as;(as>hs?S[a]:S[h]).w++;(as>hs?S[h]:S[a]).l++}
  if(a===K||h===K){const tr=document.querySelector('tr[data-gid="'+id+'"] td.r');if(tr){const my=h===K?hs:as,ot=h===K?as:hs,W=my>ot?'G':'P';tr.innerHTML='<span class="res '+W+'">'+W+' '+my+'-'+ot+'</span>'}}});
 const s=S[K];if(!s)return;const ord=Object.keys(S).sort((x,y)=>S[y].w-S[x].w||S[x].l-S[y].l||S[x].pa-S[y].pa);
 document.getElementById('f-rec').textContent=s.w+'-'+s.l;document.getElementById('f-pf').textContent=s.pf;document.getElementById('f-pa').textContent=s.pa;document.getElementById('f-pos').textContent=(ord.indexOf(K)+1)+'°'}).catch(()=>{})})();
