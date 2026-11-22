@@ -15,7 +15,7 @@ URL = 'https://ligamayorunofficial.com'
 YEAR = 2026
 PUB = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQNVclYf7g5WHDSejO-E_1xVXBF-KC__RWAbeSLafpfFK-5fxjCE2JegKDDBVnqalEEV97cBnF1PMzU/pub?gid={}&single=true&output=csv'
 GID = {'juegos': 1243915347, 'anotaciones': 1258472465, 'canales': 1868069815, 'ntabla': 1541467341, 'njuegos': 910175980,
-       'lideres': 1908116186, 'estrellas': 1355832789, 'tstats': 1066629721}
+       'lideres': 1908116186, 'estrellas': 1355832789, 'tstats': 1066629721, 'lesiones': 777000001}
 e = html.escape
 
 # ---------------------------------------------------------------- datos base del sitio
@@ -330,6 +330,80 @@ if(st==="en vivo"||st==="final"){el.innerHTML=a+'<span class="d">-</span>'+h;s.t
 go();setInterval(go,60000)})();</script>'''
 
 
+def cal_links(g, A, H, stadium, city, ld_date):
+    """Botones para guardar el partido en el calendario (Google y archivo .ics para iPhone/Outlook)."""
+    if not ld_date or not g['t']:
+        return ''
+    from urllib.parse import quote
+    st = datetime.datetime.fromisoformat(ld_date).astimezone(datetime.timezone.utc)
+    en = st + datetime.timedelta(hours=3)
+    f = lambda d: d.strftime('%Y%m%dT%H%M%SZ')
+    ttl = f"{A['n']} vs {H['n']} · {wk_label(g['w'])} Liga Mayor"
+    loc = ', '.join(x for x in [stadium, city] if x)
+    url = URL + game_path(g)
+    tv, _ = watch(g)
+    det = f"{url}" + (f"\nTransmisión: {tv}" if tv else '')
+    gc = ('https://calendar.google.com/calendar/render?action=TEMPLATE&text=' + quote(ttl) + f'&dates={f(st)}/{f(en)}'
+          + '&details=' + quote(det) + '&location=' + quote(loc))
+    esc = lambda x: x.replace('\\', '\\\\').replace(',', '\\,').replace(';', '\\;').replace('\n', '\\n')
+    ics = '\r\n'.join(['BEGIN:VCALENDAR', 'VERSION:2.0', 'PRODID:-//ligamayorunofficial.com//ES', 'BEGIN:VEVENT',
+                        f'UID:{g["w"]}-{g["a"]}-{g["h"]}-{YEAR}@ligamayorunofficial.com', f'DTSTAMP:{f(st)}', f'DTSTART:{f(st)}', f'DTEND:{f(en)}',
+                        'SUMMARY:' + esc(ttl), 'LOCATION:' + esc(loc), 'DESCRIPTION:' + esc(det), 'URL:' + url, 'END:VEVENT', 'END:VCALENDAR'])
+    fn = f"{SLUG[g['a']]}-vs-{SLUG[g['h']]}.ics"
+    return (f'<div class="calb"><span>Agregar al calendario:</span><a href="{e(gc)}" target="_blank" rel="noopener">Google Calendar</a>'
+            f'<a href="data:text/calendar;charset=utf-8,{quote(ics)}" download="{fn}">iPhone / Outlook (.ics)</a></div>')
+
+
+def preview_html(g, G, S, A, H):
+    """Previa de partidos de playoffs: camino de cada equipo, cara a cara y datos de contexto (build/data/previas.json)."""
+    if g['w'] not in ('CF', 'SF', 'F') or g['fin']:
+        return ''
+    out = ''
+    PW = ['CF', 'SF', 'F']
+    def path(k):
+        r = []
+        for x in G:
+            if x is g or not x['fin'] or x['w'] not in PW or PW.index(x['w']) >= PW.index(g['w']) or k not in (x['a'], x['h']):
+                continue
+            me, op = (x['as'], x['hs']) if x['a'] == k else (x['hs'], x['as'])
+            o = x['h'] if x['a'] == k else x['a']
+            r.append(f"{'Ganó' if me > op else 'Perdió'} {me}-{op} a {TEAMS[o]['n']} ({ {'CF': 'cuartos', 'SF': 'semifinal'}.get(x['w'], x['w']) })")
+        return r
+    gp = lambda k: max(1, S[k]['w'] + S[k]['l'])
+    pts = {k: [0, 0] for k in (g['a'], g['h'])}
+    for x in G:
+        if x['fin'] and x['w'] not in PW:
+            for k, me, op in ((x['a'], x['as'], x['hs']), (x['h'], x['hs'], x['as'])):
+                if k in pts:
+                    pts[k][0] += me
+                    pts[k][1] += op
+    S = {k: dict(S[k], pf=pts[k][0], pa=pts[k][1]) for k in pts}
+    rows = [('Récord temporada regular', f"{S[g['a']]['w']}-{S[g['a']]['l']}", f"{S[g['h']]['w']}-{S[g['h']]['l']}"),
+            ('Puntos a favor por juego', f"{S[g['a']]['pf'] / gp(g['a']):.1f}", f"{S[g['h']]['pf'] / gp(g['h']):.1f}"),
+            ('Puntos en contra por juego', f"{S[g['a']]['pa'] / gp(g['a']):.1f}", f"{S[g['h']]['pa'] / gp(g['h']):.1f}")]
+    reg = [x for x in G if x['fin'] and x['w'] not in PW and {x['a'], x['h']} == {g['a'], g['h']}]
+    out += f'<h2 style="font-size:26px;margin-top:22px">Previa</h2>'
+    out += ('<div class="tbl-box"><table class="qs"><thead><tr><th></th><th>' + e(SHORT.get(g['a'], A['n'])) + '</th><th>' + e(SHORT.get(g['h'], H['n'])) + '</th></tr></thead><tbody>'
+            + ''.join(f'<tr><td>{l}</td><td class="num">{a}</td><td class="num">{h}</td></tr>' for l, a, h in rows) + '</tbody></table></div>')
+    pa, ph = path(g['a']), path(g['h'])
+    if pa or ph:
+        out += f'<div class="card" style="margin-top:10px"><b>Camino {"a la final" if g["w"] == "F" else "hasta aquí"}</b><p class="sub" style="margin:6px 0 0"><b>{e(A["n"])}:</b> {e("; ".join(pa) or "—")}</p><p class="sub" style="margin:4px 0 0"><b>{e(H["n"])}:</b> {e("; ".join(ph) or "—")}</p></div>'
+    if reg:
+        x = reg[-1]
+        out += f'<div class="card" style="margin-top:10px"><b>En la temporada regular</b><p class="sub" style="margin:6px 0 0">{e(long_date(x["d"]) if x["w"] == "P" else wk_label(x["w"]))}: {e(TEAMS[x["a"]]["n"])} {x["as"]}, {e(TEAMS[x["h"]]["n"])} {x["hs"]}{(" (" + e(x["det"]) + ")") if x.get("det") else ""}.</p></div>'
+    try:
+        P = json.load(open(os.path.join(os.path.dirname(os.path.abspath(__file__)), 'data', 'previas.json'), encoding='utf-8'))
+    except Exception:
+        P = {}
+    d = P.get(f"{g['w']}|{g['a']}|{g['h']}") or P.get(f"{g['w']}|{g['h']}|{g['a']}")
+    if d:
+        out += f'<div class="card" style="margin-top:10px"><b>{e(d.get("titulo", "Contexto"))}</b><ul class="pv">' + ''.join(f'<li>{e(x)}</li>' for x in d.get('puntos', [])) + '</ul>'
+        if d.get('fuentes'):
+            out += '<p class="sub" style="margin:6px 0 0">Fuentes: ' + ', '.join(f'<a href="{e(u)}" rel="noopener" target="_blank">{e(t)}</a>' for t, u in d['fuentes']) + '.</p>'
+        out += '</div>'
+    return out
+
+
 def game_page(g, G, PL, S):
     A, H = TEAMS[g['a']], TEAMS[g['h']]
     path = game_path(g)
@@ -368,7 +442,8 @@ def game_page(g, G, PL, S):
     facts = f'<div><dt>Fecha</dt><dd>{e(long_date(g["d"]))}{" · " + e(g["t"]) + " h" if g["t"] else ""}</dd></div>'
     if stadium:
         facts += f'<div><dt>Estadio</dt><dd>{e(stadium)}</dd></div><div><dt>Sede</dt><dd>{e(city)}</dd></div>'
-    body += f'<h2 style="font-size:26px;margin-top:22px">El partido</h2><div class="card"><dl class="facts">{facts}</dl></div>'
+    body += f'<h2 style="font-size:26px;margin-top:22px">El partido</h2><div class="card"><dl class="facts">{facts}</dl>{cal_links(g, A, H, stadium, city, ld_date) if not g["fin"] and not g["live"] else ""}</div>'
+    body += preview_html(g, G, S, A, H)
     body += detail_html(g, PL.get((g['w'], g['a'], g['h']), []))
     if g['fin'] and g.get('ya') is not None and g.get('yh') is not None:
         body += (f'<h2 style="font-size:26px;margin-top:22px">Yardas totales</h2><div class="card"><dl class="facts"><div><dt>{e(A["n"])}</dt><dd>{g["ya"]} yardas</dd></div>'
@@ -593,31 +668,7 @@ def refresh_embedded(local):
             M = re.sub(r"let STATS_CUTOFF='[^']*';\nlet STATS=\[.*?\];\n", lambda m: f"let STATS_CUTOFF='{cut}';\nlet STATS={json.dumps(st, ensure_ascii=False)};\n", M, count=1, flags=re.S)
     except Exception as ex:
         print('aviso lideres:', ex)
-    # jugadores a seguir (pestaña Jugadores): portada (INFO) y fichas
-    try:
-        er, ec = rows_of(fetch('estrellas', local))
-        S = {}
-        for r in er:
-            g = lambda n: (r[ec[n]] if n in ec and ec[n] < len(r) else '').strip()
-            k = g('equipo').upper()
-            if k in TEAMS and g('jugador'):
-                S.setdefault(k, []).append([g('jugador'), g('posicion'), _fnum(g('numero')), g('estadistica')])
-        m = re.search(r'const INFO=(\{.*?\});\n', M, re.S)
-        I = json.loads(m.group(1))
-        for k, L in S.items():
-            if k in I and len(I[k]) > 4:
-                I[k][4] = L
-        M = M[:m.start(1)] + json.dumps(I, ensure_ascii=False) + M[m.end(1):]
-        for k, L in S.items():
-            fp = os.path.join(SITE, 'equipos', SLUG[k], 'index.html')
-            h = open(fp, encoding='utf-8').read()
-            cards = ''.join(f'<div class="star"><span class="jn num">#{x[2] if x[2] is not None else ""}</span><div><b>{e(x[0])}</b><div class="loc">{e(x[1])}</div><div class="sl">{e(x[3])}</div></div></div>' for x in L)
-            star = r'<div class="star"><span class="jn num">[^<]*</span><div><b>[^<]*</b><div class="loc">[^<]*</div><div class="sl">[^<]*</div></div></div>'
-            h2 = re.sub(r'(<div class="stars" id="stars" data-k="' + k + r'">)(?:' + star + r')*', lambda mm: mm.group(1) + cards, h, count=1)
-            if h2 != h:
-                open(fp, 'w', encoding='utf-8').write(h2)
-    except Exception as ex:
-        print('aviso estrellas:', ex)
+    # jugadores a seguir: ahora los calcula jugadores.py con los datos de FBA (ya no la pestaña Jugadores)
     if M != M0:
         open(main_p, 'w', encoding='utf-8').write(M)
     # Nacional: tabla oficial y su corte

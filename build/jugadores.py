@@ -16,6 +16,7 @@ import csv, io, json, os, re, sys, html, unicodedata, datetime, zlib
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 import generate as G
 import avatar as AV
+import extras as EX
 
 e = html.escape
 SITE, URL, YEAR = G.SITE, G.URL, G.YEAR
@@ -473,17 +474,19 @@ def player_page(p, P):
     build = 'big' if p['pos'] in BIG else 'skill' if p['pos'] in SKILL else 'mid'
     av = AV.svg(p['n'], AV.uniform(p['liga'], p['team']), 112, seed=p['name'], pose=pose, build=build, skin=AV.SKIN_DARK if (p['team'], p['n']) in SKIN_FIX else None, title=f'Muñequito con el uniforme de {e(T["n"])}' + (f' y el número {p["n"]}' if p['n'] is not None else ''))
     head = (f'<div class="ph"><div class="av">{av}</div><div>{num}'
-            f'<h1>{e(p["name"])}</h1><div class="sub2"><a class="tl" href="{T["url"]}"><img src="{T["img"]}" alt="" width="24" height="24">{e(T["n"])}</a><span>{e(pos) if pos else "Jugador"} · {T["conf"]}</span></div></div></div>')
+            f'<h1>{e(p["name"])}</h1>{EX.badge(p.get("les"))}<div class="sub2"><a class="tl" href="{T["url"]}"><img src="{T["img"]}" alt="" width="24" height="24">{e(T["n"])}</a><span>{e(pos) if pos else "Jugador"} · {T["conf"]}</span></div></div></div>')
     tiles = [(age or '—', 'Edad', 'años' if age else ''), (h or '—', 'Estatura', ft(h) if h else ''), (w or '—', 'Peso', f'{round(int(w) * 2.2046)} lb' if w else ''), (e(p['pos'] or '—'), 'Posición', '')]
     if not h:
         tiles[1] = (('#' + str(p['n'])) if p['n'] is not None else '—', 'Número', '')
     body = nav + head + '<div class="pf">' + ''.join(f'<div><b>{v}</b>{f"<small>{s}</small>" if s else ""}<span>{l}</span></div>' for v, l, s in tiles) + '</div>'
+    if p.get('les'):
+        body += f'<div class="card injc" style="margin-top:10px"><b>{e(p["les"][0])}</b>{(" · " + e(p["les"][1])) if p["les"][1] else ""}</div>'
     cur = p['seasons'].get(str(YEAR))
     body += f'<h2 style="font-size:26px;margin-top:22px">Temporada {YEAR}</h2>'
     if cur and cur['cats']:
         body += f'<p class="gm-meta">Temporada regular · FBA Stats (Uriel González). Si está entre los primeros lugares, se indica en cada categoría.</p><div class="st">{stat_cards(cur, "los 14 Grandes" if T["conf"] == "14 Grandes" else "la Conferencia Nacional")}</div>'
     if p.get('star'):
-        body += f'<div class="card" style="margin-top:8px"><b>Jugador a seguir de {e(T["n"])}:</b> {e(p["star"])}</div>'
+        body += f'<div class="card" style="margin-top:8px"><b>Líder de {e(T["n"])}:</b> {e(p["star"])}</div>'
     mb = p.get('mb') or {}
     if mb:
         body += f'<h3 style="font-size:20px;margin:18px 0 0">Estadísticas completas {YEAR}</h3><p class="gm-meta">Temporada regular · FBA Stats. JJ = juegos jugados.</p><div class="st">{mb_tables(mb)}</div>'
@@ -563,13 +566,14 @@ def index_page(P, teams):
     idx = [[p['name'], p['T']['n'], p['pos'], p['n'] if p['n'] is not None else '', p['url']] for p in P]
     g = lambda conf: '<div class="tg">' + ''.join(f'<a href="/jugadores/{T["slug"]}/"><img src="{T["img"]}" alt="" width="30" height="30">{e(T["n"])}</a>' for T in teams if T['conf'] == conf) + '</div>'
     body = nav + f'<h1 class="gm-h1">Jugadores de la Liga Mayor {YEAR}</h1><p class="gm-meta">Perfil de {len(P)} jugadores de los 14 Grandes y la Conferencia Nacional: número, posición, edad, estatura, peso y estadísticas.</p>'
-    body += '<input id="q" class="srch" type="search" placeholder="Busca un jugador por nombre, número o posición" aria-label="Buscar jugador"><div id="res" class="pl2"></div>'
+    body += '<p class="gm-meta" style="margin:-4px 0 8px"><a href="/jugadores/comparar/">Compara a dos jugadores →</a></p><input id="q" class="srch" type="search" placeholder="Busca un jugador por nombre, número o posición" aria-label="Buscar jugador"><div id="res" class="pl2"></div>'
     body += '<h2 style="font-size:26px;margin-top:18px">14 Grandes</h2>' + g('14 Grandes')
     body += '<h2 style="font-size:26px;margin-top:18px">Conferencia Nacional</h2>' + g('Conferencia Nacional')
     body += '<p class="note">De la Conferencia Nacional solo hay perfil de los líderes estadísticos y de Águilas UACH, porque los demás equipos no publican roster.</p>'
     body += ('<script>const J=' + json.dumps(idx, ensure_ascii=False) + ''';
 const nz=s=>String(s).normalize('NFD').replace(/[\\u0300-\\u036f]/g,'').toLowerCase();
 const q=document.getElementById('q'),res=document.getElementById('res');
+const Q0=new URLSearchParams(location.search);if(Q0.has('q')){q.value=Q0.get('q');setTimeout(()=>q.dispatchEvent(new Event('input')))}if(Q0.has('q')||Q0.has('buscar')){q.focus();q.scrollIntoView({block:'center'})}
 q.addEventListener('input',()=>{const t=nz(q.value.trim());if(t.length<2){res.innerHTML='';return}
 const ws=t.split(/\\s+/);const m=J.filter(j=>{const s=nz(j[0]+' '+j[1]+' '+j[2]+' #'+j[3]);return ws.every(w=>s.includes(w))}).slice(0,30);
 res.innerHTML=m.map(j=>`<a href="${j[4]}"><span class="n">${j[3]}</span><span>${j[0].replace(/</g,'&lt;')}<small>${j[1]}</small></span><small>${j[2]}</small></a>`).join('')||'<p class="gm-meta">Sin resultados.</p>'});</script>''')
@@ -624,6 +628,16 @@ def main():
     cc = load_cc()
     print(f"Cover Cero: {attach_cc(P, cc)}/{len(cc)} renglones ligados a un perfil")
     assign_urls(P)
+    LES = EX.load_les(local)
+    EX.apply_les(P, LES)
+    L = EX.team_leaders(P)
+    # "jugador a seguir" = líder del equipo en FBA Stats (ya no se escribe a mano en la pestaña Jugadores)
+    for p in P:
+        if p['liga'] == '14G':
+            p['star'] = ''
+    for lst in L.values():
+        for x in lst:
+            x['p']['star'] = (x['p']['star'] + ' · ' if x['p']['star'] else '') + x['line']
     out = []
     for p in P:
         out.append((p['url'], G.write(p['url'], player_page(p, P))))
@@ -636,6 +650,7 @@ def main():
     teams.sort(key=lambda T: (T['conf'] != '14 Grandes', slug(T['n'])))
     path, h = index_page(P, teams)
     out.append((path, G.write(path, h)))
+    out += EX.pages(P, sys.modules[__name__])
     # limpiar perfiles que ya no existen
     keep = {u for u, _ in out}
     root = os.path.join(SITE, 'jugadores')
@@ -663,10 +678,12 @@ def main():
     if not os.path.exists(jp) or open(jp, encoding='utf-8').read() != js:
         open(jp, 'w', encoding='utf-8').write(js)
     nt = patch_team_pages(P)
+    print('líderes por equipo (FBA):', sum(len(v) for v in L.values()), '· portada:', EX.patch_home(L, LES), '· fichas:', EX.patch_team_stars(L), '· lesiones:', len(LES))
     # sitemap
     sp = os.path.join(SITE, 'sitemap.xml')
     sm = open(sp, encoding='utf-8').read()
-    urls = [u for u in re.findall(r'<url>.*?</url>', sm, re.S) if '/jugadores/' not in u]
+    mine = {URL + u for u, _ in out}
+    urls = [u for u in re.findall(r'<url>.*?</url>', sm, re.S) if '/jugadores/' not in u and re.search(r'<loc>([^<]+)</loc>', u).group(1) not in mine]
     old = {m.group(1): m.group(2) for m in re.finditer(r'<loc>([^<]+)</loc>\s*<lastmod>([^<]+)</lastmod>', sm)}
     today = datetime.date.today().isoformat()
     for u, ch in out:

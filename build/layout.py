@@ -8,7 +8,7 @@ import os
 import re
 
 SITE = os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', 'site')
-CSS_V = '5'
+CSS_V = '6'
 LINK = f'<link rel="stylesheet" href="/layout.css?v={CSS_V}" id="lay">'
 
 MENU_14 = [('Inicio', '/#inicio'), ('Tabla', '/#tabla'), ('Juegos', '/#juegos'), ('Playoffs', '/#playoffs'), ('Equipos', '/#equipos'),
@@ -40,7 +40,9 @@ def header(path):
         on = ''
     ON = ' class="on"'
     links = ''.join(f'<a href="{u}"{ON if u == on else ""}>{t}</a>' for t, u in menu)
-    confs = f'<div class="confs"><a href="/"{"" if nac else ON}>14 Grandes</a><a href="/nacional/"{ON if nac else ""}>Nacional</a></div>'
+    srch = ('<a class="hsrch" href="/jugadores/?buscar" aria-label="Buscar jugador" title="Buscar jugador"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" '
+            'stroke="currentColor" stroke-width="2.4" aria-hidden="true"><circle cx="10.5" cy="10.5" r="6.5"/><path d="M15.5 15.5L21 21"/></svg></a>')
+    confs = f'<div class="confs">{srch}<a href="/"{"" if nac else ON}>14 Grandes</a><a href="/nacional/"{ON if nac else ""}>Nacional</a></div>'
     app = ' data-app="1"' if nac else ''
     return (f'<header class="top"{app}><div class="in"><a class="brand" href="/">Liga Mayor <span>Unofficial</span></a>'
             f'<nav class="topnav" id="topnav" aria-label="Secciones">{links}</nav>{confs}</div></header>')
