@@ -1,0 +1,17 @@
+{
+  "_fuentes": [["Claro Sports 2025", "https://www.clarosports.com/futbol-americano/calendario-completo-onefa-2025/"], ["Claro Sports 2024", "https://www.clarosports.com/futbol-americano/calendario-onefa-2024"], ["Receptor 2023", "https://receptor.com.mx/2023/09/17/standings-liga-mayor-onefa-2023/"]],
+  "TIG": {"2025": "8-1 (2.º) · campeón: ganó la final 33-30 a Borregos Monterrey", "2024": "8-1 (2.º) · subcampeón: perdió la final 21-24 en series extra ante Borregos Monterrey", "2023": "7-1 (1.º grupo B) · subcampeón: perdió la final 27-31 ante Borregos Monterrey"},
+  "MTY": {"2025": "9-0 (1.º) · subcampeón: perdió la final 30-33 ante Auténticos Tigres", "2024": "9-0 (1.º) · campeón: ganó la final 24-21 en series extra a Auténticos Tigres", "2023": "7-1 (1.º grupo A) · campeón: ganó la final 31-27 a Auténticos Tigres"},
+  "PUM": {"2025": "3-6 (10.º) · no clasificó a playoffs", "2024": "7-2 (4.º) · eliminado en semifinales: 9-49 ante Borregos Monterrey", "2023": "4-4 (3.º grupo A) · eliminado en semifinales: 16-44 ante Auténticos Tigres"},
+  "PUE": {"2025": "7-2 (4.º) · eliminado en semifinales: 34-52 ante Borregos Monterrey", "2024": "7-2 (3.º) · eliminado en semifinales: 20-35 ante Auténticos Tigres", "2023": "6-2 (2.º grupo A) · eliminado en cuartos: 14-35 ante Pumas CU"},
+  "LAN": {"2025": "3-6 (11.º) · no clasificó a playoffs", "2024": "2-7 (11.º) · no clasificó a playoffs", "2023": "5-3 (3.º grupo B) · eliminado en semifinales: 7-59 ante Borregos Monterrey"},
+  "BUR": {"2025": "3-6 (12.º) · no clasificó a playoffs", "2024": "4-5 (7.º) · eliminado en cuartos: 14-51 ante Auténticos Tigres", "2023": "3-5 (5.º grupo A) · no clasificó a playoffs"},
+  "CEM": {"2025": "3-6 (9.º) · no clasificó a playoffs", "2024": "6-3 (5.º) · eliminado en cuartos: 13-15 ante Pumas CU", "2023": "4-4 (5.º grupo B) · no clasificó a playoffs"},
+  "GDL": {"2025": "5-4 (5.º) · eliminado en cuartos: 7-22 ante Borregos Puebla", "2024": "4-5 (10.º) · no clasificó a playoffs", "2023": "1-7 (6.º grupo A) · no clasificó a playoffs"},
+  "CCM": {"2025": "7-2 (3.º) · eliminado en semifinales: 9-29 ante Auténticos Tigres", "2024": "1-8 (12.º) · no clasificó a playoffs", "2023": "4-4 (4.º grupo A) · eliminado en cuartos: 18-49 ante Borregos Monterrey"},
+  "UDL": {"2025": "5-4 (6.º) · eliminado en cuartos: 34-35 ante Borregos CCM", "2024": "4-5 (9.º) · no clasificó a playoffs", "2023": "1-7 (7.º grupo A) · no clasificó a playoffs"},
+  "UVM": {"2025": "4-5 (7.º) · eliminado en cuartos: 7-28 ante Auténticos Tigres", "2024": "4-5 (8.º) · eliminado en cuartos: 17-54 ante Borregos Monterrey", "2023": "3-5 (6.º grupo B) · no clasificó a playoffs"},
+  "AGU": {"2025": "3-6 (8.º) · eliminado en cuartos: 6-38 ante Borregos Monterrey", "2024": "5-4 (6.º) · eliminado en cuartos: 17-27 ante Borregos Puebla", "2023": "7-1 (2.º grupo B) · eliminado en cuartos: 24-25 ante Leones Anáhuac Norte"},
+  "LAC": {"2025": "Conferencia Nacional · campeón y ascenso a los 14 Grandes", "2024": "Conferencia Nacional · subcampeón: perdió la final 20-24 ante Zorros CETYS"},
+  "CET": {"2025": "2-7 (13.º) · no clasificó; mantuvo la categoría", "2024": "Conferencia Nacional · campeón invicto (10-0) y ascenso a los 14 Grandes"}
+}

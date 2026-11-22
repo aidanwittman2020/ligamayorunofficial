@@ -832,6 +832,12 @@ def po_status(k, G, last=None):
     return ''
 
 
+try:
+    HIST_EQ = {k: v for k, v in json.load(open(os.path.join(os.path.dirname(os.path.abspath(__file__)), 'data', 'historial_equipos.json'), encoding='utf-8')).items() if not k.startswith('_')}
+except Exception:
+    HIST_EQ = {}
+
+
 def season_line(k, G, rows, done):
     """Resumen 2026 que va arriba de la descripción del equipo (escrita en pretemporada)."""
     i = next(j for j, r in enumerate(rows) if r['k'] == k)
@@ -879,6 +885,10 @@ def patch_team_facts(G):
         done = all(g['fin'] for g in G if g['w'] not in ('P', 'CF', 'SF', 'F')) and any(g['w'] in ('CF', 'SF', 'F') for g in G)
         st = po_status(r['k'], G, rows[-1]['k'] if done else None)
         y = season_line(r['k'], G, rows, done)
+        hy = HIST_EQ.get(r['k'], {})
+        if hy:
+            y += ('<span class="yhist">' + ''.join(f'<span><b>{yr}:</b> {e(t)}</span>' for yr, t in sorted(hy.items(), reverse=True))
+                  + '<small>Años anteriores: <a href="https://www.clarosports.com/futbol-americano/calendario-completo-onefa-2025/" rel="noopener">Claro Sports</a> y <a href="https://receptor.com.mx/2023/09/17/standings-liga-mayor-onefa-2023/" rel="noopener">Receptor</a>.</small></span>')
         new = re.sub(r'<p class="y26">.*?</p>', '', new, count=1, flags=re.S)
         new = re.sub(r'(<h2 style="font-size:28px;margin-top:22px">El equipo</h2>\s*<div class="card">)', lambda m: m.group(1) + f'<p class="y26">{y}</p>', new, count=1)
         if st:
@@ -1000,6 +1010,10 @@ def main():
     try:
         print('equipos (récord en HTML):', patch_team_facts(G), '· calendarios:', patch_team_calendars(G))
         refresh_raw(G); refresh_embedded(local)
+        M = open(os.path.join(SITE, 'index.html'), encoding='utf-8').read()
+        M2 = re.sub(r'let HISTY=\{.*?\};\n', lambda _: 'let HISTY=' + json.dumps(HIST_EQ, ensure_ascii=False, separators=(',', ':')) + ';\n', M, count=1)
+        if M2 != M:
+            open(os.path.join(SITE, 'index.html'), 'w', encoding='utf-8').write(M2)
         changed = inject('index.html', pre_main(G))
         nh = pre_nac(local)
         if nh:
