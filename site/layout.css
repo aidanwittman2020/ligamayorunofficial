@@ -221,3 +221,10 @@ h3{border-bottom-width:1px}
   header.top .brand{font-size:14px!important}
 }
 .vh{position:absolute!important;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap;margin:0}
+
+/* Celular: logo en dos líneas para que quepa junto a los botones */
+@media (max-width:768px){
+  header.top .brand{font-size:15px!important;line-height:1.1}
+  header.top .brand>span:first-of-type{display:block}
+  header.top .in{padding-block:10px!important}
+}

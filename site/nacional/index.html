@@ -486,7 +486,7 @@ tr.q3 td.pos{color:#B8901C;font-weight:800}
 </style>
 <script type="application/ld+json">{"@context": "https://schema.org", "@type": "BreadcrumbList", "itemListElement": [{"@type": "ListItem", "position": 1, "name": "Inicio", "item": "https://ligamayorunofficial.com/"}, {"@type": "ListItem", "position": 2, "name": "Conferencia Nacional", "item": "https://ligamayorunofficial.com/nacional/"}]}</script>
 <style>@view-transition{navigation:auto}::view-transition-old(root),::view-transition-new(root){animation-duration:.14s}header.top{view-transition-name:top}</style><script type="speculationrules">{"prerender":[{"where":{"and":[{"href_matches":"/*"},{"not":{"href_matches":"/*.json"}}]},"eagerness":"moderate"}]}</script>
-<link rel="stylesheet" href="/layout.css?v=4" id="lay"></head>
+<link rel="stylesheet" href="/layout.css?v=5" id="lay"></head>
 <body>
 <header class="top" data-app="1"><div class="in"><a class="brand" href="/">Liga Mayor <span>Unofficial</span></a><nav class="topnav" id="topnav" aria-label="Secciones"><a href="/nacional/#inicio" class="on">Inicio</a><a href="/nacional/#tabla">Tabla</a><a href="/nacional/#juegos">Juegos</a><a href="/nacional/#playoffs">Playoffs</a><a href="/nacional/#equipos">Equipos</a><a href="/nacional/#stats">Líderes</a><a href="/jugadores/">Jugadores</a><a href="/historia/">Historia</a></nav><div class="confs"><a href="/">14 Grandes</a><a href="/nacional/" class="on">Nacional</a></div></div></header>
 <div class="ticker" aria-label="Marcadores de la Conferencia Nacional"><div class="in" id="ticker"></div></div>
@@ -647,11 +647,13 @@ function nacHero(){
   const pick=GAMES.find(gLive)||po.filter(g=>!gFin(g)).sort((x,y)=>ord.indexOf(x.r)-ord.indexOf(y.r))[0]||po.find(g=>g.r==='F'&&gFin(g))||po.slice().sort((x,y)=>ord.indexOf(y.r)-ord.indexOf(x.r))[0];
   return pick||null}
 function nacInicio(){
+  const RR={};GAMES.forEach(x=>{if(!/^\d+$/.test(x.r)||!gFin(x))return;[[x.a,x.as,x.hs],[x.h,x.hs,x.as]].forEach(([k,m,o])=>{const s=RR[k]=RR[k]||{w:0,l:0,pf:0,pa:0};s.pf+=m;s.pa+=o;m>o?s.w++:s.l++})});
+  const tk2=k=>{const t=tk(k),s=RR[k];return s?Object.assign({},t,s):t};
   const g=nacHero();let h='<h2 class="vh">Conferencia Nacional ONEFA 2026</h2>';
-  if(g){const fin=gFin(g),lv=gLive(g),A=tk(g.a),H=tk(g.h),aw=fin&&g.as>g.hs,hw=fin&&g.hs>g.as;
+  if(g){const fin=gFin(g),lv=gLive(g),A=tk2(g.a),H=tk2(g.h),aw=fin&&g.as>g.hs,hw=fin&&g.hs>g.as;
     const champ=fin&&g.r==='F'?(aw?A:H):null,runner=champ?(aw?H:A):null;
     if(champ)h+=`<section class="champ2"><span>Campeón Conferencia Nacional 2026</span><div>${nb(champ.k)}<b>${esc(champ.n)}</b></div><p>Vencieron ${Math.max(g.as,g.hs)}-${Math.min(g.as,g.hs)} a ${esc(runner.n)} en la final${g.d?' del '+esc(g.d):''}.</p></section>`;
-    const side=(t,home,r,lose)=>`<div class="ht${r?' r':''}${lose?' lose':''}" data-team="${t.k}">${nb(t.k)}<div><small>${home?'Local':'Visitante'}</small><b>${esc(t.n)}</b><small>${t.w}-${t.l} · grupo ${esc(t.g)}</small></div></div>`;
+    const side=(t,home,r,lose)=>`<div class="ht${r?' r':''}${lose?' lose':''}" data-team="${t.k}">${nb(t.k)}<div><small>${home?'Local':'Visitante'}</small><b>${esc(t.n)}</b><small>${t.w}-${t.l} temp. regular · grupo ${esc(t.g)}</small></div></div>`;
     const mid=fin||lv?`<div class="cd"><span class="cd-l${lv?' lv':''}">${lv?'● EN VIVO':'FINAL'}</span><div class="cd-sc"><span>${g.as??0}</span><i>–</i><span>${g.hs??0}</span></div></div>`:`<div class="cd"><span class="cd-l">PRÓXIMO PARTIDO</span><div class="cd-sc" style="font-size:34px">${esc(g.d||'Por confirmar')}</div><span class="cd-note">${esc(g.t||'')}</span></div>`;
     const path=k=>GAMES.filter(x=>x!==g&&RN[x.r]&&gFin(x)&&(x.a===k||x.h===k)).map(x=>{const me=x.a===k?x.as:x.hs,op=x.a===k?x.hs:x.as,o=x.a===k?x.h:x.a;return`${RN[x.r]}: ${me>op?'G':'P'} ${me}-${op} a ${esc(tk(o).n)}`});
     h+=`<section class="hero"><div class="hero-h"><b>${RN[g.r]||'Semana '+g.r} · Conferencia Nacional 2026</b><span>${esc([g.d,g.t].filter(Boolean).join(' · '))}</span></div>

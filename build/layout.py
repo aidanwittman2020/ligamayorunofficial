@@ -8,7 +8,7 @@ import os
 import re
 
 SITE = os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', 'site')
-CSS_V = '4'
+CSS_V = '5'
 LINK = f'<link rel="stylesheet" href="/layout.css?v={CSS_V}" id="lay">'
 
 MENU_14 = [('Inicio', '/#inicio'), ('Tabla', '/#tabla'), ('Juegos', '/#juegos'), ('Playoffs', '/#playoffs'), ('Equipos', '/#equipos'),

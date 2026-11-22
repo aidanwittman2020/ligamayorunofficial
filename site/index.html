@@ -608,7 +608,7 @@ nav.tabs .in{grid-template-columns:repeat(5,1fr)}
   .ml-c{grid-template-columns:1fr}
   .home{padding-top:8px}
 }
-</style><link rel="stylesheet" href="/layout.css?v=4" id="lay"></head>
+</style><link rel="stylesheet" href="/layout.css?v=5" id="lay"></head>
 <body>
 
 <header class="top"><div class="in">
@@ -1292,8 +1292,8 @@ function tickCD(){document.querySelectorAll('.cd[data-start]').forEach(c=>{const
 setInterval(tickCD,1000);
 function heroHTML(g,rk,R){
   const W=watch(g),I=INFO[g.h],fin=isPlayed(g),lv=!!g.live,po=PO_W.includes(g.w);
-  const side=(k,home,r)=>{const rc=recAll(k,R);const unb=!rc.l&&rc.w>0?' · invictos':'';
-    return`<div class="ht${r?' r':''}${fin&&((k===g.a)!==(g.as>g.hs))?' lose':''}" data-team="${k}">${abbr(k)}<div><small>#${rk[k]} · ${home?'Local':'Visitante'}</small><b>${TEAMS[k].n}</b><small>${rc.w}-${rc.l}${unb}</small></div></div>`};
+  const side=(k,home,r)=>{const rc={w:R[k].w,l:R[k].l};const unb=!rc.l&&rc.w>0?' · invicto':'';
+    return`<div class="ht${r?' r':''}${fin&&((k===g.a)!==(g.as>g.hs))?' lose':''}" data-team="${k}">${abbr(k)}<div><small>#${rk[k]} · ${home?'Local':'Visitante'}</small><b>${TEAMS[k].n}</b><small>${rc.w}-${rc.l} temp. regular${unb}</small></div></div>`};
   const meta=[`${g.d} · ${g.t} h`,I?I[1]:'',W.tv?'TV: '+W.tv:''].filter(Boolean).join(' · ');
   const btn=W.lk?`<a class="h-tv" href="${W.lk}" target="_blank" rel="noopener">${lv?'Ver en vivo':fin?'Ver repetición':'Dónde verla'}</a>`:W.tv?`<span class="h-tvt">${fin?'Se transmitió por':'Por'} ${W.tv}</span>`:'';
   const gp=k=>Math.max(1,R[k].w+R[k].l);
