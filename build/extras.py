@@ -366,8 +366,8 @@ def prospects_page(P, J, D=None):
                 top.setdefault(id(p), (p, role, i + 1, cat, col))
         for p, role, rk, cat, col in top.values():
             age, h, w = J.phys(p)
-            if not age or not AGE_MIN <= int(age) <= AGE_MAX:
-                continue
+            if not age or not AGE_MIN <= int(age) <= AGE_MAX or p.get('draft'):
+                continue   # los que ya salen como elegibles o en el top 5 no se repiten aquí
             ln = line(p, role) if role != 'defensa' or col == 'TAC' else (f"{n0(val(p, cat, col))} " + ('sacks' if col == 'SACKS' else 'INT'))
             rows.append((rk, p, age, h, w, f'{rk}.º {of} {LBL[(cat, col)]}', ln))
     rows.sort(key=lambda x: (x[0], -int(x[2])))

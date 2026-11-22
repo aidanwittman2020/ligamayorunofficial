@@ -39,6 +39,12 @@
    "equipo": "UDL",
    "jugador": "Alejandro Torres",
    "pos": "OL"
+  },
+  {
+   "liga": "14G",
+   "equipo": "UVM",
+   "jugador": "Luis Alemán",
+   "pos": "WR"
   }
  ],
  "rankings": [
@@ -71,6 +77,37 @@
      "liga": "NAC",
      "equipo": "UCH",
      "jugador": "Héctor Rojas"
+    }
+   ]
+  },
+  {
+   "titulo": "Receptores",
+   "pos": "WR",
+   "lista": [
+    {
+     "liga": "14G",
+     "equipo": "CCM",
+     "jugador": "Carlo Confalonieri"
+    },
+    {
+     "liga": "14G",
+     "equipo": "MTY",
+     "jugador": "Mauricio Santos"
+    },
+    {
+     "liga": "14G",
+     "equipo": "TIG",
+     "jugador": "Aldo Herrera"
+    },
+    {
+     "liga": "14G",
+     "equipo": "UDL",
+     "jugador": "Iván Ramírez"
+    },
+    {
+     "liga": "14G",
+     "equipo": "UVM",
+     "jugador": "Luis Alemán"
     }
    ]
   },
