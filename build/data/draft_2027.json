@@ -1,0 +1,109 @@
+{
+ "fuente": [
+  "MEXFBA",
+  "https://www.instagram.com/mexfba/"
+ ],
+ "elegibles": [
+  {
+   "liga": "14G",
+   "equipo": "CCM",
+   "jugador": "Iker Colín",
+   "pos": "QB"
+  },
+  {
+   "liga": "14G",
+   "equipo": "AGU",
+   "jugador": "Joel Ocaña",
+   "pos": "LB"
+  },
+  {
+   "liga": "14G",
+   "equipo": "BUR",
+   "jugador": "Aldo Herrera",
+   "pos": "QB"
+  },
+  {
+   "liga": "14G",
+   "equipo": "GDL",
+   "jugador": "Alfredo Lira",
+   "pos": "RB"
+  },
+  {
+   "liga": "14G",
+   "equipo": "LAN",
+   "jugador": "Erick Murillo",
+   "pos": "DL"
+  },
+  {
+   "liga": "14G",
+   "equipo": "UDL",
+   "jugador": "Alejandro Torres",
+   "pos": "OL"
+  }
+ ],
+ "rankings": [
+  {
+   "titulo": "Corredores",
+   "pos": "RB",
+   "lista": [
+    {
+     "liga": "14G",
+     "equipo": "UDL",
+     "jugador": "Esteban Espinosa",
+     "numero": 11
+    },
+    {
+     "liga": "14G",
+     "equipo": "GDL",
+     "jugador": "Alfredo Lira"
+    },
+    {
+     "liga": "",
+     "equipo": "Tepeyac",
+     "jugador": "Axel Carreño"
+    },
+    {
+     "liga": "14G",
+     "equipo": "CCM",
+     "jugador": "Mario Ruiz"
+    },
+    {
+     "liga": "NAC",
+     "equipo": "UCH",
+     "jugador": "Héctor Rojas"
+    }
+   ]
+  },
+  {
+   "titulo": "Línea defensiva",
+   "pos": "DL",
+   "lista": [
+    {
+     "liga": "14G",
+     "equipo": "CEM",
+     "jugador": "Jorge Cordero"
+    },
+    {
+     "liga": "14G",
+     "equipo": "GDL",
+     "jugador": "David Hernández"
+    },
+    {
+     "liga": "14G",
+     "equipo": "LAN",
+     "jugador": "Erick Murillo"
+    },
+    {
+     "liga": "14G",
+     "equipo": "UVM",
+     "jugador": "Samuel Meza"
+    },
+    {
+     "liga": "14G",
+     "equipo": "CEM",
+     "jugador": "José Díaz"
+    }
+   ]
+  }
+ ]
+}

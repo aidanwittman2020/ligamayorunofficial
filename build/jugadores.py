@@ -481,6 +481,8 @@ def player_page(p, P):
     body = nav + head + '<div class="pf">' + ''.join(f'<div><b>{v}</b>{f"<small>{s}</small>" if s else ""}<span>{l}</span></div>' for v, l, s in tiles) + '</div>'
     if p.get('les'):
         body += f'<div class="card injc" style="margin-top:10px"><b>{e(p["les"][0])}</b>{(" · " + e(p["les"][1])) if p["les"][1] else ""}</div>'
+    if p.get('draft'):
+        body += '<div class="card draftc" style="margin-top:10px"><b>Draft ' + str(EX.DRAFT_YEAR) + '</b><ul class="pv">' + ''.join(f'<li>{e(x)}</li>' for x in p['draft']) + f'</ul><p class="sub" style="margin:6px 0 0"><a href="/prospectos-{YEAR}/{"nacional/" if p["liga"] == "NAC" else ""}">Ver todos los prospectos →</a> Fuente: MEXFBA.</p></div>'
     cur = p['seasons'].get(str(YEAR))
     body += f'<h2 style="font-size:26px;margin-top:22px">Temporada {YEAR}</h2>'
     if cur and cur['cats']:
@@ -644,6 +646,7 @@ def main():
     LES = EX.load_les(local)
     EX.apply_les(P, LES)
     EX.build_xs(P)
+    EX.load_draft(P)
     L = EX.team_leaders(P)
     # "jugador a seguir" = líder del equipo en FBA Stats (ya no se escribe a mano en la pestaña Jugadores)
     for p in P:

@@ -239,9 +239,77 @@ def ideal_page(P, J, liga='14G'):
 
 
 AGE_MIN, AGE_MAX = 24, 25
+DRAFT_YEAR = YEAR + 1
 
 
-def prospects_page(P, J, liga='14G'):
+def load_draft(P):
+    """build/data/draft_2027.json: declarados elegibles y top 5 por posición (MEXFBA). Liga los nombres con el roster."""
+    fp = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'data', f'draft_{DRAFT_YEAR}.json')
+    for p in P:
+        p['draft'] = []
+    if not os.path.exists(fp):
+        return {'elegibles': [], 'rankings': [], 'fuente': ['', '']}
+    D = json.load(open(fp, encoding='utf-8'))
+    nz = lambda x: G.norm(x).replace('z', 's').split()
+
+    def find(x, pos=None):
+        c = [p for p in P if p['liga'] == x.get('liga') and p['team'] == x['equipo'] and (x.get('numero') is None or p['n'] == x['numero'])
+             and all(w in nz(p['name']) for w in nz(x['jugador']))]
+        if x.get('numero') is not None and not c:
+            c = [p for p in P if p['liga'] == x.get('liga') and p['team'] == x['equipo'] and p['n'] == x['numero']]
+        return c[0] if len(c) == 1 else None
+    for x in D['elegibles']:
+        x['p'] = find(x)
+        if x['p']:
+            x['p']['draft'].append(f'Declarado elegible al draft {DRAFT_YEAR}')
+    for r in D['rankings']:
+        for i, x in enumerate(r['lista']):
+            x['p'] = find(x)
+            if x['p']:
+                x['p']['draft'].append(f'Top 5 clase {YEAR} · {r["titulo"]}: #{i + 1}')
+    return D
+
+
+def tname(x):
+    if x.get('p'):
+        return x['p']['T']['n']
+    if x.get('liga') == '14G' and x['equipo'] in G.TEAMS:
+        return G.TEAMS[x['equipo']]['n']
+    return x['equipo']
+
+
+def draft_card(x, J, pos='', rank=None):
+    p = x.get('p')
+    if p:
+        st = next((line(p, r) for c, r in (('passing', 'pase'), ('rushing', 'tierra'), ('receiving', 'aire'), ('tackles', 'defensa'), ('ints', 'defensa')) if c in (p.get('xs') or {})), '')
+        age = J.phys(p)[0]
+        meta = ' · '.join(z for z in [p['pos'] or pos, p['n'] is not None and f'#{p["n"]}', age and f'{age} años'] if z)
+        return (f'<a class="xi" href="{p["url"]}"><div class="xa">{avatar(p, J)}</div><div>{f"<span class=xp>{rank}</span>" if rank else ""}<b>{e(p["name"])}</b>{badge(p.get("les"))}'
+                f'<small>{e(p["T"]["n"])} · {e(meta)}</small>{f"<em>{e(st)}</em>" if st else ""}</div></a>')
+    fake = {'liga': x.get('liga') or 'NAC', 'team': x['equipo'], 'n': None, 'name': x['jugador'], 'pos': pos}
+    return (f'<div class="xi"><div class="xa">{avatar(fake, J)}</div><div>{f"<span class=xp>{rank}</span>" if rank else ""}<b>{e(x["jugador"])}</b>'
+            f'<small>{e(tname(x))}{" · " + pos if pos else ""}</small><em>Sin perfil en el sitio</em></div></div>')
+
+
+def draft_html(D, J, liga):
+    out = ''
+    el = [x for x in D['elegibles'] if x.get('liga') == liga]
+    if el:
+        out += (f'<h2 style="font-size:26px;margin-top:18px">Declarados elegibles al draft {DRAFT_YEAR}</h2>'
+                f'<p class="gm-meta">Jugadores que ya anunciaron que entran al draft {DRAFT_YEAR}.</p><div class="xig">'
+                + ''.join(draft_card(x, J, x.get('pos', '')) for x in el) + '</div>')
+    rk = [(r, [(i, x) for i, x in enumerate(r['lista']) if (x.get('liga') or '') == liga or (liga == '14G' and not x.get('liga'))]) for r in D['rankings']]
+    rk = [(r, L) for r, L in rk if L]
+    if rk:
+        out += f'<h2 style="font-size:26px;margin-top:22px">Top 5 clase {YEAR} por posición</h2>'
+        for r, L in rk:
+            out += f'<h3 style="font-size:19px;margin:14px 0 6px">{e(r["titulo"])}</h3><div class="xig">' + ''.join(draft_card(x, J, r['pos'], f'{i + 1}.º') for i, x in L) + '</div>'
+    if out:
+        out += f'<p class="note">Elegibles y rankings: <a href="{e(D["fuente"][1])}" rel="noopener">{e(D["fuente"][0])}</a>. Números: FBA Stats.</p>'
+    return out
+
+
+def prospects_page(P, J, liga='14G', D=None):
     CATS = [('passing', 'YDS', 'pase', 10), ('rushing', 'YDS', 'tierra', 15), ('receiving', 'YDS', 'aire', 15), ('tackles', 'TAC', 'defensa', 20),
             ('tackles', 'SACKS', 'defensa', 10), ('ints', 'INT', 'defensa', 10)]
     top = {}
@@ -273,7 +341,9 @@ def prospects_page(P, J, liga='14G'):
     body = nav + f'<h1 class="gm-h1">Prospectos {YEAR} rumbo al draft: {of}</h1>' + conf_switch(f'/prospectos-{YEAR}/', liga)
     body += (f'<p class="gm-meta">Jugadores de {AGE_MIN} y {AGE_MAX} años que están entre los líderes de {of} en alguna categoría de FBA Stats. '
              'A esa edad la mayoría ya agotó su elegibilidad o terminó la maestría: son los candidatos naturales para el draft.</p>')
-    body += ('<div class="card" style="margin:8px 0 12px"><b>Ojo:</b> no es una lista oficial ni sabemos en qué año de elegibilidad va cada jugador. '
+    body += draft_html(D or {'elegibles': [], 'rankings': []}, J, liga)
+    body += f'<h2 style="font-size:26px;margin-top:22px">Otros veteranos a seguir ({AGE_MIN} y {AGE_MAX} años)</h2>'
+    body += ('<div class="card" style="margin:8px 0 12px"><b>Ojo:</b> esta parte no es una lista oficial ni sabemos en qué año de elegibilidad va cada jugador. '
              'La edad sale de los rosters publicados por los equipos y sirve solo como aproximación.</div>')
     body += (head + tr(rows) + '</tbody></table></div>') if rows else f'<p class="gm-meta">Todavía no hay jugadores de {AGE_MIN} o {AGE_MAX} años con edad publicada entre los líderes.</p>'
     if liga == 'NAC' and noage:
@@ -366,8 +436,9 @@ def compare_page(J):
 
 def pages(P, J):
     build_xs(P)
+    D = load_draft(P)
     out = []
-    for path, h in (ideal_page(P, J), ideal_page(P, J, 'NAC'), prospects_page(P, J), prospects_page(P, J, 'NAC'), y2027_page(J), compare_page(J)):
+    for path, h in (ideal_page(P, J), ideal_page(P, J, 'NAC'), prospects_page(P, J, '14G', D), prospects_page(P, J, 'NAC', D), y2027_page(J), compare_page(J)):
         out.append((path, G.write(path, h)))
     stats_json(P, J)
     return out
