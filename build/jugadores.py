@@ -199,7 +199,7 @@ CC_ALIAS = {('PUE', 8, 'Alonso Barrenchea'): 'Alonso Barrenechea Romay', ('LAN',
 
 # correcciones confirmadas por el usuario: (equipo, número, categoría) -> {índice de columna: valor}
 CC_FIX = {('GDL', 90, 'defense'): {0: 8},      # Ander Wittman jugó 8 de 9 partidos
-          ('GDL', 2, 'rushing'): {4: 2}}       # Alfredo Lira anotó 2 TD en la temporada
+          }
 
 
 def attach_cc(P, cc):
@@ -266,7 +266,7 @@ MB_SHOW = {'passing': ('Pase', [('JJ', 'JJ'), ('COMP', 'COMP'), ('INT', 'INTENT.
 
 
 # correcciones confirmadas por el usuario sobre los datos de FBA
-MB_FIX = {('GDL', 2, 'rushing'): {'TD': 2.0}}   # Alfredo Lira anotó 2 TD (FBA dice 1)
+MB_FIX = {}
 
 
 def load_mb():
