@@ -562,7 +562,7 @@ header.top .in{flex-wrap:wrap;row-gap:6px}
 .mas a{display:grid;gap:2px;background:var(--surface);border:1px solid var(--line);border-radius:6px;padding:12px 14px;text-decoration:none;color:var(--ink);min-height:48px}
 .mas b{font-family:var(--display);font-weight:800;font-size:18px;text-transform:uppercase;letter-spacing:.04em}
 .mas span{font-size:13px;color:var(--muted)}
-nav.tabs .in{grid-template-columns:repeat(5,1fr)}
+nav.tabs .in{grid-template-columns:repeat(6,1fr)}
 @media (max-width:768px){
   .topnav{display:none!important}
   header.top{position:static}
@@ -628,6 +628,7 @@ nav.tabs .in{grid-template-columns:repeat(5,1fr)}
   <button data-tab="tabla"><svg viewBox="0 0 24 24"><path d="M4 6h16M4 12h16M4 18h16"/></svg>Tabla</button>
   <button data-tab="juegos"><svg viewBox="0 0 24 24"><rect x="4" y="5" width="16" height="15" rx="2"/><path d="M4 10h16M9 3v4M15 3v4"/></svg>Juegos</button>
   <button data-tab="equipos"><svg viewBox="0 0 24 24"><path d="M12 3l7 3v5c0 4.5-3 8-7 10-4-2-7-5.5-7-10V6z"/></svg>Equipos</button>
+  <button data-tab="stats"><svg viewBox="0 0 24 24"><path d="M5 20V11M12 20V5M19 20v-6"/></svg>Líderes</button>
   <button data-tab="mas"><svg viewBox="0 0 24 24"><circle cx="5" cy="12" r="1.3"/><circle cx="12" cy="12" r="1.3"/><circle cx="19" cy="12" r="1.3"/></svg>Más</button>
 </div></nav>
 
@@ -1351,8 +1352,8 @@ function viewInicio(){
   return`<div class="home">${h}</div>`;
 }
 function viewMas(){
-  const L=[['playoffs','Playoffs','Llave, simulador y qué necesita cada equipo'],['stats','Líderes','Los mejores en pase, tierra, recepción y defensa']];
-  const E=[['/jugadores/','Jugadores','Perfil de cada jugador con estatura, peso y estadísticas'],['/historia/','Historia','Campeones desde 1978'],['/nacional/','Conferencia Nacional','Tabla, juegos y líderes']];
+  const L=[['playoffs','Playoffs','Llave, simulador y qué necesita cada equipo']];
+  const E=[['/jugadores/','Jugadores','Perfil de cada jugador con estatura, peso y estadísticas'],['/historia/','Historia','Campeones desde 1978'],['/nacional/','Conferencia Nacional','Tabla, juegos, líderes y playoffs']];
   return`<h2>Más</h2><div class="mas">${L.map(([t,n,d])=>`<a href="/#${t}" data-go="${t}"><b>${n}</b><span>${d}</span></a>`).join('')}${E.map(([u,n,d])=>`<a href="${u}"><b>${n}</b><span>${d}</span></a>`).join('')}</div>`+viewInfo();
 }
 document.addEventListener('click',e=>{const a=e.target.closest('[data-go]');if(!a)return;e.preventDefault();e.stopPropagation();autoTab=false;tab=a.dataset.go;try{history.replaceState(null,'','#'+tab)}catch(_){}window.scrollTo(0,0);if(tab==='playoffs'&&!simSC)recalc();else render()},true);
@@ -1364,7 +1365,7 @@ function render(){
   if(WAIT)return;
   renderTicker();syncTopnav();
   app.dataset.v=tab;app.innerHTML=tab==='inicio'?viewInicio():tab==='mas'?viewMas():tab==='tabla'?viewTabla():tab==='juegos'?viewJuegos():tab==='playoffs'?viewPlayoffs():tab==='equipos'?viewEquipos():tab==='stats'?viewStats():viewInfo();
-  const bt=['playoffs','stats','info'].includes(tab)?'mas':tab;document.querySelectorAll('nav.tabs button').forEach(b=>b.setAttribute('aria-current',b.dataset.tab===bt?'page':'false'));tickCD();
+  const bt=['playoffs','info'].includes(tab)?'mas':tab;document.querySelectorAll('nav.tabs button').forEach(b=>b.setAttribute('aria-current',b.dataset.tab===bt?'page':'false'));tickCD();
 }
 function recalc(){
   simSC=null;render();

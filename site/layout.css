@@ -228,3 +228,9 @@ h3{border-bottom-width:1px}
   header.top .brand>span:first-of-type{display:block}
   header.top .in{padding-block:10px!important}
 }
+
+.mas{display:grid;gap:8px;margin:8px 0 22px}
+.mas a{display:grid;gap:2px;background:var(--surface);border:1px solid var(--line);border-radius:2px;padding:12px 14px;text-decoration:none;color:var(--ink);min-height:48px}
+.mas b{font-family:"Barlow Condensed",sans-serif;font-weight:800;font-size:18px;text-transform:uppercase;letter-spacing:.04em}
+.mas span{font-size:13px;color:var(--muted)}
+nav.tabs .in{grid-template-columns:repeat(6,1fr)!important}

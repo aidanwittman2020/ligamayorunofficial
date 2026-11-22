@@ -197,6 +197,11 @@ CC_ALIAS = {('PUE', 8, 'Alonso Barrenchea'): 'Alonso Barrenechea Romay', ('LAN',
             ('LAN', 3, 'Diego Vargas'): 'Diego Salvador', ('LAN', 6, 'Rafael Jaime'): 'Rafael Dupre'}
 
 
+# correcciones confirmadas por el usuario: (equipo, número, categoría) -> {índice de columna: valor}
+CC_FIX = {('GDL', 90, 'defense'): {0: 8},      # Ander Wittman jugó 8 de 9 partidos
+          ('GDL', 2, 'rushing'): {4: 2}}       # Alfredo Lira anotó 2 TD en la temporada
+
+
 def attach_cc(P, cc):
     hit = 0
     for r in cc:
@@ -206,7 +211,10 @@ def attach_cc(P, cc):
     for r in cc:
         p = find_player(P, '14G', r['team'], r['n'], r['name'])
         if p:
-            p['cc'][r['cat']] = r['v']
+            v = list(r['v'])
+            for i, x in CC_FIX.get((p['team'], p['n'], r['cat']), {}).items():
+                v[i] = x
+            p['cc'][r['cat']] = v
             hit += 1
     return hit
 
@@ -219,13 +227,13 @@ def fmtv(v, dec):
     return f'{int(v):,}'
 
 
-def cc_tables(cc):
+def cc_tables(cc, hide=None):
     out = ''
     for cat in ('passing', 'rushing', 'receiving', 'defense'):
         if cat not in cc:
             continue
         lbl, cols = CC_COLS[cat]
-        idx = CC_SHOW[cat]
+        idx = [i for i in CC_SHOW[cat] if cols[i] not in (hide or {}).get(cat, ())]
         dec = {'%', 'Y/I', 'RTG', 'Y/J', 'PROM'}
         out += (f'<div class="c"><div class="ct">{lbl}</div><div class="tbl-box"><table class="cc"><thead><tr>' + ''.join(f'<th>{cols[i]}</th>' for i in idx) +
                 '</tr></thead><tbody><tr>' + ''.join(f'<td>{fmtv(cc[cat][i], cols[i] in dec)}</td>' for i in idx) + '</tr></tbody></table></div></div>')
@@ -375,11 +383,16 @@ def player_page(p, P):
     # Cover Cero solo para lo que FBA Stats no trae
     fcats = set(cur['cats']) if cur else set()
     tapado = {'passing': 'QB' in fcats, 'rushing': 'RB' in fcats, 'receiving': 'WR' in fcats, 'defense': bool(fcats & {'TK', 'IN', 'SK'})}
-    ccx = {k: v for k, v in (p.get('cc') or {}).items() if not tapado[k]}
-    if ccx:
+    # columnas que ya muestra FBA Stats; de Cover Cero solo se enseña lo demás (juegos jugados, intentos, promedios...)
+    hide = {'passing': {'YDS', 'TD'} if 'QB' in fcats else set(), 'rushing': {'YDS', 'TD'} if 'RB' in fcats else set(),
+            'receiving': {'YDS', 'REC', 'TD'} if 'WR' in fcats else set(),
+            'defense': {c for f, c in (('TK', 'TACK'), ('SK', 'SACK'), ('IN', 'INT')) if f in fcats}}
+    ccall = p.get('cc') or {}
+    ccx = {k: v for k, v in ccall.items() if not tapado[k]}
+    if ccall:
         ttl = f'Más estadísticas {YEAR}' if fcats else f'Estadísticas {YEAR}'
-        body += f'<h3 style="font-size:20px;margin:18px 0 0">{ttl}</h3><p class="gm-meta">Temporada regular.</p><div class="st">{cc_tables(ccx)}</div>'
-    if not (cur and cur['cats']) and not p.get('star') and not ccx:
+        body += f'<h3 style="font-size:20px;margin:18px 0 0">{ttl}</h3><p class="gm-meta">Temporada regular. JJ = juegos jugados.</p><div class="st">{cc_tables(ccall, hide)}</div>'
+    if not (cur and cur['cats']) and not p.get('star') and not ccall:
         body += '<p class="gm-meta">Todavía no aparece entre los líderes estadísticos. Las estadísticas por jugador se publican para los primeros lugares de cada categoría.</p>'
     hist = sorted(p['seasons'].items(), reverse=True)
     if ccx and str(YEAR) not in p['seasons']:
@@ -398,7 +411,7 @@ def player_page(p, P):
         src.append('Nombre, número y posición: Guía ONEFA 2026 de Lucio Trucíos (@luciotrucios)')
     if age or h or w:
         src.append('edad, estatura y peso: rosters publicados por los equipos')
-    if ccx:
+    if ccall:
         src.append('otras estadísticas: Cover Cero (<a href="https://covercero.com.mx/estadisticas-2026/" rel="noopener">covercero.com.mx</a>)')
     if p['seasons']:
         src.append('líderes estadísticos: Uriel González (FBA Stats)')
