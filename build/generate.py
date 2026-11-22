@@ -571,6 +571,9 @@ def week_card(g, S):
     return f'<a class="wg" href="{game_path(g)}"><div class="m">{e(meta)}</div>{r(A, g["as"], aL)}{r(H, g["hs"], hL)}</a>'
 
 
+PEND_FROM, PEND = '5', []   # el MTY-TIG de la semana 5 se suspendió por lluvia y pasó a 'Pendientes'
+
+
 def week_page(w, gs, weeks, S):
     wl = wk_label(w)
     path = f'/juegos/{YEAR}/{wk_slug(w)}/'
@@ -585,6 +588,9 @@ def week_page(w, gs, weeks, S):
     wn = '<nav class="wnav" aria-label="Semanas">' + ''.join(f'<a{" class=\"on\"" if x == w else ""} href="/juegos/{YEAR}/{wk_slug(x)}/">{"S" + x if x not in PO_NAME else {"P": "Pend.", "CF": "Cuartos", "SF": "Semis", "F": "Final"}[x]}</a>' for x in weeks) + '</nav>'
     body = nav + f'<h1 class="gm-h1">Liga Mayor {YEAR} · {e(wl)}</h1><p class="gm-meta">Resultados, horarios y dónde ver los partidos de la Conferencia de los 14 Grandes.</p>'
     body += wn + '<div class="wlist">' + ''.join(week_card(g, S) for g in gs) + '</div>'
+    if w == PEND_FROM and PEND:
+        body += ''.join(f'<p class="sub" style="margin-top:10px">{e(TEAMS[g["a"]]["n"])} vs {e(TEAMS[g["h"]]["n"])}, de esta semana, se suspendió por lluvia y se reprogramó al {e(long_date(g["d"]).lower())}. '
+                        f'<a href="{game_path(g)}">Ver el partido →</a> · <a href="/juegos/{YEAR}/{wk_slug("P")}/">Juegos pendientes →</a></p>' for g in PEND)
     body += f'<p class="sub" style="margin-top:14px"><a href="/#tabla">Ver la tabla de posiciones →</a></p>'
     lst = {'@context': 'https://schema.org', '@type': 'ItemList', 'name': title, 'itemListElement': [
         {'@type': 'ListItem', 'position': i + 1, 'url': URL + game_path(g), 'name': f"{TEAMS[g['a']]['n']} vs {TEAMS[g['h']]['n']}"} for i, g in enumerate(gs)]}
@@ -800,14 +806,16 @@ def refresh_embedded(local):
         print('aviso nacional:', ex)
 
 
-def po_status(k, G):
+def po_status(k, G, last=None):
     """Estatus de playoffs para la página de equipo (cuando ya hay llave)."""
     po = [g for g in G if g['w'] in ('CF', 'SF', 'F')]
     if not po:
         return ''
     mine = [g for g in po if k in (g['a'], g['h'])]
     if not mine:
-        return 'No clasificó a playoffs en 2026. <a href="/#playoffs">Ver la llave →</a>'
+        if k == last:
+            return f'<b>Desciende a la Conferencia Nacional para {YEAR + 1}</b>: terminó en último lugar de la temporada regular. <a href="/{YEAR + 1}/">Qué cambia en {YEAR + 1} →</a>'
+        return f'No clasificó a playoffs en {YEAR}. <a href="/#playoffs">Ver la llave →</a>'
     lbl = {'CF': 'cuartos de final', 'SF': 'semifinales', 'F': 'la final'}
     for g in sorted(mine, key=lambda x: ['CF', 'SF', 'F'].index(x['w'])):
         if not g['fin']:
@@ -845,7 +853,8 @@ def patch_team_facts(G):
         new = re.sub(r'(<b id="f-pos">)[^<]*', lambda m: m.group(1) + f"{i + 1}°", new)
         new = re.sub(r'(<b id="f-pf">)[^<]*', lambda m: m.group(1) + str(r['pf']), new)
         new = re.sub(r'(<b id="f-pa">)[^<]*', lambda m: m.group(1) + str(r['pa']), new)
-        st = po_status(r['k'], G)
+        done = all(g['fin'] for g in G if g['w'] not in ('P', 'CF', 'SF', 'F')) and any(g['w'] in ('CF', 'SF', 'F') for g in G)
+        st = po_status(r['k'], G, rows[-1]['k'] if done else None)
         if st:
             new = re.sub(r'<p class="sub" style="margin-top:8px"(?: id="po-st")?>.*?</p>', lambda m: f'<p class="sub" style="margin-top:8px" id="po-st">{st}</p>', new, count=1, flags=re.S)
         if new != h:
@@ -943,8 +952,15 @@ def main():
         if g['w'] not in order:
             order.append(g['w'])
     reg = sorted([w for w in order if w.isdigit()], key=int)
-    weeks = reg + [w for w in ('P', 'CF', 'SF', 'F') if w in order]
+    # los pendientes van donde caen por fecha (como en la portada: S9, Pend., S10)
+    first = lambda w: min((parse_date(g['d'], g['t'], g['h']) or '9999') for g in G if g['w'] == w)
+    if 'P' in order:
+        pd_ = first('P')
+        i = next((j for j, w in enumerate(reg) if first(w) > pd_), len(reg))
+        reg = reg[:i] + ['P'] + reg[i:]
+    weeks = reg + [w for w in ('CF', 'SF', 'F') if w in order]
     byw = {w: [g for g in G if g['w'] == w] for w in weeks}
+    PEND[:] = [g for g in G if g['w'] == 'P']
     out = []
     for g in G:
         p, html_ = game_page(g, G, PL, S)

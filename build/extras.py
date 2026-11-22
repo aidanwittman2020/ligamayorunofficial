@@ -123,7 +123,18 @@ def badge(les):
 
 
 # ---------------------------------------------------------------- portada y fichas de equipo
-def patch_home(L, LES):
+def lx_data(P):
+    """Para Líderes: quién tiene solo TD totales y la lista completa de FBA para no dejar fuera a los empatados."""
+    ps = [p for p in P if p['liga'] == '14G' and p.get('mb')]
+    tdt = [f"{p['team']}|{p['n']}" for p in ps if p['mb'].get('tdt')]
+    more = {}
+    for cid, cat, col in (('in', 'ints', 'INT'), ('sk', 'tackles', 'SACKS'), ('tk', 'tackles', 'TAC')):
+        r = sorted([p for p in ps if (p['mb'].get(cat) or {}).get(col)], key=lambda p: -p['mb'][cat][col])[:12]
+        more[cid] = [[p['name'], p['team'], p['n'], int(p['mb'][cat][col])] for p in r]
+    return {'tdt': tdt, 'more': more}
+
+
+def patch_home(L, LES, P=None):
     fp = os.path.join(SITE, 'index.html')
     M = open(fp, encoding='utf-8').read()
     m = re.search(r'const INFO=(\{.*?\});\n', M, re.S)
@@ -134,6 +145,8 @@ def patch_home(L, LES):
     M2 = M[:m.start(1)] + json.dumps(I, ensure_ascii=False) + M[m.end(1):]
     les = {f'{k}|{n}': [s, nt] for (k, n), (s, nt, _) in LES.items()}
     M2 = re.sub(r'let LES=\{.*?\};', lambda _: 'let LES=' + json.dumps(les, ensure_ascii=False) + ';', M2, count=1)
+    if P is not None:
+        M2 = re.sub(r'let LX=\{.*?\};\n', lambda _: 'let LX=' + json.dumps(lx_data(P), ensure_ascii=False, separators=(',', ':')) + ';\n', M2, count=1)
     if M2 != M:
         open(fp, 'w', encoding='utf-8').write(M2)
         return 1
@@ -544,9 +557,20 @@ def hub_pages(P, J):
     url = {(p['team'], p['n']): p['url'] for p in P if p['liga'] == '14G'}
     nav, ld = G.crumbs([('Inicio', '/'), ('Líderes', None)])
     body = nav + f'<h1 class="gm-h1">Líderes estadísticos Liga Mayor ONEFA {YEAR}</h1><p class="gm-meta">14 Grandes · temporada regular{" · " + e(cut.group(1)) if cut else ""} · FBA Stats. <a href="/#stats">Ver todos los líderes →</a></p><div class="xig2">'
+    LX = lx_data(P)
     for c in st:
-        rows = ''.join(f'<tr><td class="pos num">{i + 1}</td><td class="team">' + (f'<a href="{url[(r[1], r[2])]}">{e(r[0])}</a>' if (r[1], r[2]) in url else e(r[0])) +
-                       f'<small style="display:block;color:var(--muted)">{e(G.TEAMS.get(r[1], {"n": r[1]})["n"])}</small></td>' + ''.join(f'<td class="num">{int(v):,}</td>' for v in r[3:]) + '</tr>' for i, r in enumerate(c['rows'][:5]))
+        rr = list(c['rows'][:5])
+        if rr:
+            last = rr[-1][3]
+            for x in LX['more'].get(c['id'], []):
+                if x[3] == last and not any(y[1] == x[1] and str(y[2]) == str(x[2]) for y in rr):
+                    rr.append(x)
+        rk = lambda i: (('T-' if sum(1 for y in rr if y[3] == rr[i][3]) > 1 else '') + str(1 + sum(1 for y in rr if y[3] > rr[i][3])))
+        ast = lambda r, j: '*' if c['cols'][j] == 'TD' and c['id'] in ('rb', 'wr') and f"{r[1]}|{r[2]}" in LX['tdt'] else ''
+        rows = ''.join(f'<tr><td class="pos num">{rk(i)}</td><td class="team">' + (f'<a href="{url[(r[1], r[2])]}">{e(r[0])}</a>' if (r[1], r[2]) in url else e(r[0])) +
+                       f'<small style="display:block;color:var(--muted)">{e(G.TEAMS.get(r[1], {"n": r[1]})["n"])}</small></td>' + ''.join(f'<td class="num">{int(v):,}{ast(r, j)}</td>' for j, v in enumerate(r[3:])) + '</tr>' for i, r in enumerate(rr))
+        if any(ast(r, j) for r in rr for j in range(len(c['cols']))):
+            rows += f'<tr><td colspan="{2 + len(c["cols"])}" style="font-size:12px;color:var(--muted)">* TD totales: FBA no separa tierra y recepción.</td></tr>'
         body += f'<div><h2 style="font-size:20px;margin:10px 0 6px">{e(c["t"])}</h2><div class="tbl-box"><table class="qs"><thead><tr><th>#</th><th>Jugador</th>' + ''.join(f'<th>{e(x)}</th>' for x in c['cols']) + f'</tr></thead><tbody>{rows}</tbody></table></div></div>'
     body += '</div><p class="sub" style="margin-top:12px"><a href="/nacional/#stats">Líderes de la Conferencia Nacional →</a> · <a href="/equipo-ideal-' + str(YEAR) + '/">Equipo ideal →</a></p>'
     out.append(('/lideres/', G.page(f'Líderes estadísticos Liga Mayor ONEFA {YEAR}: pase, tierra, recepción y defensa | Liga Mayor Unofficial',

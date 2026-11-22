@@ -501,8 +501,6 @@ def player_page(p, P):
     head = (f'<div class="ph"><div class="av">{av}</div><div>{num}'
             f'<h1>{e(p["name"])}</h1>{EX.badge(p.get("les"))}<div class="sub2"><a class="tl" href="{T["url"]}"><img src="{T["img"]}" alt="" width="24" height="24">{e(T["n"])}</a><span>{e(pos) if pos else "Jugador"} · {T["conf"]}</span></div></div></div>')
     tiles = [(age or '—', 'Edad', 'años' if age else ''), (h or '—', 'Estatura', ft(h) if h else ''), (w or '—', 'Peso', f'{round(int(w) * 2.2046)} lb' if w else ''), (e(p['pos'] or '—'), 'Posición', '')]
-    if not h:
-        tiles[1] = (('#' + str(p['n'])) if p['n'] is not None else '—', 'Número', '')
     body = nav + head + '<div class="pf">' + ''.join(f'<div><b>{v}</b>{f"<small>{s}</small>" if s else ""}<span>{l}</span></div>' for v, l, s in tiles) + '</div>'
     if p.get('les'):
         body += f'<div class="card injc" style="margin-top:10px"><b>{e(p["les"][0])}</b>{(" · " + e(p["les"][1])) if p["les"][1] else ""}</div>'
@@ -723,7 +721,7 @@ def main():
     if not os.path.exists(jp) or open(jp, encoding='utf-8').read() != js:
         open(jp, 'w', encoding='utf-8').write(js)
     nt = patch_team_pages(P)
-    print('líderes por equipo (FBA):', sum(len(v) for v in L.values()), '· portada:', EX.patch_home(L, LES), '· fichas:', EX.patch_team_stars(L), '· partidos:', EX.patch_game_pages(L), '· lesiones:', len(LES))
+    print('líderes por equipo (FBA):', sum(len(v) for v in L.values()), '· portada:', EX.patch_home(L, LES, P), '· fichas:', EX.patch_team_stars(L), '· partidos:', EX.patch_game_pages(L), '· lesiones:', len(LES))
     # sitemap
     sp = os.path.join(SITE, 'sitemap.xml')
     sm = open(sp, encoding='utf-8').read()
