@@ -218,7 +218,7 @@ def load(local):
         fin = st == 'final' and A is not None and H is not None
         G.append({'w': v(r, 'semana').upper(), 'd': v(r, 'fecha'), 't': v(r, 'hora')[:5], 'a': a, 'h': h,
                   'as': A if fin else None, 'hs': H if fin else None, 'fin': fin, 'live': st == 'en vivo',
-                  'det': v(r, 'detalle'), 'tv': v(r, 'transmision'), 'lk': v(r, 'link')})
+                  'det': v(r, 'detalle'), 'tv': v(r, 'transmision'), 'lk': v(r, 'link'), 'ya': num(v(r, 'yds visitante')), 'yh': num(v(r, 'yds local'))})
     try:
         cr, cc = rows_of(fetch('canales', local))
         for r in cr:
@@ -366,6 +366,9 @@ def game_page(g, G, PL, S):
         facts += f'<div><dt>Estadio</dt><dd>{e(stadium)}</dd></div><div><dt>Sede</dt><dd>{e(city)}</dd></div>'
     body += f'<h2 style="font-size:26px;margin-top:22px">El partido</h2><div class="card"><dl class="facts">{facts}</dl></div>'
     body += detail_html(g, PL.get((g['w'], g['a'], g['h']), []))
+    if g['fin'] and g.get('ya') is not None and g.get('yh') is not None:
+        body += (f'<h2 style="font-size:26px;margin-top:22px">Yardas totales</h2><div class="card"><dl class="facts"><div><dt>{e(A["n"])}</dt><dd>{g["ya"]} yardas</dd></div>'
+                 f'<div><dt>{e(H["n"])}</dt><dd>{g["yh"]} yardas</dd></div></dl><p class="sub" style="margin:8px 0 0">Fuente: boletín de prensa ONEFA.</p></div>')
     if g['fin']:
         body += f'<p class="sub" style="margin-top:14px">{e(A["n"])} ({rec(g["a"])}) y {e(H["n"])} ({rec(g["h"])}) en la temporada {YEAR} de la Conferencia de los 14 Grandes. <a href="/#tabla">Ver la tabla de posiciones</a> y <a href="/#playoffs">la carrera por los playoffs</a>.</p>'
     body += f'<h2 style="font-size:26px;margin-top:22px">Más</h2><div class="more"><a href="/juegos/{YEAR}/{wk_slug(g["w"])}/">{e(more_wl(g['w']))} →</a><a href="/equipos/{SLUG[g["a"]]}/">Calendario de {e(A["n"])} →</a><a href="/equipos/{SLUG[g["h"]]}/">Calendario de {e(H["n"])} →</a><a href="/#tabla">Tabla de posiciones de la Liga Mayor {YEAR} →</a></div>'

@@ -1027,7 +1027,7 @@ function gameDetail(g){
   if(fin&&(sum(g.a)!==g.as||sum(g.h)!==g.hs))h+=`<p class="sub" style="margin-top:6px">${P.some(p=>p.q===9)?'Algunas anotaciones no tienen cuarto confirmado en las crónicas, así que los cuartos no suman el marcador final.':'Faltan algunas anotaciones por capturar, así que los cuartos no suman el marcador final.'}</p>`;
   h+=`<h3>Anotaciones</h3><div class="plays">`;
   let ra=0,rh=0,lastQ=0;
-  P.slice().sort((x,y)=>x.q-y.q).forEach(p=>{
+  (P.some(p=>p.q===9)?P.slice():P.slice().sort((x,y)=>x.q-y.q)).forEach(p=>{
     if(p.q!==lastQ){h+=`<div class="qh">${qName(p.q)}</div>`;lastQ=p.q}
     if(p.t===g.a)ra+=p.pts;else if(p.t===g.h)rh+=p.pts;
     const T=playText(p);
@@ -1035,6 +1035,8 @@ function gameDetail(g){
   });
   return h+`</div>`;
 }
+function yardsBlock(g){if(g.ya==null||g.yh==null)return'';const T=g.ya+g.yh||1,pa=Math.round(g.ya/T*100);
+  return`<h3>Yardas totales</h3><div class="card"><div class="cmp-r" style="display:grid;grid-template-columns:auto 1fr auto;gap:4px 8px;align-items:baseline"><b>${g.ya}</b><span style="text-align:center;color:var(--muted);font-size:13px">${SHORT[g.a]||g.a} · ${SHORT[g.h]||g.h}</span><b>${g.yh}</b><div style="grid-column:1/-1;display:flex;gap:4px;height:5px"><i style="display:block;width:${pa}%;background:${(typeof TCOL!=='undefined'&&TCOL[g.a])||'var(--accent)'}"></i><i style="display:block;width:${100-pa}%;background:${(typeof TCOL!=='undefined'&&TCOL[g.h])||'var(--muted)'}"></i></div></div><p class="sub" style="margin:8px 0 0">Fuente: boletín de prensa ONEFA.</p></div>`}
 function watchBlock(g){
   const W=watch(g),lv=!!g.live,fin=isPlayed(g);if(!W.tv)return'';
   const lbl=lv?'Ver en vivo ▶':fin?'Ver transmisión ▶':'Ir ▶';
@@ -1057,7 +1059,7 @@ function openGame(id,keep){
   sh.innerHTML=`<div class="sheet-head"><div class="in"><button class="back" id="close">← Volver</button>
     ${lv?`<div class="gh-live"><i></i><span>En vivo${g.det?' · '+escH(g.det):''}</span></div>`:''}<div class="gmeta">${wkLong(g.w)} · ${g.d} · ${lv?g.t+' h':fin?'Final':g.t+' h'}</div>
     <div class="gh-teams">${tr(g.a,sa,fin&&g.as<g.hs,'Visita')}${tr(g.h,shs,fin&&g.hs<g.as,'Local')}</div></div></div>
-    <div class="wrap" style="padding-bottom:40px"><button class="btn sharebtn" data-share-game="${g.id}">${played?'Compartir resultado':'Compartir partido'}</button>${lv?'':`<div class="card" style="margin-top:12px">${pollHTML('G-'+g.w+'-'+g.a+'-'+g.h,g.a,g.h,!fin)}</div>`}${lv?watchBlock(g):''}${played?gameDetail(g):gamePreview(g)}${fin?watchBlock(g):''}<p class="sub" style="margin-top:14px"><a href="${gamePath(g)}">Página del partido →</a></p></div>`;
+    <div class="wrap" style="padding-bottom:40px"><button class="btn sharebtn" data-share-game="${g.id}">${played?'Compartir resultado':'Compartir partido'}</button>${lv?'':`<div class="card" style="margin-top:12px">${pollHTML('G-'+g.w+'-'+g.a+'-'+g.h,g.a,g.h,!fin)}</div>`}${lv?watchBlock(g):''}${played?gameDetail(g)+yardsBlock(g):gamePreview(g)}${fin?watchBlock(g):''}<p class="sub" style="margin-top:14px"><a href="${gamePath(g)}">Página del partido →</a></p></div>`;
   sh.hidden=false;sh.scrollTop=y;
   document.getElementById('close').onclick=()=>{sh.hidden=true;currentGame=null};
   if(!keep){try{gtag('event','ver_partido',{partido:g.a+'-'+g.h,semana:g.w})}catch(e){}}
@@ -1402,13 +1404,13 @@ async function loadSheet(){
     if(!res.ok)throw new Error(res.status);
     const rows=parseCSV(await res.text()).filter(r=>r.some(x=>x.trim()));
     const H=rows.shift().map(norm),col=n=>H.indexOf(n);
-    const c={w:col('semana'),d:col('fecha'),t:col('hora'),a:col('visitante'),as:col('pts visitante'),hs:col('pts local'),h:col('local'),e:col('estado'),det:col('detalle'),tv:col('transmision'),lk:col('link')};
+    const c={w:col('semana'),d:col('fecha'),t:col('hora'),a:col('visitante'),as:col('pts visitante'),hs:col('pts local'),h:col('local'),e:col('estado'),det:col('detalle'),tv:col('transmision'),lk:col('link'),ya:col('yds visitante'),yh:col('yds local')};
     if(Object.values(c).slice(0,8).some(i=>i<0))throw new Error('columnas');
     const num=x=>{const v=String(x||'').trim();return v===''||isNaN(+v)?null:+v};
     const list=rows.map((r,i)=>{const a=r[c.a].trim().toUpperCase(),h=r[c.h].trim().toUpperCase(),st=norm(r[c.e]),A=num(r[c.as]),Hs=num(r[c.hs]);
       const fin=st==='final'&&A!==null&&Hs!==null;
       return{id:i,w:String(r[c.w]).trim().toUpperCase(),d:(t=>t.charAt(0).toUpperCase()+t.slice(1))(r[c.d].trim()),t:String(r[c.t]).trim().slice(0,5),a,h,as:fin?A:null,hs:fin?Hs:null,
-        live:st==='en vivo',las:A??0,lhs:Hs??0,det:c.det>=0?r[c.det].trim():'',tv:c.tv>=0?(r[c.tv]||'').trim():'',lk:c.lk>=0?(r[c.lk]||'').trim():''}}).filter(g=>TEAMS[g.a]&&TEAMS[g.h]);
+        live:st==='en vivo',las:A??0,lhs:Hs??0,det:c.det>=0?r[c.det].trim():'',tv:c.tv>=0?(r[c.tv]||'').trim():'',lk:c.lk>=0?(r[c.lk]||'').trim():'',ya:c.ya>=0?num(r[c.ya]):null,yh:c.yh>=0?num(r[c.yh]):null}}).filter(g=>TEAMS[g.a]&&TEAMS[g.h]);
     if(!list.length)throw new Error('vacía');
     PO_GAMES=list.filter(g=>PO_W.includes(g.w));
     GAMES.splice(0,GAMES.length,...list.filter(g=>!PO_W.includes(g.w)));
