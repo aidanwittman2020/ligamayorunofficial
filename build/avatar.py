@@ -42,6 +42,8 @@ UNI_NAC = {
     'UCH': dict(h='#151515', hd='#6B3FB5', hm='#151515', j='#6B3FB5', s='#6B3FB5', ss='#F4F4F2', n='#F4F4F2', no=None, deco='logo', p='#151515', g='#6B3FB5'),
     'PAN': dict(h='#E8642A', hd='#151515', hm='#151515', j='#151515', s='#151515', ss='#E8642A', n='#E8642A', no='#F4F4F2', deco='stripe', p='#151515', g='#151515'),
     'ULM': dict(h='#151515', hd='#4FA3E0', hm='#151515', j='#151515', s='#151515', ss='#4FA3E0', n='#4FA3E0', no=None, deco='stripe', p='#151515', g='#151515', arm='#151515'),
+    'LQR': dict(h='#3A3A3C', hd='#E8642A', hm='#151515', j='#E8642A', s='#E8642A', ss='#E8642A', n='#151515', no='#F4F4F2', deco='logo', p='#E8642A', g='#F4F4F2', arm='#151515'),
+    'UIW': dict(h='#F4F4F2', hd='#D42A2A', hm='#F4F4F2', j='#D42A2A', s='#D42A2A', ss='#D42A2A', n='#151515', no=None, deco='logo', p='#D42A2A', g='#D42A2A'),
     'HAL': dict(h='#F4F4F2', hd='#1F55D0', hm='#1F55D0', j='#1F55D0', s='#1F55D0', ss='#F4F4F2', n='#F4F4F2', no=None, deco='logo', p='#1F55D0', g='#F4F4F2'),
 }
 
