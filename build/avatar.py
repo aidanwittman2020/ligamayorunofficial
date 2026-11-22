@@ -31,6 +31,20 @@ NAC = {"PAC": "#1B2A5C", "PSA": "#0B6B3A", "FRA": "#B3202A", "HAL": "#0E4C92", "
        "UCJ": "#2E7D32", "UBC": "#00723F"}
 NAC_NUM = {'UCH': '#F2B705', 'LQR': '#111111', 'PAN': '#111111'}
 
+# Conferencia Nacional: fotos enviadas por Aidan (22 nov 2026). Los equipos sin foto usan NAC (colores provisionales).
+UNI_NAC = {
+    'PSA': dict(h='#B8964A', hd='#151515', hm='#151515', j='#151515', s='#151515', ss='#151515', n='#E0B43A', no=None, deco='logo', p='#151515', g='#151515'),
+    'FRA': dict(h='#F4F4F2', hd='#C8202A', hm='#F4F4F2', j='#C8202A', s='#C8202A', ss='#F4F4F2', n='#F4F4F2', no=None, deco='stripe', p='#F4F4F2', g='#F4F4F2'),
+    'UAC': dict(h='#F4F4F2', hd='#1F4FC1', hm='#1F4FC1', j='#1F4FC1', s='#1F4FC1', ss='#F2C318', n='#F2C318', no=None, deco='logo', p='#1F4FC1', g='#F4F4F2', arm='#F4F4F2'),
+    'PAC': dict(h='#C9A646', hd='#1B2448', hm='#1B2448', j='#1B2448', s='#1B2448', ss='#C9A646', n='#F4F4F2', no='#C9A646', deco='logo', p='#C9A646', g='#1B2448'),
+    'ITS': dict(h='#F4F4F2', hd='#1F4FC1', hm='#1F4FC1', j='#1F4FC1', s='#1F4FC1', ss='#1F4FC1', n='#F4F4F2', no='#16357F', deco='logo', p='#1F4FC1', g='#F4F4F2'),
+    'TEC': dict(h='#F4F4F2', hd='#7A1F2E', hm='#F4F4F2', j='#7A1F2E', s='#7A1F2E', ss='#E0B43A', n='#F4F4F2', no='#E0B43A', deco='logo', p='#7A1F2E', g='#7A1F2E', arm='#151515'),
+    'UCH': dict(h='#151515', hd='#6B3FB5', hm='#151515', j='#6B3FB5', s='#6B3FB5', ss='#F4F4F2', n='#F4F4F2', no=None, deco='logo', p='#151515', g='#6B3FB5'),
+    'PAN': dict(h='#E8642A', hd='#151515', hm='#151515', j='#151515', s='#151515', ss='#E8642A', n='#E8642A', no='#F4F4F2', deco='stripe', p='#151515', g='#151515'),
+    'ULM': dict(h='#151515', hd='#4FA3E0', hm='#151515', j='#151515', s='#151515', ss='#4FA3E0', n='#4FA3E0', no=None, deco='stripe', p='#151515', g='#151515', arm='#151515'),
+    'HAL': dict(h='#F4F4F2', hd='#1F55D0', hm='#1F55D0', j='#1F55D0', s='#1F55D0', ss='#F4F4F2', n='#F4F4F2', no=None, deco='logo', p='#1F55D0', g='#F4F4F2'),
+}
+
 SKIN = ['#F2CBA8', '#E3B08A', '#CF9870', '#B57A52', '#9C6440']   # de tez clara a morena
 HAIR = ['#2A1C14', '#3B2A1E', '#1E1712']
 SKIN_DARK = '#6E4630'   # para los jugadores que Aidan indicó (ver SKIN_FIX en jugadores.py)
@@ -39,6 +53,8 @@ SKIN_DARK = '#6E4630'   # para los jugadores que Aidan indicó (ver SKIN_FIX en 
 def uniform(liga, k):
     if liga == '14G' and k in UNI:
         return UNI[k]
+    if liga == 'NAC' and k in UNI_NAC:
+        return UNI_NAC[k]
     c = NAC.get(k, '#444444')
     return dict(h=c, hd='#FFFFFF', hm='#9AA0A6', j=c, s=c, ss='#FFFFFF', n=NAC_NUM.get(k, '#FFFFFF'), no=None, deco='stripe')
 
