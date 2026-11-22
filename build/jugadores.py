@@ -254,6 +254,74 @@ def cc_summary(cc):
     return ' · '.join(parts)
 
 
+# ---------------------------------------------------------------- FBA Stats completo (publicado por Modo Blitz)
+MB_TEAM = {'CETYS': 'CET', 'IPN AGS': 'AGU', 'IPN BURROS': 'BUR', 'CCM': 'CCM', 'CEM': 'CEM', 'GDL': 'GDL', 'MTY': 'MTY', 'PUE': 'PUE',
+           'UAMN': 'LAN', 'UANC': 'LAC', 'UANL': 'TIG', 'UDLAP': 'UDL', 'UNAM': 'PUM', 'UVM': 'UVM'}
+MB_SHOW = {'passing': ('Pase', [('JJ', 'JJ'), ('COMP', 'COMP'), ('INT', 'INTENT.'), ('PCT', '%'), ('YDS', 'YDS'), ('TD', 'TD'), ('INTC', 'INT'), ('YDS/J', 'Y/J'), ('SACS', 'CAPT.')]),
+           'rushing': ('Acarreo', [('JJ', 'JJ'), ('ACA', 'ACAR'), ('YDS', 'YDS'), ('PROM', 'PROM'), ('TD', 'TD'), ('1y10', '1y10'), ('FUM', 'BS')]),
+           'receiving': ('Recepción', [('JJ', 'JJ'), ('REC', 'REC'), ('YDS', 'YDS'), ('PROM', 'PROM'), ('TD', 'TD'), ('1y10', '1y10')]),
+           'tackles': ('Defensiva', [('JJ', 'JJ'), ('TAC', 'TACK'), ('SACKS', 'SACK'), ('FR', 'BR')]),
+           'ints': ('Intercepciones', [('JJ', 'JJ'), ('INT', 'INT'), ('YDS', 'YDS')]),
+           'kickers': ('Pateo', [('JJ', 'JJ'), ('PAT', 'PAT'), ('FG 10-30', 'GC 10-30'), ('FG 31-45', 'GC 31-45'), ('FG 46+', 'GC 46+'), ('PTS', 'PTS')])}
+
+
+# correcciones confirmadas por el usuario sobre los datos de FBA
+MB_FIX = {('GDL', 2, 'rushing'): {'TD': 2.0}}   # Alfredo Lira anotó 2 TD (FBA dice 1)
+
+
+def load_mb():
+    fp = os.path.join(DATA, 'modoblitz_2026.txt')
+    out, cat, cols = [], None, []
+    if not os.path.exists(fp):
+        return out
+    for ln in open(fp, encoding='utf-8'):
+        ln = ln.rstrip('\n')
+        if ln.startswith('#') and '|' in ln:
+            cat, *cols = ln[1:].split('|')
+            continue
+        if not ln.strip() or ln.startswith('#'):
+            continue
+        f = ln.split('|')
+        if f[1] not in MB_TEAM:
+            continue
+        v = {c: (float(x) if x not in ('', 'None') else None) for c, x in zip(cols, f[3:])}
+        out.append({'cat': 'tackles' if cat == 'sacks' else cat, 'n': int(f[0]), 'team': MB_TEAM[f[1]], 'name': f[2], 'v': v})
+    return out
+
+
+def attach_mb(P, mb):
+    hit = 0
+    for p in P:
+        p['mb'] = {}
+    for r in mb:
+        name = CC_ALIAS.get((r['team'], r['n'], r['name']), r['name'])
+        p = find_player(P, '14G', r['team'], r['n'], name or '-')
+        if p and r['cat'] not in p['mb']:
+            v = dict(r['v'])
+            v.update(MB_FIX.get((p['team'], p['n'], r['cat']), {}))
+            p['mb'][r['cat']] = v
+            hit += 1
+    return hit
+
+
+def mb_tables(mb):
+    out = ''
+    for cat, (lbl, cols) in MB_SHOW.items():
+        if cat not in mb:
+            continue
+        v = mb[cat]
+        def f(k):
+            x = v.get(k)
+            if x is None:
+                return '—'
+            if k == 'PCT':
+                return f'{x * 100:.1f}'
+            return f'{x:.1f}' if k in ('PROM', 'YDS/J') else f'{int(x):,}'
+        out += (f'<div class="c"><div class="ct">{lbl}</div><div class="tbl-box"><table class="cc"><thead><tr>' + ''.join(f'<th>{t}</th>' for k, t in cols) +
+                '</tr></thead><tbody><tr>' + ''.join(f'<td>{f(k)}</td>' for k, t in cols) + '</tr></tbody></table></div></div>')
+    return out
+
+
 def attach(P, rows, stars, hist):
     for p in P:
         p['seasons'] = {}
@@ -413,20 +481,29 @@ def player_page(p, P):
         body += f'<p class="gm-meta">Temporada regular · FBA Stats (Uriel González). Si está entre los primeros lugares, se indica en cada categoría.</p><div class="st">{stat_cards(cur, "los 14 Grandes" if T["conf"] == "14 Grandes" else "la Conferencia Nacional")}</div>'
     if p.get('star'):
         body += f'<div class="card" style="margin-top:8px"><b>Jugador a seguir de {e(T["n"])}:</b> {e(p["star"])}</div>'
+    mb = p.get('mb') or {}
+    if mb:
+        body += f'<h3 style="font-size:20px;margin:18px 0 0">Estadísticas completas {YEAR}</h3><p class="gm-meta">Temporada regular · FBA Stats. JJ = juegos jugados.</p><div class="st">{mb_tables(mb)}</div>'
     # Cover Cero solo para lo que FBA Stats no trae
     fcats = set(cur['cats']) if cur else set()
-    tapado = {'passing': 'QB' in fcats, 'rushing': 'RB' in fcats, 'receiving': 'WR' in fcats, 'defense': bool(fcats & {'TK', 'IN', 'SK'})}
-    # columnas que ya muestra FBA Stats; de Cover Cero solo se enseña lo demás (juegos jugados, intentos, promedios...)
-    # también se ocultan los promedios calculados con las yardas de Cover Cero, para no mezclar dos cifras de yardas
+    tapado = {'passing': 'QB' in fcats or 'passing' in mb, 'rushing': 'RB' in fcats or 'rushing' in mb, 'receiving': 'WR' in fcats or 'receiving' in mb,
+              'defense': bool(fcats & {'TK', 'IN', 'SK'}) or 'tackles' in mb or 'ints' in mb}
+    # columnas que ya muestra FBA; de Cover Cero solo se enseña lo demás. Si FBA trae la categoría completa, se omite la de Cover Cero.
     hide = {'passing': {'YDS', 'TD', 'Y/I', 'RTG', 'Y/J'} if 'QB' in fcats else set(), 'rushing': {'YDS', 'TD', 'PROM', 'Y/J'} if 'RB' in fcats else set(),
             'receiving': {'YDS', 'REC', 'TD', 'PROM', 'Y/J'} if 'WR' in fcats else set(),
             'defense': {c for f, c in (('TK', 'TACK'), ('SK', 'SACK'), ('IN', 'INT')) if f in fcats}}
-    ccall = p.get('cc') or {}
+    if 'tackles' in mb:
+        hide['defense'] |= {'TACK', 'SACK', 'JJ'}
+    if 'ints' in mb:
+        hide['defense'] |= {'INT', 'JJ'}
+    ccall = {k: v for k, v in (p.get('cc') or {}).items() if not (k in ('passing', 'rushing', 'receiving') and k in mb)}
+    if 'defense' in ccall and not [i for i in CC_SHOW['defense'] if CC_COLS['defense'][1][i] not in hide['defense'] and CC_COLS['defense'][1][i] != 'JJ']:
+        ccall.pop('defense')
     ccx = {k: v for k, v in ccall.items() if not tapado[k]}
     if ccall:
-        ttl = f'Más estadísticas {YEAR}' if fcats else f'Estadísticas {YEAR}'
-        body += f'<h3 style="font-size:20px;margin:18px 0 0">{ttl}</h3><p class="gm-meta">Temporada regular. JJ = juegos jugados.</p><div class="st">{cc_tables(ccall, hide)}</div>'
-    if not (cur and cur['cats']) and not p.get('star') and not ccall:
+        ttl = f'Más estadísticas {YEAR}' if (fcats or mb) else f'Estadísticas {YEAR}'
+        body += f'<h3 style="font-size:20px;margin:18px 0 0">{ttl}</h3><p class="gm-meta">Temporada regular · Cover Cero, solo lo que FBA no publica.</p><div class="st">{cc_tables(ccall, hide)}</div>'
+    if not (cur and cur['cats']) and not p.get('star') and not ccall and not mb:
         body += f'<p class="gm-meta">Sin estadísticas individuales publicadas en {YEAR}.</p>'
     hist = sorted(p['seasons'].items(), reverse=True)
     if ccx and str(YEAR) not in p['seasons']:
@@ -447,8 +524,8 @@ def player_page(p, P):
         src.append('edad, estatura y peso: rosters publicados por los equipos')
     if ccall:
         src.append('otras estadísticas: Cover Cero (<a href="https://covercero.com.mx/estadisticas-2026/" rel="noopener">covercero.com.mx</a>)')
-    if p['seasons']:
-        src.append('líderes estadísticos: Uriel González (FBA Stats)')
+    if p['seasons'] or p.get('mb'):
+        src.append('estadísticas: Uriel González (FBA Stats), publicadas también por <a href="https://www.modoblitz.com/estadisticas-onefa" rel="noopener">Modo Blitz</a>')
     txt = "; ".join(src)
     body += f'<p class="note">{txt[:1].upper() + txt[1:]}. ¿Ves un dato equivocado? <a href="/#info">Avísanos</a>.</p>'
     title = f"{p['name']} · {pos} de {T['n']} | Liga Mayor Unofficial" if pos else f"{p['name']} · {T['n']} | Liga Mayor Unofficial"
@@ -540,6 +617,7 @@ def main():
         print(f'Temporada {YEAR} guardada en el historial ({len(rows)} renglones).')
     assign_urls(P)
     extra = attach(P, rows, stars, hist)
+    print(f"FBA (Modo Blitz): {attach_mb(P, load_mb())} renglones ligados a un perfil")
     cc = load_cc()
     print(f"Cover Cero: {attach_cc(P, cc)}/{len(cc)} renglones ligados a un perfil")
     assign_urls(P)
