@@ -1352,9 +1352,9 @@ function viewInicio(){
   return`<div class="home">${h}</div>`;
 }
 function viewMas(){
-  const L=[['playoffs','Playoffs','Llave, simulador y qué necesita cada equipo']];
-  const E=[['/jugadores/','Jugadores','Perfil de cada jugador con estatura, peso y estadísticas'],['/historia/','Historia','Campeones desde 1978'],['/nacional/','Conferencia Nacional','Tabla, juegos, líderes y playoffs']];
-  return`<h2>Más</h2><div class="mas">${L.map(([t,n,d])=>`<a href="/#${t}" data-go="${t}"><b>${n}</b><span>${d}</span></a>`).join('')}${E.map(([u,n,d])=>`<a href="${u}"><b>${n}</b><span>${d}</span></a>`).join('')}</div>`+viewInfo();
+  const L=[['playoffs','Playoffs','Llave, simulador y qué necesita cada equipo']],L2=[['info','Acerca de','Fuentes de los datos y créditos']];
+  const E=[['/jugadores/','Jugadores','Perfiles con estatura, peso y estadísticas'],['/historia/','Historia','Campeones desde 1978']];
+  return`<h2>Más</h2><div class="mas">${L.map(([t,n,d])=>`<a href="/#${t}" data-go="${t}"><b>${n}</b><span>${d}</span></a>`).join('')}${E.map(([u,n,d])=>`<a href="${u}"><b>${n}</b><span>${d}</span></a>`).join('')}${L2.map(([t,n,d])=>`<a href="/#${t}" data-go="${t}"><b>${n}</b><span>${d}</span></a>`).join('')}</div>`;
 }
 document.addEventListener('click',e=>{const a=e.target.closest('[data-go]');if(!a)return;e.preventDefault();e.stopPropagation();autoTab=false;tab=a.dataset.go;try{history.replaceState(null,'','#'+tab)}catch(_){}window.scrollTo(0,0);if(tab==='playoffs'&&!simSC)recalc();else render()},true);
 
