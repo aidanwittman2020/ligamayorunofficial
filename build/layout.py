@@ -8,13 +8,18 @@ import os
 import re
 
 SITE = os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', 'site')
-CSS_V = '6'
+CSS_V = '7'
 LINK = f'<link rel="stylesheet" href="/layout.css?v={CSS_V}" id="lay">'
 
 MENU_14 = [('Inicio', '/#inicio'), ('Tabla', '/#tabla'), ('Juegos', '/#juegos'), ('Playoffs', '/#playoffs'), ('Equipos', '/#equipos'),
            ('Líderes', '/#stats'), ('Jugadores', '/jugadores/'), ('Historia', '/historia/')]
 MENU_NAC = [('Inicio', '/nacional/#inicio'), ('Tabla', '/nacional/#tabla'), ('Juegos', '/nacional/#juegos'), ('Playoffs', '/nacional/#playoffs'), ('Equipos', '/nacional/#equipos'),
             ('Líderes', '/nacional/#stats'), ('Jugadores', '/jugadores/'), ('Historia', '/historia/')]
+
+FIT_JS = '''<script id="fit-nav">(function(){const n=document.getElementById('topnav');if(!n)return;
+function fit(){if(innerWidth<769){n.style.gap='';return}n.style.gap='';let g=parseFloat(getComputedStyle(n).columnGap)||28;
+while(n.scrollWidth>n.clientWidth+1&&g>8){g-=2;n.style.gap=g+'px'}}
+fit();addEventListener('resize',fit);document.fonts&&document.fonts.ready.then(fit)})();</script>'''
 
 NAC_JS = '''<script id="lay-nac">(function(){const ok=['inicio','mas','tabla','juegos','equipos','stats','playoffs','info'];
 function sync(){const t=typeof tab!=='undefined'?tab:'';document.querySelectorAll('#topnav a').forEach(a=>{const h=a.getAttribute('href');a.classList.toggle('on',h==='/nacional/#'+t)})}
@@ -61,6 +66,8 @@ def main():
             new = new.replace('</head>', LINK + '</head>', 1)
             if rel != 'index.html':
                 new = re.sub(r'<header class="top".*?</header>', lambda m: header(rel), new, count=1, flags=re.S)
+            new = re.sub(r'<script id="fit-nav">.*?</script>', '', new, flags=re.S)
+            new = new.replace('</body>', FIT_JS + '</body>', 1)
             if rel == 'nacional/index.html':
                 new = re.sub(r'<script id="lay-nac">.*?</script>', '', new, flags=re.S)
                 new = new.replace('</body>', NAC_JS + '</body>', 1)

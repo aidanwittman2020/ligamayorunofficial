@@ -608,7 +608,7 @@ nav.tabs .in{grid-template-columns:repeat(6,1fr)}
   .ml-c{grid-template-columns:1fr}
   .home{padding-top:8px}
 }
-</style><link rel="stylesheet" href="/layout.css?v=6" id="lay"></head>
+</style><link rel="stylesheet" href="/layout.css?v=7" id="lay"></head>
 <body>
 
 <header class="top"><div class="in">
@@ -1544,5 +1544,8 @@ document.addEventListener('submit',e=>{const f=e.target.closest('[data-cform]');
 loadVotes();setInterval(loadVotes,60000);
 </script>
 <script>if("serviceWorker" in navigator)addEventListener("load",()=>navigator.serviceWorker.register("/sw.js").catch(()=>{}));</script>
-</body>
+<script id="fit-nav">(function(){const n=document.getElementById('topnav');if(!n)return;
+function fit(){if(innerWidth<769){n.style.gap='';return}n.style.gap='';let g=parseFloat(getComputedStyle(n).columnGap)||28;
+while(n.scrollWidth>n.clientWidth+1&&g>8){g-=2;n.style.gap=g+'px'}}
+fit();addEventListener('resize',fit);document.fonts&&document.fonts.ready.then(fit)})();</script></body>
 </html>

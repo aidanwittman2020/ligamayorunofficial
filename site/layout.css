@@ -271,4 +271,5 @@ nav.tabs .in{grid-template-columns:repeat(6,1fr)!important}
 .cmpx tbody th{font-weight:500;color:var(--muted);font-size:13px;border-bottom:1px solid var(--line)}
 .cmpx td.w{color:#1F8F4E;font-weight:800}
 .cmpx tr.g td{text-align:left;font:800 15px "Barlow Condensed",sans-serif;text-transform:uppercase;letter-spacing:.05em;padding-top:16px;border-bottom:2px solid var(--ink)}
-@media (min-width:1181px) and (max-width:1380px){header.top .topnav{gap:15px}header.top .topnav a[href="/historia/"]{display:none}}
+@media (min-width:769px){header.top .topnav a[href$="#inicio"]{display:none}}
+/* el logo ya lleva al inicio; el script fit-nav achica el espacio si aún no cabe */
