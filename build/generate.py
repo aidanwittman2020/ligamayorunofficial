@@ -236,8 +236,8 @@ def load(local):
             if t not in TEAMS or not k:
                 continue
             qs = av(r, 'cuarto').upper()
-            q = 5 if qs in ('TE', 'OT') else num(qs)
-            if not q or not 1 <= q <= 5:
+            q = 9 if qs in ('', '?') else 5 if qs in ('TE', 'OT') else num(qs)
+            if not q or not (1 <= q <= 5 or q == 9):
                 continue
             x = norm(av(r, 'extra'))
             pts = 6 if k.startswith('td') else 3 if k == 'fg' else 2 if k == 'safety' else 0
@@ -282,27 +282,31 @@ def play_text(p):
         return 'Gol de campo', (J or 'FG') + (f', {yd}' if yd else '')
     if k == 'safety':
         return 'Safety', J or 'Safety'
+    if k == 'td':
+        return 'Touchdown', J or 'TD'
     return e(p['k']), J
 
 
 def detail_html(g, P):
     if not P:
         return ''
-    nQ = max(4, max(p['q'] for p in P))
+    nQ = max(4, max([p['q'] for p in P if p['q'] <= 5] or [4]))
     Q = {g['a']: [0] * (nQ + 1), g['h']: [0] * (nQ + 1)}
     for p in P:
-        if p['t'] in Q:
+        if p['t'] in Q and p['q'] <= 5:
             Q[p['t']][p['q']] += p['pts']
     tot = {k: (g['as'] if k == g['a'] else g['hs']) if g['fin'] else sum(Q[k]) for k in Q}
     cols = range(1, nQ + 1)
     row = lambda k: f'<tr><td>{e(SHORT.get(k, k))}</td>' + ''.join(f'<td>{Q[k][q]}</td>' for q in cols) + f'<td class="tot">{tot[k]}</td></tr>'
     h = '<h2 style="font-size:26px;margin-top:22px">Marcador por cuarto</h2><table class="qs"><thead><tr><th>Equipo</th>' + ''.join(f'<th>{"TE" if q == 5 else str(q) + "º"}</th>' for q in cols) + f'<th>Total</th></tr></thead><tbody>{row(g["a"])}{row(g["h"])}</tbody></table>'
+    if any(p['q'] == 9 for p in P):
+        h += '<p class="sub" style="margin-top:6px">Algunas anotaciones no tienen cuarto confirmado en las crónicas, así que los cuartos no suman el marcador final.</p>'
     h += '<h2 style="font-size:26px;margin-top:22px">Anotaciones</h2><div class="plays">'
     ra = rh = 0
     last = 0
-    qn = {1: '1er cuarto', 2: '2º cuarto', 3: '3er cuarto', 4: '4º cuarto', 5: 'Tiempo extra'}
+    qn = {1: '1er cuarto', 2: '2º cuarto', 3: '3er cuarto', 4: '4º cuarto', 5: 'Tiempo extra', 9: 'Cuarto sin confirmar'}
     ex = {'pat bueno': 'Punto extra bueno', 'pat fallado': 'Punto extra fallado', '2 pts bueno': 'Conversión de 2 buena', '2 pts fallado': 'Conversión de 2 fallada'}
-    for p in sorted(P, key=lambda p: p['q']):
+    for p in (list(P) if any(p['q'] == 9 for p in P) else sorted(P, key=lambda p: p['q'])):
         if p['q'] != last:
             h += f'<div class="qh">{qn[p["q"]]}</div>'
             last = p['q']
