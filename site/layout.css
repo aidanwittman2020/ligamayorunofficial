@@ -306,3 +306,4 @@ nav.btm{display:none}
 .champb{display:grid;gap:2px;margin:10px 0 4px;padding:14px 18px;background:#0E1511;color:#F1F3F2;border-left:6px solid #F2C230;border-radius:2px}
 .champb span{font:800 13px "Barlow Condensed",sans-serif;letter-spacing:.08em;text-transform:uppercase;color:#F2C230}.champb b{font:800 30px "Barlow Condensed",sans-serif;text-transform:uppercase}
 .h-champ{font:800 22px "Barlow Condensed",sans-serif;text-transform:uppercase;text-align:center;margin-bottom:6px}.h-champ small{display:block;font-size:13px;letter-spacing:.1em;color:#B8860B}
+.y26{border-left:3px solid #3DBE73;padding-left:10px;margin-bottom:8px}

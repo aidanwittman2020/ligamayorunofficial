@@ -832,6 +832,29 @@ def po_status(k, G, last=None):
     return ''
 
 
+def season_line(k, G, rows, done):
+    """Resumen 2026 que va arriba de la descripción del equipo (escrita en pretemporada)."""
+    i = next(j for j, r in enumerate(rows) if r['k'] == k)
+    r = rows[i]
+    parts = [f"{r['w']}-{r['l']} en temporada regular ({i + 1}.º lugar)"]
+    po = [g for g in G if g['w'] in ('CF', 'SF', 'F') and k in (g['a'], g['h'])]
+    lbl = {'CF': 'cuartos de final', 'SF': 'semifinales', 'F': 'la final'}
+    for g in sorted(po, key=lambda x: ['CF', 'SF', 'F'].index(x['w'])):
+        o = TEAMS[g['h'] if g['a'] == k else g['a']]['n']
+        if not g['fin']:
+            parts.append(f"juega {lbl[g['w']]} contra {o}")
+            break
+        my, ot = (g['as'], g['hs']) if g['a'] == k else (g['hs'], g['as'])
+        if my < ot:
+            parts.append(('subcampeón: perdió la final ' if g['w'] == 'F' else f"eliminado en {lbl[g['w']]}: ") + f"{my}-{ot} ante {o}")
+            break
+        if g['w'] == 'F':
+            parts.append(f"campeón: ganó la final {my}-{ot} a {o}")
+    if done and not po:
+        parts.append(f"desciende a la Conferencia Nacional para {YEAR + 1}" if i == len(rows) - 1 else 'no clasificó a playoffs')
+    return f'<b>{YEAR}:</b> ' + ' · '.join(parts) + '.'
+
+
 def patch_team_facts(G):
     """Récord, lugar y puntos de temporada regular en el HTML de cada página de equipo (lo que ve Google)."""
     S = {k: {'k': k, 'w': 0, 'l': 0, 'pf': 0, 'pa': 0} for k in TEAMS}
@@ -855,6 +878,9 @@ def patch_team_facts(G):
         new = re.sub(r'(<b id="f-pa">)[^<]*', lambda m: m.group(1) + str(r['pa']), new)
         done = all(g['fin'] for g in G if g['w'] not in ('P', 'CF', 'SF', 'F')) and any(g['w'] in ('CF', 'SF', 'F') for g in G)
         st = po_status(r['k'], G, rows[-1]['k'] if done else None)
+        y = season_line(r['k'], G, rows, done)
+        new = re.sub(r'<p class="y26">.*?</p>', '', new, count=1, flags=re.S)
+        new = re.sub(r'(<h2 style="font-size:28px;margin-top:22px">El equipo</h2>\s*<div class="card">)', lambda m: m.group(1) + f'<p class="y26">{y}</p>', new, count=1)
         if st:
             new = re.sub(r'<p class="sub" style="margin-top:8px"(?: id="po-st")?>.*?</p>', lambda m: f'<p class="sub" style="margin-top:8px" id="po-st">{st}</p>', new, count=1, flags=re.S)
         if new != h:
