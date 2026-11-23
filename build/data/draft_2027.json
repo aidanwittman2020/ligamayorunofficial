@@ -168,13 +168,6 @@
   },
   {
    "liga": "14G",
-   "equipo": "PUM",
-   "jugador": "Jorge Iván Marín Solís",
-   "pos": "WR",
-   "numero": 5
-  },
-  {
-   "liga": "14G",
    "equipo": "BUR",
    "jugador": "Erick Barrero Gallardo",
    "pos": "WR",
@@ -215,31 +208,10 @@
    "numero": 3
   },
   {
-   "liga": "14G",
-   "equipo": "CCM",
-   "jugador": "Paulo Lerma Aburto",
-   "pos": "SS",
-   "numero": 9
-  },
-  {
    "liga": "NAC",
    "equipo": "UAC",
    "jugador": "Heriberto López Carbajal",
    "pos": "SS",
-   "numero": 23
-  },
-  {
-   "liga": "14G",
-   "equipo": "PUE",
-   "jugador": "Eduardo Mayén Marín",
-   "pos": "RB",
-   "numero": 9
-  },
-  {
-   "liga": "14G",
-   "equipo": "BUR",
-   "jugador": "Juan Ignacio Hernández Valtierra",
-   "pos": "RB",
    "numero": 23
   },
   {
@@ -295,13 +267,6 @@
    "jugador": "Yael Kalid Rivera Garay",
    "pos": "OL",
    "numero": 75
-  },
-  {
-   "liga": "14G",
-   "equipo": "TIG",
-   "jugador": "Rogelio Cepeda García",
-   "pos": "LB",
-   "numero": 47
   },
   {
    "liga": "14G",
@@ -387,25 +352,11 @@
    "numero": 44
   },
   {
-   "liga": "14G",
-   "equipo": "LAN",
-   "jugador": "Eric Alfredo Premio Torres",
-   "pos": "LB",
-   "numero": 5
-  },
-  {
    "liga": "NAC",
    "equipo": "UAC",
    "jugador": "José Antonio Vázquez Hernández",
    "pos": "LB",
    "numero": 50
-  },
-  {
-   "liga": "14G",
-   "equipo": "UVM",
-   "jugador": "Josué Roberto González Mendoza",
-   "pos": "K",
-   "numero": 14
   },
   {
    "liga": "14G",
@@ -471,20 +422,6 @@
   },
   {
    "liga": "14G",
-   "equipo": "MTY",
-   "jugador": "Eduardo Scully Manzo",
-   "pos": "DL",
-   "numero": 99
-  },
-  {
-   "liga": "14G",
-   "equipo": "CET",
-   "jugador": "Jesús Rodolfo Navarro Miller",
-   "pos": "DL",
-   "numero": 99
-  },
-  {
-   "liga": "14G",
    "equipo": "PUM",
    "jugador": "Rafael Uriel Saavedra Mendoza",
    "pos": "LB",
@@ -524,12 +461,6 @@
    "jugador": "Eduardo Romero Chávez",
    "pos": "DL",
    "numero": 96
-  },
-  {
-   "liga": "14G",
-   "equipo": "LAC",
-   "jugador": "Diego Gutiérrez",
-   "pos": "DE"
   },
   {
    "liga": "14G",

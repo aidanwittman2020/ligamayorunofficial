@@ -357,7 +357,7 @@ def draft_html(D, J):
     cc = [x for x in D.get('elegibles_cc', []) if not (x.get('p') and id(x['p']) in shown)]
     if cc:
         out += (f'<h2 style="font-size:26px;margin-top:22px">Lista de elegibles al {DRAFT}</h2>'
-                f'<p class="gm-meta">{len(cc)} jugadores más de la Liga Mayor en la lista de elegibles. Los que no tienen perfil aún no aparecen en nuestros rosters.</p>')
+                f'<p class="gm-meta">{len(cc)} jugadores más de la Liga Mayor en la lista de elegibles.</p>')
         grp = {}
         for x in cc:
             grp.setdefault((x.get('p') or {}).get('pos') or x.get('pos', ''), []).append(x)
