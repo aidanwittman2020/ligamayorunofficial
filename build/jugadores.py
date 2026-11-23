@@ -81,7 +81,7 @@ def build_players(fis):
             P.append({'liga': '14G', 'team': k, 'n': n, 'name': name, 'pos': pos})
     for r in fis:
         if r['Liga'] == 'NAC':
-            P.append({'liga': 'NAC', 'team': r['Equipo'], 'n': int(r['Numero']), 'name': r['Nombre'], 'pos': r['Posicion']})
+            P.append({'liga': 'NAC', 'team': r['Equipo'], 'n': int(r['Numero']) if r['Numero'].isdigit() else None, 'name': r['Nombre'], 'pos': r['Posicion']})
     # jugadores de la Nacional que ya salieron en las estadísticas (se guardan para que su perfil no desaparezca)
     if os.path.exists(NACP_FILE):
         for r in csv.DictReader(open(NACP_FILE, encoding='utf-8')):
@@ -91,7 +91,7 @@ def build_players(fis):
     # datos físicos (mismo orden que el roster: equipo + número + nombre)
     idx = {}
     for r in fis:
-        idx.setdefault((r['Equipo'], int(r['Numero'])), []).append(r)
+        idx.setdefault((r['Equipo'], int(r['Numero']) if r['Numero'].isdigit() else None), []).append(r)
     for p in P:
         cand = [r for r in idx.get((p['team'], p['n']), []) if r['Nombre'] == p['name']]
         p['fis'] = cand[0] if cand else None
@@ -556,7 +556,8 @@ def player_page(p, P):
     if p['liga'] == '14G':
         src.append('Nombre, número y posición: Guía ONEFA 2026 de Lucio Trucíos (@luciotrucios)')
     if age or h or w:
-        src.append('edad, estatura y peso: rosters publicados por los equipos')
+        src.append('nombre, número, posición, edad, estatura y peso: lista de elegibles de Cover Cero' if (p.get('fis') or {}).get('Fuente') == 'Cover Cero'
+                   else 'edad, estatura y peso: rosters publicados por los equipos')
     if ccall:
         src.append('otras estadísticas: Cover Cero (<a href="https://covercero.com.mx/estadisticas-2026/" rel="noopener">covercero.com.mx</a>)')
     if p['seasons'] or p.get('mb'):
