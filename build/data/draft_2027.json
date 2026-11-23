@@ -143,5 +143,425 @@
     }
    ]
   }
+ ],
+ "elegibles_cc": [
+  {
+   "liga": "14G",
+   "equipo": "AGU",
+   "jugador": "Emiliano Bautista Leyva",
+   "pos": "WR",
+   "numero": 7
+  },
+  {
+   "liga": "14G",
+   "equipo": "CEM",
+   "jugador": "Joel Mateo Scott Restrepo",
+   "pos": "WR",
+   "numero": 0
+  },
+  {
+   "liga": "14G",
+   "equipo": "LAC",
+   "jugador": "Patricio Alberto Olvera Benítez",
+   "pos": "WR",
+   "numero": 2
+  },
+  {
+   "liga": "14G",
+   "equipo": "PUM",
+   "jugador": "Jorge Iván Marín Solís",
+   "pos": "WR",
+   "numero": 5
+  },
+  {
+   "liga": "14G",
+   "equipo": "BUR",
+   "jugador": "Erick Barrero Gallardo",
+   "pos": "WR",
+   "numero": 11
+  },
+  {
+   "liga": "14G",
+   "equipo": "LAN",
+   "jugador": "Fabrizio Antonio Almaguer Rodríguez",
+   "pos": "WR",
+   "numero": 13
+  },
+  {
+   "liga": "NAC",
+   "equipo": "FRA",
+   "jugador": "Gustavo Adolfo Arana Guzmán",
+   "pos": "WR",
+   "numero": 13
+  },
+  {
+   "liga": "NAC",
+   "equipo": "PAC",
+   "jugador": "Axel José Armando Hernández Reyes",
+   "pos": "WR",
+   "numero": 15
+  },
+  {
+   "liga": "NAC",
+   "equipo": "FRA",
+   "jugador": "Karim Arines Cruz",
+   "pos": "WR"
+  },
+  {
+   "liga": "14G",
+   "equipo": "LAN",
+   "jugador": "Eduardo Moreno",
+   "pos": "TE",
+   "numero": 3
+  },
+  {
+   "liga": "14G",
+   "equipo": "CCM",
+   "jugador": "Paulo Lerma Aburto",
+   "pos": "SS",
+   "numero": 9
+  },
+  {
+   "liga": "NAC",
+   "equipo": "UAC",
+   "jugador": "Heriberto López Carbajal",
+   "pos": "SS",
+   "numero": 23
+  },
+  {
+   "liga": "14G",
+   "equipo": "PUE",
+   "jugador": "Eduardo Mayén Marín",
+   "pos": "RB",
+   "numero": 9
+  },
+  {
+   "liga": "14G",
+   "equipo": "BUR",
+   "jugador": "Juan Ignacio Hernández Valtierra",
+   "pos": "RB",
+   "numero": 23
+  },
+  {
+   "liga": "NAC",
+   "equipo": "PAC",
+   "jugador": "Víctor Patiño Mejía",
+   "pos": "QB",
+   "numero": 5
+  },
+  {
+   "liga": "NAC",
+   "equipo": "PAC",
+   "jugador": "Omar Gibrán Valadez Díaz",
+   "pos": "QB",
+   "numero": 7
+  },
+  {
+   "liga": "14G",
+   "equipo": "LAN",
+   "jugador": "Emmanuel Ramírez Robles",
+   "pos": "OL",
+   "numero": 74
+  },
+  {
+   "liga": "NAC",
+   "equipo": "ULM",
+   "jugador": "Francisco Sebastián Ilizaliturri Lara",
+   "pos": "OL"
+  },
+  {
+   "liga": "14G",
+   "equipo": "LAN",
+   "jugador": "Leonardo Salinas",
+   "pos": "OL",
+   "numero": 75
+  },
+  {
+   "liga": "NAC",
+   "equipo": "BUH",
+   "jugador": "Edgar Lira Salvador",
+   "pos": "OL"
+  },
+  {
+   "liga": "14G",
+   "equipo": "TIG",
+   "jugador": "Jabes Adolfo Díaz Vasquez",
+   "pos": "OL",
+   "numero": 78
+  },
+  {
+   "liga": "14G",
+   "equipo": "BUR",
+   "jugador": "Yael Kalid Rivera Garay",
+   "pos": "OL",
+   "numero": 75
+  },
+  {
+   "liga": "14G",
+   "equipo": "TIG",
+   "jugador": "Rogelio Cepeda García",
+   "pos": "LB",
+   "numero": 47
+  },
+  {
+   "liga": "14G",
+   "equipo": "MTY",
+   "jugador": "Emilio Carrillo Ceballos",
+   "pos": "LB",
+   "numero": 0
+  },
+  {
+   "liga": "14G",
+   "equipo": "TIG",
+   "jugador": "Juan Pablo Mandujano Castruita",
+   "pos": "LB",
+   "numero": 35
+  },
+  {
+   "liga": "14G",
+   "equipo": "PUE",
+   "jugador": "Bernardo Colunga Antuaño",
+   "pos": "LB",
+   "numero": 42
+  },
+  {
+   "liga": "NAC",
+   "equipo": "BUH",
+   "jugador": "Luis Mario Mancilla Rendón",
+   "pos": "LB"
+  },
+  {
+   "liga": "14G",
+   "equipo": "PUM",
+   "jugador": "Juan Pablo Acosta Gutiérrez",
+   "pos": "LB",
+   "numero": 22
+  },
+  {
+   "liga": "14G",
+   "equipo": "PUM",
+   "jugador": "Óscar González Real",
+   "pos": "LB",
+   "numero": 59
+  },
+  {
+   "liga": "14G",
+   "equipo": "BUR",
+   "jugador": "Iván Anzures Laguna",
+   "pos": "LB",
+   "numero": 6
+  },
+  {
+   "liga": "14G",
+   "equipo": "LAN",
+   "jugador": "Cigarroa Fernández",
+   "pos": "LB",
+   "numero": 42
+  },
+  {
+   "liga": "14G",
+   "equipo": "LAC",
+   "jugador": "Victor Francisco Pérez Riera",
+   "pos": "LB",
+   "numero": 25
+  },
+  {
+   "liga": "14G",
+   "equipo": "LAC",
+   "jugador": "Oscar Esteban Vargas Sesteaga",
+   "pos": "LB",
+   "numero": 52
+  },
+  {
+   "liga": "14G",
+   "equipo": "LAN",
+   "jugador": "Roberto Rivera",
+   "pos": "LB",
+   "numero": 2
+  },
+  {
+   "liga": "NAC",
+   "equipo": "HAL",
+   "jugador": "José Manuel González Cerda",
+   "pos": "LB",
+   "numero": 44
+  },
+  {
+   "liga": "14G",
+   "equipo": "LAN",
+   "jugador": "Eric Alfredo Premio Torres",
+   "pos": "LB",
+   "numero": 5
+  },
+  {
+   "liga": "NAC",
+   "equipo": "UAC",
+   "jugador": "José Antonio Vázquez Hernández",
+   "pos": "LB",
+   "numero": 50
+  },
+  {
+   "liga": "14G",
+   "equipo": "UVM",
+   "jugador": "Josué Roberto González Mendoza",
+   "pos": "K",
+   "numero": 14
+  },
+  {
+   "liga": "14G",
+   "equipo": "UVM",
+   "jugador": "Emmanuel Burgos Vargas",
+   "pos": "FS",
+   "numero": 5
+  },
+  {
+   "liga": "14G",
+   "equipo": "GDL",
+   "jugador": "Ulises Hermida González",
+   "pos": "FS",
+   "numero": 31
+  },
+  {
+   "liga": "14G",
+   "equipo": "UVM",
+   "jugador": "Zabdiel Edimar Salas Sánchez",
+   "pos": "FS",
+   "numero": 32
+  },
+  {
+   "liga": "14G",
+   "equipo": "BUR",
+   "jugador": "Rodrigo Alejandro Hernández Vidal",
+   "pos": "RB",
+   "numero": 39
+  },
+  {
+   "liga": "14G",
+   "equipo": "LAN",
+   "jugador": "Yair Raúl Policarpo Rivera",
+   "pos": "DL",
+   "numero": 90
+  },
+  {
+   "liga": "14G",
+   "equipo": "PUM",
+   "jugador": "José Manuel Valdéz Orea",
+   "pos": "DL",
+   "numero": 99
+  },
+  {
+   "liga": "NAC",
+   "equipo": "PAC",
+   "jugador": "Ulises Santiago Martínez López",
+   "pos": "DL"
+  },
+  {
+   "liga": "14G",
+   "equipo": "CET",
+   "jugador": "Carlos Iván Nieblas Sánchez",
+   "pos": "DL",
+   "numero": 97
+  },
+  {
+   "liga": "14G",
+   "equipo": "BUR",
+   "jugador": "Maximiliano García Pérez",
+   "pos": "DL",
+   "numero": 2
+  },
+  {
+   "liga": "14G",
+   "equipo": "MTY",
+   "jugador": "Eduardo Scully Manzo",
+   "pos": "DL",
+   "numero": 99
+  },
+  {
+   "liga": "14G",
+   "equipo": "CET",
+   "jugador": "Jesús Rodolfo Navarro Miller",
+   "pos": "DL",
+   "numero": 99
+  },
+  {
+   "liga": "14G",
+   "equipo": "PUM",
+   "jugador": "Rafael Uriel Saavedra Mendoza",
+   "pos": "LB",
+   "numero": 90
+  },
+  {
+   "liga": "14G",
+   "equipo": "LAN",
+   "jugador": "Ian Ernesto Almaguer Rodríguez",
+   "pos": "DL",
+   "numero": 0
+  },
+  {
+   "liga": "14G",
+   "equipo": "TIG",
+   "jugador": "Jorge Armando Cavazos Méndez",
+   "pos": "DL",
+   "numero": 91
+  },
+  {
+   "liga": "14G",
+   "equipo": "PUM",
+   "jugador": "Saúl René Bautista Balderrama",
+   "pos": "DL",
+   "numero": 98
+  },
+  {
+   "liga": "14G",
+   "equipo": "AGU",
+   "jugador": "Issac Zacarías De La Rosa",
+   "pos": "DL",
+   "numero": 98
+  },
+  {
+   "liga": "NAC",
+   "equipo": "PSA",
+   "jugador": "Eduardo Romero Chávez",
+   "pos": "DL",
+   "numero": 96
+  },
+  {
+   "liga": "14G",
+   "equipo": "LAC",
+   "jugador": "Diego Gutiérrez",
+   "pos": "DE"
+  },
+  {
+   "liga": "14G",
+   "equipo": "MTY",
+   "jugador": "Renzo Bibiano Aguirre",
+   "pos": "CB",
+   "numero": 27
+  },
+  {
+   "liga": "14G",
+   "equipo": "UVM",
+   "jugador": "Isaac Pérez Gómez",
+   "pos": "CB",
+   "numero": 0
+  },
+  {
+   "liga": "NAC",
+   "equipo": "PAC",
+   "jugador": "Brandon Di-Steffano Cardona Padrón",
+   "pos": "CB",
+   "numero": 0
+  },
+  {
+   "liga": "NAC",
+   "equipo": "PAC",
+   "jugador": "José Miguel Muñoz Flores",
+   "pos": "CB",
+   "numero": 25
+  }
+ ],
+ "fuente_cc": [
+  "Cover Cero",
+  "https://covercero.com.mx/prospectos-lfa-2027/"
  ]
 }

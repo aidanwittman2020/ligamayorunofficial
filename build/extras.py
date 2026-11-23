@@ -281,6 +281,8 @@ def ideal_page(P, J, liga='14G'):
 
 AGE_MIN, AGE_MAX = 24, 25
 DRAFT_YEAR = YEAR + 1
+DRAFT = f'Draft LFA {DRAFT_YEAR}'
+POS_ORD = ['QB', 'RB', 'FB', 'WR', 'TE', 'OL', 'DL', 'DE', 'LB', 'CB', 'DB', 'S', 'SS', 'FS', 'K', 'P']
 
 
 def load_draft(P):
@@ -289,25 +291,29 @@ def load_draft(P):
     for p in P:
         p['draft'] = []
     if not os.path.exists(fp):
-        return {'elegibles': [], 'rankings': [], 'fuente': ['', '']}
+        return {'elegibles': [], 'rankings': [], 'elegibles_cc': [], 'fuente': ['', '']}
     D = json.load(open(fp, encoding='utf-8'))
     nz = lambda x: G.norm(x).replace('z', 's').split()
 
-    def find(x, pos=None):
+    def find(x, strict=False):
         c = [p for p in P if p['liga'] == x.get('liga') and p['team'] == x['equipo'] and (x.get('numero') is None or p['n'] == x['numero'])
              and all(w in nz(p['name']) for w in nz(x['jugador']))]
-        if x.get('numero') is not None and not c:
+        if x.get('numero') is not None and not c and not strict:
             c = [p for p in P if p['liga'] == x.get('liga') and p['team'] == x['equipo'] and p['n'] == x['numero']]
         return c[0] if len(c) == 1 else None
     for x in D['elegibles']:
         x['p'] = find(x)
         if x['p']:
-            x['p']['draft'].append(f'Declarado elegible al draft {DRAFT_YEAR}')
+            x['p']['draft'].append(f'Declarado elegible al {DRAFT}')
     for r in D['rankings']:
         for i, x in enumerate(r['lista']):
             x['p'] = find(x)
             if x['p']:
                 x['p']['draft'].append(f'Top 5 clase {YEAR} · {r["titulo"]}: #{i + 1}')
+    for x in D.setdefault('elegibles_cc', []):
+        x['p'] = find(x, True)
+        if x['p'] and not x['p']['draft']:
+            x['p']['draft'].append(f'En la lista de elegibles al {DRAFT} (Cover Cero)')
     return D
 
 
@@ -316,7 +322,7 @@ def tname(x):
         return x['p']['T']['n']
     if x.get('liga') == '14G' and x['equipo'] in G.TEAMS:
         return G.TEAMS[x['equipo']]['n']
-    return x['equipo']
+    return G.NFULL.get(x['equipo'], x['equipo'])
 
 
 def draft_card(x, J, pos='', rank=None):
@@ -336,8 +342,8 @@ def draft_html(D, J):
     out = ''
     el = D['elegibles']
     if el:
-        out += (f'<h2 style="font-size:26px;margin-top:18px">Declarados elegibles al draft {DRAFT_YEAR}</h2>'
-                f'<p class="gm-meta">Jugadores que ya anunciaron que entran al draft {DRAFT_YEAR}.</p><div class="xig">'
+        out += (f'<h2 style="font-size:26px;margin-top:18px">Declarados elegibles al {DRAFT}</h2>'
+                f'<p class="gm-meta">Jugadores que ya anunciaron que entran al {DRAFT}.</p><div class="xig">'
                 + ''.join(draft_card(x, J, x.get('pos', '')) for x in el) + '</div>')
     rk = [(r, list(enumerate(r['lista']))) for r in D['rankings']]
     rk = [(r, L) for r, L in rk if L]
@@ -346,7 +352,20 @@ def draft_html(D, J):
         for r, L in rk:
             out += f'<h3 style="font-size:19px;margin:14px 0 6px">{e(r["titulo"])}</h3><div class="xig">' + ''.join(draft_card(x, J, r['pos'], f'{i + 1}.º') for i, x in L) + '</div>'
     if out:
-        out += f'<p class="note">Elegibles y rankings: <a href="{e(D["fuente"][1])}" rel="noopener">{e(D["fuente"][0])}</a>. Números: FBA Stats.</p>'
+        out += f'<p class="note">Declarados y rankings: <a href="{e(D["fuente"][1])}" rel="noopener">{e(D["fuente"][0])}</a>. Números: FBA Stats.</p>'
+    shown = {id(x['p']) for x in el + [y for r in D['rankings'] for y in r['lista']] if x.get('p')}
+    cc = [x for x in D.get('elegibles_cc', []) if not (x.get('p') and id(x['p']) in shown)]
+    if cc:
+        out += (f'<h2 style="font-size:26px;margin-top:22px">Lista de elegibles al {DRAFT}</h2>'
+                f'<p class="gm-meta">{len(cc)} jugadores más de la Liga Mayor en la lista de elegibles. Los que no tienen perfil aún no aparecen en nuestros rosters.</p>')
+        grp = {}
+        for x in cc:
+            grp.setdefault((x.get('p') or {}).get('pos') or x.get('pos', ''), []).append(x)
+        for ps in sorted(grp, key=lambda k: (POS_ORD.index(k) if k in POS_ORD else 99, k)):
+            L = sorted(grp[ps], key=lambda x: (not x.get('p'), x['liga'] != '14G', G.norm(x['jugador'])))
+            out += f'<h3 style="font-size:19px;margin:14px 0 6px">{e(ps)} <small style="color:var(--muted)">({len(L)})</small></h3><div class="xig">' + ''.join(draft_card(x, J, x.get('pos', '')) for x in L) + '</div>'
+        fc = D.get('fuente_cc') or ['', '']
+        out += f'<p class="note">Lista de elegibles: <a href="{e(fc[1])}" rel="noopener">{e(fc[0])}</a>. Equipo, número y posición: rosters de los equipos.</p>'
     return out
 
 
@@ -376,7 +395,7 @@ def prospects_page(P, J, D=None):
                  f'<td>{e(rk_)}<small style="display:block;color:var(--muted)">{e(ln)}</small></td></tr>' for _, p, age, h, w, rk_, ln in rows)
     path = f'/prospectos-{YEAR}/'
     nav, ld_b = G.crumbs([('Inicio', '/'), ('Prospectos', None)])
-    body = nav + f'<h1 class="gm-h1">Mejores prospectos rumbo al draft {DRAFT_YEAR}</h1>'
+    body = nav + f'<h1 class="gm-h1">Prospectos rumbo al {DRAFT}</h1>'
     body += '<p class="gm-meta">Los mejores prospectos de la Liga Mayor, de los 14 Grandes y de la Conferencia Nacional. La lista crece conforme más jugadores se declaren elegibles.</p>'
     body += draft_html(D or {'elegibles': [], 'rankings': []}, J)
     if tr:
@@ -386,8 +405,8 @@ def prospects_page(P, J, D=None):
                  'La edad sale de los rosters publicados por los equipos.</div>')
         body += '<div class="tbl-box"><table class="roster"><thead><tr><th>Jugador</th><th>Pos.</th><th>Edad</th><th>Est.</th><th>Peso</th><th>Por qué</th></tr></thead><tbody>' + tr + '</tbody></table></div>'
     body += '<p class="note">Estadísticas: Uriel González (FBA Stats). Edad, estatura (m) y peso (kg): rosters publicados por los equipos.</p>'
-    return path, G.page(f'Mejores prospectos al draft {DRAFT_YEAR} de la Liga Mayor ONEFA | Liga Mayor Unofficial',
-                        f'Los mejores prospectos de la Liga Mayor ONEFA rumbo al draft {DRAFT_YEAR}: declarados elegibles, top 5 por posición y veteranos líderes en estadísticas.', path, J.CSS + body, [ld_b])
+    return path, G.page(f'Prospectos al {DRAFT}: elegibles de la Liga Mayor ONEFA | Liga Mayor Unofficial',
+                        f'Prospectos de la Liga Mayor ONEFA rumbo al {DRAFT}: declarados elegibles, top 5 por posición, lista completa de elegibles y veteranos líderes en estadísticas.', path, J.CSS + body, [ld_b])
 
 
 REDIRECT = '<!doctype html><meta charset="utf-8"><meta name="robots" content="noindex"><link rel="canonical" href="{u}"><meta http-equiv="refresh" content="0;url={u}"><a href="{u}">{u}</a>'

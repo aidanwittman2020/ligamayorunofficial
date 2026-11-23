@@ -505,7 +505,7 @@ def player_page(p, P):
     if p.get('les'):
         body += f'<div class="card injc" style="margin-top:10px"><b>{e(p["les"][0])}</b>{(" · " + e(p["les"][1])) if p["les"][1] else ""}</div>'
     if p.get('draft'):
-        body += '<div class="card draftc" style="margin-top:10px"><b>Draft ' + str(EX.DRAFT_YEAR) + '</b><ul class="pv">' + ''.join(f'<li>{e(x)}</li>' for x in p['draft']) + f'</ul><p class="sub" style="margin:6px 0 0"><a href="/prospectos-{YEAR}/">Ver todos los prospectos →</a> Fuente: MEXFBA.</p></div>'
+        body += '<div class="card draftc" style="margin-top:10px"><b>' + EX.DRAFT + '</b><ul class="pv">' + ''.join(f'<li>{e(x)}</li>' for x in p['draft']) + f'</ul><p class="sub" style="margin:6px 0 0"><a href="/prospectos-{YEAR}/">Ver todos los prospectos →</a> Fuente: ' + ('Cover Cero' if 'Cover Cero' in p['draft'][0] else 'MEXFBA') + '.</p></div>'
     cur = p['seasons'].get(str(YEAR))
     body += f'<h2 style="font-size:26px;margin-top:22px">Temporada {YEAR}</h2>'
     if cur and cur['cats']:
