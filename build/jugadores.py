@@ -265,7 +265,8 @@ MB_SHOW = {'passing': ('Pase', [('JJ', 'JJ'), ('COMP', 'COMP'), ('INT', 'INTENT.
 
 
 # correcciones confirmadas por el usuario sobre los datos de FBA
-MB_FIX = {}
+MB_FIX = {('GDL', 1, 'tackles'): {'SACKS': 8.0},   # estadística oficial ONEFA: Maximiliano Baltazar, 8 sacks (FBA tenía 7)
+          }
 
 
 def load_mb():
